@@ -9,7 +9,11 @@
   ],
   "virtualFolder": {
     "name": "<virtual_root>",
-    "files": [],
+    "files": [
+      {
+        "path": "startup_stm32f405xx.s"
+      }
+    ],
     "folders": [
       {
         "name": "Application",
