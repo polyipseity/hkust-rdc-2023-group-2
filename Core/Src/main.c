@@ -29,6 +29,7 @@
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
 #include "lcd/lcd.h"
+#include "cpp_main.h"
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
@@ -99,7 +100,6 @@ int main(void)
     MX_USART2_UART_Init();
     MX_TIM5_Init();
     /* USER CODE BEGIN 2 */
-    volatile uint32_t last_ticks = 0;
 
     // we turn off all the led first
     led_off(LED1);
@@ -113,20 +113,10 @@ int main(void)
 
     /* Infinite loop */
     /* USER CODE BEGIN WHILE */
-    tft_force_clear();
-    while (1) {
-        if (HAL_GetTick() - last_ticks >= 100) {
-            tft_prints(0, 0, "Hello World!");
-            led_toggle(LED1);
-            led_toggle(LED2);
-            led_toggle(LED3);
-            led_toggle(LED4);
-            last_ticks = HAL_GetTick();
-        }
-        /* USER CODE END WHILE */
+    /* USER CODE END WHILE */
 
-        /* USER CODE BEGIN 3 */
-    }
+    /* USER CODE BEGIN 3 */
+    return cpp_main();
     /* USER CODE END 3 */
 }
 
