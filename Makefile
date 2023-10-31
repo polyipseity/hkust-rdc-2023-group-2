@@ -108,20 +108,20 @@ C_INCLUDES =  \
 
 
 # compile gcc flags
-ASFLAGS = $(MCU) $(AS_DEFS) $(AS_INCLUDES) $(OPT) -Wall -Werror -fdata-sections -ffunction-sections
+ASFLAGS += $(MCU) $(AS_DEFS) $(AS_INCLUDES) $(OPT) -Wall -Werror -fdata-sections -ffunction-sections
 
-CFLAGS += $(MCU) $(C_DEFS) $(C_INCLUDES) $(OPT) -Wall -Werror -fdata-sections -ffunction-sections
+CFLAGS += $(MCU) $(C_DEFS) $(C_INCLUDES) $(OPT) --std=c17 -Wall -Werror -fdata-sections -ffunction-sections
+CPPFLAGS += $(MCU) $(C_DEFS) $(C_INCLUDES) $(OPT) --std=c++17 -Wall -Werror -fdata-sections -ffunction-sections -fno-exceptions -fno-rtti -fno-threadsafe-statics
 
 ifeq ($(DEBUG), 1)
 CFLAGS += -g -gdwarf-2
+CPPFLAGS += -g -gdwarf-2
 endif
 
 
 # Generate dependency information
 CFLAGS += -MMD -MP -MF"$(@:%.o=%.d)"
-
-CPPFLAGS += $(CFLAGS)
-CPPFLAGS += -fno-exceptions -fno-rtti -fno-threadsafe-statics
+CPPFLAGS += -MMD -MP -MF"$(@:%.o=%.d)"
 
 #######################################
 # LDFLAGS
