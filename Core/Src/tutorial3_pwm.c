@@ -41,7 +41,10 @@ static inline uint8_t read_button(Button btn) {
     }
 }
 
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wunused-function"
 static ButtonState btn_state(void) {
+#pragma GCC diagnostic pop
     if (read_button(BUTTON1) && read_button(BUTTON2)) {
         return BOTH_BTN;
     } else if (read_button(BUTTON1)) {
