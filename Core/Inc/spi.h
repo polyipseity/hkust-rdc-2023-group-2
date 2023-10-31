@@ -35,7 +35,7 @@ extern "C" {
 extern SPI_HandleTypeDef hspi1;
 
 /* USER CODE BEGIN Private defines */
-#define TFT_SPI hspi1
+#define TFT_SPI      hspi1
 #define TFT_SPI_INIT MX_SPI1_Init
 /* USER CODE END Private defines */
 
@@ -50,4 +50,3 @@ void MX_SPI1_Init(void);
 #endif
 
 #endif /* __SPI_H__ */
-

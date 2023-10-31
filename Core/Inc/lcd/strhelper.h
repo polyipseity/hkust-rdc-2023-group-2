@@ -21,13 +21,14 @@
  *
  * @return     Returns the new end pointer of the string
  */
-static inline char* itos(char *data, int32_t i) {
+static inline char *itos(char *data, int32_t i)
+{
     if (i < 0) {
-        i = -i;
+        i       = -i;
         *data++ = '-';
     }
-    char buf[14] = { 0 };
-    char *ptr = &buf[1];
+    char buf[14] = {0};
+    char *ptr    = &buf[1];
     do {
         *ptr++ = '0' + (i % 10);
         i /= 10;
@@ -48,13 +49,14 @@ static inline char* itos(char *data, int32_t i) {
  *
  * @return     Returns the new end pointer of the string
  */
-static inline char* ltos(char *data, int64_t i) {
+static inline char *ltos(char *data, int64_t i)
+{
     if (i < 0) {
-        i = -i;
+        i       = -i;
         *data++ = '-';
     }
-    char buf[24] = { 0 };
-    char *ptr = &buf[1];
+    char buf[24] = {0};
+    char *ptr    = &buf[1];
     do {
         *ptr++ = '0' + (i % 10);
         i /= 10;
@@ -75,9 +77,10 @@ static inline char* ltos(char *data, int64_t i) {
  *
  * @return     Returns the new end pointer of the string
  */
-static inline char* utos(char *data, uint32_t i) {
-    char buf[14] = { 0 };
-    char *ptr = &buf[1];
+static inline char *utos(char *data, uint32_t i)
+{
+    char buf[14] = {0};
+    char *ptr    = &buf[1];
     do {
         *ptr++ = '0' + (i % 10);
         i /= 10;
@@ -100,13 +103,14 @@ static inline char* utos(char *data, uint32_t i) {
  *
  * @return     Returns the new end pointer of the string
  */
-static inline char* itos2(char *data, int32_t i) {
+static inline char *itos2(char *data, int32_t i)
+{
     if (i < 0) {
-        i = -i;
+        i       = -i;
         *data++ = '-';
     }
-    char buf[20] = { 0 };
-    char *ptr = &buf[1];
+    char buf[20] = {0};
+    char *ptr    = &buf[1];
     while (i) {
         *ptr++ = '0' + (i % 10);
         i /= 10;
@@ -130,9 +134,10 @@ static inline char* itos2(char *data, int32_t i) {
  *
  * @return     Returns the new end pointer of the string
  */
-static inline char* utos0(char *data, uint32_t i, uint32_t digits) {
-    char buf[20] = { 0 };
-    char *ptr = &buf[1];
+static inline char *utos0(char *data, uint32_t i, uint32_t digits)
+{
+    char buf[20] = {0};
+    char *ptr    = &buf[1];
     digits--;
     uint32_t n = 0;
     do {
@@ -162,24 +167,25 @@ static inline char* utos0(char *data, uint32_t i, uint32_t digits) {
  *
  * @return     Returns the new end pointer of the string
  */
-static inline char* ftos(char *data, float a, uint32_t dp) {
+static inline char *ftos(char *data, float a, uint32_t dp)
+{
     int32_t i = a;
     if (a < 0) {
         *data++ = '-';
-        i = -i;
-        a = -a - i;
+        i       = -i;
+        a       = -a - i;
     } else {
         a = a - i;
     }
-    data = itos(data, i);
-    *data++ = '.';
-    float d = a;
+    data          = itos(data, i);
+    *data++       = '.';
+    float d       = a;
     uint32_t __dp = dp;
     while (dp--) {
         d *= 10;
     }
     if (__dp != 0)
-        data = utos0(data, (uint32_t) (d + 0.5f), __dp);
+        data = utos0(data, (uint32_t)(d + 0.5f), __dp);
     return data;
 }
 
@@ -196,19 +202,20 @@ static inline char* ftos(char *data, float a, uint32_t dp) {
  *
  * @return     Returns the new end pointer of the string
  */
-static inline char* ftos2(char *data, float a, uint32_t dp) {
+static inline char *ftos2(char *data, float a, uint32_t dp)
+{
     int32_t i = a;
     if (a < 0) {
         *data++ = '-';
-        i = -i;
-        a = -a - i;
+        i       = -i;
+        a       = -a - i;
     } else {
         a = a - i;
     }
-    data = itos2(data, i);
-    *data++ = '.';
+    data       = itos2(data, i);
+    *data++    = '.';
     uint32_t d = a * 100000;
-    data = utos0(data, d, dp);
+    data       = utos0(data, d, dp);
     return data;
 }
 
@@ -233,15 +240,17 @@ static inline char* ftos2(char *data, float a, uint32_t dp) {
 
 #include <stdarg.h>
 
-__forceinline void printchar(char **str, int c) {
-    **str = (char) c;
+__forceinline void printchar(char **str, int c)
+{
+    **str = (char)c;
     ++(*str);
 }
 
 #define PAD_RIGHT 1
-#define PAD_ZERO 2
+#define PAD_ZERO  2
 
-static int prints(char **out, const char *string, int width, int pad) {
+static int prints(char **out, const char *string, int width, int pad)
+{
     register int pc = 0, padchar = ' ';
 
     if (width > 0) {
@@ -278,11 +287,12 @@ static int prints(char **out, const char *string, int width, int pad) {
 #define PRINT_BUF_LEN 12
 
 static int printi(char **out, int i, int b, int sg, int width, int pad,
-        int letbase) {
+                  int letbase)
+{
     char print_buf[PRINT_BUF_LEN];
     register char *s;
     register int t, neg = 0, pc = 0;
-    register unsigned int u = (unsigned int) i;
+    register unsigned int u = (unsigned int)i;
 
     if (i == 0) {
         print_buf[0] = '0';
@@ -292,17 +302,17 @@ static int printi(char **out, int i, int b, int sg, int width, int pad,
 
     if (sg && b == 10 && i < 0) {
         neg = 1;
-        u = (unsigned int) -i;
+        u   = (unsigned int)-i;
     }
 
-    s = print_buf + PRINT_BUF_LEN - 1;
+    s  = print_buf + PRINT_BUF_LEN - 1;
     *s = '\0';
 
     while (u) {
-        t = (unsigned int) u % b;
+        t = (unsigned int)u % b;
         if (t >= 10)
             t += letbase - '0' - 10;
-        *--s = (char) (t + '0');
+        *--s = (char)(t + '0');
         u /= b;
     }
 
@@ -319,8 +329,9 @@ static int printi(char **out, int i, int b, int sg, int width, int pad,
     return pc + prints(out, s, width, pad);
 }
 
-static int printf_(char **out, float f, int width, int dp, int pad) {
-    char buf[40] = { 0 };
+static int printf_(char **out, float f, int width, int dp, int pad)
+{
+    char buf[40] = {0};
     ftos(buf, f, dp);
     return prints(out, buf, width, pad);
 }
@@ -335,7 +346,8 @@ static int printf_(char **out, float f, int width, int dp, int pad) {
  * @param args Arguments
  * @return length of string
  */
-static int print(char **out, const char *format, va_list args) {
+static int print(char **out, const char *format, va_list args)
+{
     register int width, pad, dp;
     register int pc = 0;
     char scr[2];
@@ -368,7 +380,7 @@ static int print(char **out, const char *format, va_list args) {
                 }
             }
             if (*format == 's') {
-                register char *s = (char*) va_arg(args, int);
+                register char *s = (char *)va_arg(args, int);
                 pc += prints(out, s ? s : "(null)", width, pad);
                 continue;
             }
@@ -390,7 +402,7 @@ static int print(char **out, const char *format, va_list args) {
             }
             if (*format == 'c') {
                 /* char are converted to int then pushed on the stack */
-                scr[0] = (char) va_arg(args, int);
+                scr[0] = (char)va_arg(args, int);
                 scr[1] = '\0';
                 pc += prints(out, scr, width, pad);
                 continue;
@@ -400,7 +412,8 @@ static int print(char **out, const char *format, va_list args) {
                 continue;
             }
         } else {
-            out: printchar(out, *format);
+        out:
+            printchar(out, *format);
             ++pc;
         }
     }
