@@ -5,9 +5,10 @@
 class PositionADRC
 {
 public:
-    double m_position, m_velocity, m_gain;
+    double m_position, m_velocity;
 
 private:
+    double m_gain;
     control::ADRC2d m_control;
 
 public:
