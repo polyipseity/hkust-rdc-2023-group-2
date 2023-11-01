@@ -78,9 +78,25 @@ typedef struct {
 } MotorFeedback;
 
 typedef struct {
+    /**
+     * @brief
+     * Position of the motor in the circle normalized to 0 to 8191.
+     */
     uint16_t encoder;
+    /**
+     * @brief
+     * Velocity of the motor in RPM.
+     */
     int16_t vel_rpm;
+    /**
+     * @brief
+     * Actual current to the motor, with 8192 being a circle per second.
+     */
     float actual_current;
+    /**
+     * @brief
+     * Temperature of the motor.
+     */
     uint8_t temperature;
 } MotorStats;
 
@@ -114,9 +130,9 @@ MotorStats get_motor_feedback(Motor tar_motor);
 
 /**
  * @brief Clockwise if current if is positive, and vice versa. Max current is
- *16384.
+ * 16384 / 1024.
  **/
-void set_motor_current(Motor tar_motor, int16_t tar_current);
+void set_motor_current(Motor tar_motor, float tar_current);
 
 // TODO: implement this (Tips: see PID notes)
 void set_motor_speed(Motor tar_motor, int16_t tar_vel);

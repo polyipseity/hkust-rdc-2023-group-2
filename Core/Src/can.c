@@ -349,8 +349,9 @@ MotorStats get_motor_feedback(Motor tar_motor)
     return rm_fb_cmd[tar_motor];
 }
 
-void set_motor_current(Motor tar_motor, int16_t tar_current)
+void set_motor_current(Motor tar_motor, float tar_current)
 {
+    tar_current *= 1024.;
     if (tar_current > 16384) {
         tar_current = 16384;
     } else if (tar_current < -16384) {
