@@ -20,11 +20,12 @@ namespace control
             }
             return ret;
         }()};
-        constexpr static auto const B{[]() {
+        constexpr static auto B(Scalar gain)
+        {
             math::Vector<Scalar, order> ret{};
-            ret(order - 2) = 1;
+            ret(order - 2) = gain;
             return ret;
-        }()};
+        }
         constexpr static math::RowVector<Scalar, order> const C{1};
         constexpr static auto L(Scalar convergence)
         {
@@ -49,10 +50,10 @@ namespace control
             : m_state{std::move(state)},
               m_A{A - L(convergence) * C},
               m_B{[convergence, gain]() {
-                  auto const &Lc{L(convergence)};
+                  auto const &B0(B(gain)), &L0{L(convergence)};
                   decltype(m_B) ret{};
                   for (std::size_t ii{}; ii < order; ++ii) {
-                      ret[ii] = {B(ii), Lc(ii)};
+                      ret[ii] = {B0(ii), L0(ii)};
                   }
                   return ret;
               }()}
