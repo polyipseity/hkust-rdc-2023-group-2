@@ -13,20 +13,20 @@ CANMotor::CANMotor(decltype(m_handle) handle)
     : m_handle{handle}
 {
 }
-auto CANMotor::setInput(float input) noexcept -> void
+auto CANMotor::setInput(double input) noexcept -> void
 {
     set_motor_current(m_handle, input);
 }
-auto CANMotor::getInput() const noexcept -> float
+auto CANMotor::getInput() const noexcept -> double
 {
     auto const ret{get_motor_feedback(m_handle).actual_current};
     return std::abs(ret) <= input_noise_threshold ? 0. : ret;
 }
-auto CANMotor::getPosition() const noexcept -> float
+auto CANMotor::getPosition() const noexcept -> double
 {
     return get_motor_feedback(m_handle).encoder / 8192.;
 }
-auto CANMotor::getVelocity() const noexcept -> float
+auto CANMotor::getVelocity() const noexcept -> double
 {
     return get_motor_feedback(m_handle).vel_rpm / 1024.;
 }
@@ -35,7 +35,7 @@ auto CANMotor::getTemperature() const noexcept -> decltype(MotorStats::temperatu
     return get_motor_feedback(m_handle).temperature;
 }
 
-auto new_motor_ADRC(CANMotor const &motor, float convergence, float gain) noexcept -> control::ADRC2f
+auto new_motor_ADRC(CANMotor const &motor, double convergence, double gain) noexcept -> control::ADRC2d
 {
     return {gain, convergence, {motor.getVelocity()}};
 }

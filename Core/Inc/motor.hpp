@@ -15,10 +15,10 @@ class CANMotor
 
 public:
     explicit CANMotor(decltype(m_handle) handle) noexcept;
-    auto setInput(float input) noexcept -> void;
-    auto getInput() const noexcept -> float;
-    auto getPosition() const noexcept -> float;
-    auto getVelocity() const noexcept -> float;
+    auto setInput(double input) noexcept -> void;
+    auto getInput() const noexcept -> double;
+    auto getPosition() const noexcept -> double;
+    auto getVelocity() const noexcept -> double;
     auto getTemperature() const noexcept -> decltype(MotorStats::temperature);
 };
 
@@ -95,10 +95,10 @@ public:
     }
 };
 
-auto new_motor_ADRC(CANMotor const &motor, float convergence = 16., float gain = 4.) noexcept -> control::ADRC2f;
+auto new_motor_ADRC(CANMotor const &motor, double convergence = 16., double gain = 4.) noexcept -> control::ADRC2d;
 
 template <typename Control>
-constexpr auto update_motor_velocity(CANMotor &motor, Control &control, float velocity, double dt) noexcept
+constexpr auto update_motor_velocity(CANMotor &motor, Control &control, double velocity, double dt) noexcept
 {
     auto const input{control.update(velocity, motor.getInput(), motor.getVelocity(), dt)};
     motor.setInput(input);
