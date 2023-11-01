@@ -14,7 +14,7 @@ namespace
     constexpr std::size_t const motor_size{1};
     constexpr auto const tft_update_period{10};
 
-    auto motor_open_loop [[maybe_unused]] [[nodiscard]] (Motor motor_handle) noexcept
+    auto find_motor_gain [[maybe_unused]] [[nodiscard]] (Motor motor_handle) noexcept
     {
         constexpr static auto const input{.5}, duration{1.};
         CANMotors<1> motors{{motor_handle}};
