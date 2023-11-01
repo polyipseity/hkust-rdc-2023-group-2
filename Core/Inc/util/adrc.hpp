@@ -66,6 +66,8 @@ namespace control
     };
     using ESO2f = ESO<float, 2>;
     using ESO3f = ESO<float, 3>;
+    using ESO2d = ESO<double, 2>;
+    using ESO3d = ESO<double, 3>;
 
     template <typename Scalar, std::size_t order>
     class ADRC
@@ -108,9 +110,11 @@ namespace control
                               Scalar dt) // Synchronize with `PID::update`
         {
             m_observer.update(input, output, dt);
-            return control(target);
+            return control(target / static_cast<Scalar>(2));
         }
     };
     using ADRC2f = ADRC<float, 2>;
     using ADRC3f = ADRC<float, 3>;
+    using ADRC2d = ADRC<double, 2>;
+    using ADRC3d = ADRC<double, 3>;
 } // namespace control
