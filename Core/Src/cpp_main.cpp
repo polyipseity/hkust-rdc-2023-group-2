@@ -14,7 +14,7 @@ namespace
     constexpr std::size_t const motor_size{1};
     constexpr auto const tft_update_period{10};
 
-    void motor_open_loop [[maybe_unused]] (Motor motor_handle)
+    auto motor_open_loop [[maybe_unused]] (Motor motor_handle)
     {
         constexpr static auto const input{.5}, duration{1.};
         CANMotors<1> motors{{motor_handle}};
@@ -41,7 +41,7 @@ namespace
         }
     }
 
-    int cpp_main2()
+    auto cpp_main2()
     {
         CANMotors<motor_size> motors{{CAN1_MOTOR0}};
         std::array<control::ADRC2d, 1> motor_adrcs{
@@ -85,7 +85,7 @@ namespace
 }
 
 extern "C" {
-int cpp_main()
+auto cpp_main() -> int
 {
     return cpp_main2();
 }
