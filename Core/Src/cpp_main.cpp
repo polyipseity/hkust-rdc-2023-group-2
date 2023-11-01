@@ -1,6 +1,5 @@
 #include "cpp_main.h"
 
-#include <algorithm>
 #include <array>
 
 #include "can.h"
