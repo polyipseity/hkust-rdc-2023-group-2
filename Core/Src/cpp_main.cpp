@@ -44,9 +44,9 @@ namespace
                 tft_prints(0, 0, "tick: %u", static_cast<unsigned int>(HAL_GetTick()));
                 tft_prints(0, 1, "input: %.3f", motors[0].getInput());
                 tft_prints(0, 2, "vel: %.3f", motors[0].getVelocity());
-                tft_prints(0, 3, "pos: %.3f", pos_adrc.position);
+                tft_prints(0, 3, "pos: %.3f", pos_adrc.m_position);
                 tft_prints(0, 4, "t pos: %.3f", target_position);
-                tft_prints(0, 5, "diff: %.3f", pos_adrc.position - target_position);
+                tft_prints(0, 5, "diff: %.3f", pos_adrc.m_position - target_position);
             }
 
             last_tick = tick;
