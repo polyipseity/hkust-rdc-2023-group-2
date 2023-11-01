@@ -1,6 +1,10 @@
 #ifndef __LCD_MAIN_H
 #define __LCD_MAIN_H
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 /**
  * Select the LCD TFT model you are using
  * Uncomment to Select
@@ -178,5 +182,9 @@ void tft_printu(uint8_t x, uint8_t y, uint32_t num);
 void tft_printf(uint8_t x, uint8_t y, float num, uint32_t dp);
 uint8_t tft_update(uint32_t period);
 uint8_t tft_update2(uint32_t period);
+
+#ifdef __cplusplus
+}
+#endif
 
 #endif /* __LCD_MAIN_H */
