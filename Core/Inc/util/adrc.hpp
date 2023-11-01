@@ -5,6 +5,7 @@
 #include <utility>
 
 #include "matrix.hpp"
+#include "util/math.hpp"
 
 namespace control
 {
@@ -31,11 +32,9 @@ namespace control
         {
             math::Vector<Scalar, order> ret{};
             for (std::size_t ii{}; ii < order; ++ii) {
-                ret(ii) = 1;
-                for (std::size_t jj{order}; jj > ii + 1; --jj) {
-                    ret(ii) *= jj;
-                }
-                ret(ii) *= std::pow(convergence, static_cast<Scalar>(ii + 1));
+                // (s+w)^n
+                // n=3, (s+w)^3=s^3+3s^2*w+3sw^2+w^3
+                ret(ii) = math::tbinom(static_cast<Scalar>(order), static_cast<Scalar>(ii + 1)) * std::pow(convergence, static_cast<Scalar>(ii + 1));
             }
             return ret;
         }
@@ -89,15 +88,11 @@ namespace control
               m_gain{gain},
               m_K{[convergence]() {
                   decltype(m_K) ret{};
-                  for (std::size_t ii{}; ii < order - 1; ++ii) {
-                      ret(ii) = 1;
-                      for (std::size_t jj{order - 1}; jj > order - ii - 1; --jj) {
-                          ret(ii) *= jj;
-                      }
-                      ret(ii) *= std::pow(convergence,
-                                          static_cast<Scalar>(order - ii - 1));
+                  for (std::size_t ii{}; ii < order; ++ii) {
+                      // (s+w)^(n-1)
+                      // n=3, (s+w)^2=w^2+2ws+s^2
+                      ret(ii) = math::tbinom(static_cast<Scalar>(order - 1), static_cast<Scalar>(order - 1 - ii)) * std::pow(convergence, static_cast<Scalar>(order - 1 - ii));
                   }
-                  ret(order - 1) = 1;
                   return ret;
               }()}
         {
