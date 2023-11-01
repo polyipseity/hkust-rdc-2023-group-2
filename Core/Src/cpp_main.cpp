@@ -3,6 +3,7 @@
 #include <array>
 
 #include "can.h"
+#include "lcd/lcd.h"
 #include "main.h"
 #include "motor.hpp"
 #include "util/adrc.hpp"
@@ -14,7 +15,7 @@ namespace
     {
         CANMotors<motor_size> motors{{CAN1_MOTOR1}};
         std::array<control::ADRC2f, 1> motor_adrcs{
-            control::ADRC2f{1., 1., {static_cast<float>(motors[0].getPosition())}},
+            control::ADRC2f{8., 16., {motors[0].getVelocity()}},
         };
         auto last_tick{HAL_GetTick()};
         while (true) {
@@ -22,7 +23,14 @@ namespace
             CANMotorsControl<motor_size> motors_ctrl{motors};
             for (std::size_t ii{}; ii < motor_size; ++ii) {
                 auto &motor_ctrl{motors_ctrl[ii]};
-                motor_ctrl.setInput(motor_adrcs[ii].update(10., motor_ctrl.getInput(), motor_ctrl.getPosition(), elapsed / 1000.));
+                auto const input{motor_adrcs[ii].update(btn_read(BTN1) ? 0. : 4., motor_ctrl.getInput(), motor_ctrl.getVelocity(), elapsed / 1000.)};
+                motor_ctrl.setInput(input);
+                if (tft_update(10)) {
+                    tft_prints(0, 0, "tick: %u", static_cast<unsigned int>(HAL_GetTick()));
+                    tft_prints(0, 1, "input: %.3f", motor_ctrl.getInput());
+                    tft_prints(0, 2, "pos: %.3f", motor_ctrl.getPosition());
+                    tft_prints(0, 3, "vel: %.3f", motor_ctrl.getVelocity());
+                }
             }
             last_tick = tick;
         }
