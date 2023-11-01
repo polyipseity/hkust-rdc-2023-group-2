@@ -120,7 +120,7 @@ namespace math
         for (std::size_t row{}; row < rows; ++row) {
             for (std::size_t col{}; col < cols; ++col) {
                 for (std::size_t idx{}; idx < size; ++idx) {
-                    ret(row, col) = left(row, idx) * right(idx, col);
+                    ret(row, col) += left(row, idx) * right(idx, col);
                 }
             }
         }
