@@ -21,14 +21,14 @@ namespace control
             }
             return ret;
         }()};
-        constexpr static auto B(Scalar gain)
+        constexpr static auto B [[nodiscard]] (Scalar gain) noexcept
         {
             math::Vector<Scalar, order> ret{};
             ret(order - 2) = gain;
             return ret;
         }
         constexpr static math::RowVector<Scalar, order> const C{1};
-        constexpr static auto L(Scalar convergence)
+        constexpr static auto L [[nodiscard]] (Scalar convergence) noexcept
         {
             math::Vector<Scalar, order> ret{};
             for (std::size_t ii{}; ii < order; ++ii) {
@@ -45,7 +45,7 @@ namespace control
         math::Matrix<Scalar, order, 2> m_B;
 
     public:
-        constexpr ESO(Scalar gain, Scalar convergence, State state)
+        constexpr ESO(Scalar gain, Scalar convergence, State state) noexcept
             : m_state{std::move(state)},
               m_A{A - L(convergence) * C},
               m_B{[convergence, gain]() {
@@ -58,7 +58,7 @@ namespace control
               }()}
         {
         }
-        constexpr auto update(Scalar input, Scalar output, Scalar dt)
+        constexpr auto update(Scalar input, Scalar output, Scalar dt) noexcept
         {
             m_state += dt * (m_A * m_state + m_B * math::Vector<Scalar, 2>{
                                                        input, output - m_state(0)});
@@ -83,7 +83,7 @@ namespace control
         math::RowVector<Scalar, order> m_K;
 
     public:
-        constexpr ADRC(Scalar gain, Scalar convergence, State state)
+        constexpr ADRC(Scalar gain, Scalar convergence, State state) noexcept
             : m_observer{gain,
                          convergence * observer_convergence_factor,
                          std::move(state)},
@@ -99,7 +99,7 @@ namespace control
               }()}
         {
         }
-        constexpr auto control(Scalar target) const
+        constexpr auto control [[nodiscard]] (Scalar target) const noexcept
         {
             auto const &state{m_observer.m_state};
             return (m_K * (State{target} - state))(0) / m_gain;
@@ -107,7 +107,7 @@ namespace control
         constexpr auto update(Scalar target,
                               Scalar input,
                               Scalar output,
-                              Scalar dt) // Synchronize with `PID::update`
+                              Scalar dt) noexcept
         {
             m_observer.update(input, output, dt);
             return control(target / static_cast<Scalar>(2));

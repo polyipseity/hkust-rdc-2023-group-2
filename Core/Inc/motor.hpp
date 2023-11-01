@@ -16,10 +16,10 @@ class CANMotor
 public:
     explicit CANMotor(decltype(m_handle) handle) noexcept;
     auto setInput(double input) noexcept -> void;
-    auto getInput() const noexcept -> double;
-    auto getPosition() const noexcept -> double;
-    auto getVelocity() const noexcept -> double;
-    auto getTemperature() const noexcept -> decltype(MotorStats::temperature);
+    auto getInput [[nodiscard]] () const noexcept -> double;
+    auto getPosition [[nodiscard]] () const noexcept -> double;
+    auto getVelocity [[nodiscard]] () const noexcept -> double;
+    auto getTemperature [[nodiscard]] () const noexcept -> decltype(MotorStats::temperature);
 };
 
 template <std::size_t size>
@@ -40,7 +40,7 @@ public:
         can_init();
     }
 
-    constexpr auto const &operator[](decltype(size) index) const noexcept
+    constexpr auto const &operator[] [[nodiscard]] (decltype(size) index) const noexcept
     {
         return m_handles[index];
     }
@@ -85,18 +85,18 @@ public:
     {
     }
 
-    constexpr auto &operator[](decltype(size) index) noexcept
+    constexpr auto &operator[] [[nodiscard]] (decltype(size) index) noexcept
     {
         return m_delegate->m_handles[index];
     }
-    constexpr auto const &operator[](decltype(size) index) const noexcept
+    constexpr auto const &operator[] [[nodiscard]] (decltype(size) index) const noexcept
     {
         return (*m_delegate)[index];
     }
 };
 
-auto new_motor_ADRC_auto(CANMotor const &motor, double convergence = 16., double gain = 6.) noexcept -> control::ADRC2d;
-auto new_motor_ADRC_mec(CANMotor const &motor, double convergence = 16., double gain = 4.) noexcept -> control::ADRC2d;
+auto new_motor_ADRC_auto [[nodiscard]] (CANMotor const &motor, double convergence = 16., double gain = 6.) noexcept -> control::ADRC2d;
+auto new_motor_ADRC_mec [[nodiscard]] (CANMotor const &motor, double convergence = 16., double gain = 4.) noexcept -> control::ADRC2d;
 
 template <typename Control>
 constexpr auto update_motor_velocity(CANMotor &motor, Control &control, double velocity, double dt) noexcept

@@ -14,7 +14,7 @@ namespace
     constexpr std::size_t const motor_size{1};
     constexpr auto const tft_update_period{10};
 
-    auto motor_open_loop [[maybe_unused]] (Motor motor_handle)
+    auto motor_open_loop [[maybe_unused]] [[nodiscard]] (Motor motor_handle) noexcept
     {
         constexpr static auto const input{.5}, duration{1.};
         CANMotors<1> motors{{motor_handle}};
@@ -41,7 +41,7 @@ namespace
         }
     }
 
-    auto cpp_main2()
+    auto cpp_main2 [[nodiscard]] () noexcept
     {
         CANMotors<motor_size> motors{{CAN1_MOTOR0}};
         std::array<control::ADRC2d, 1> motor_adrcs{
@@ -85,7 +85,7 @@ namespace
 }
 
 extern "C" {
-auto cpp_main() -> int
+auto cpp_main [[nodiscard]] () noexcept -> int
 {
     return cpp_main2();
 }
