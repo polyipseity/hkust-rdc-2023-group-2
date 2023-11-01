@@ -35,7 +35,11 @@ auto CANMotor::getTemperature() const noexcept -> decltype(MotorStats::temperatu
     return get_motor_feedback(m_handle).temperature;
 }
 
-auto new_motor_ADRC(CANMotor const &motor, double convergence, double gain) noexcept -> control::ADRC2d
+auto new_motor_ADRC_auto(CANMotor const &motor, double convergence, double gain) noexcept -> control::ADRC2d
+{
+    return {gain, convergence, {motor.getVelocity()}};
+}
+auto new_motor_ADRC_mec(CANMotor const &motor, double convergence, double gain) noexcept -> control::ADRC2d
 {
     return {gain, convergence, {motor.getVelocity()}};
 }

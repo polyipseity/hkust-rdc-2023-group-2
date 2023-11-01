@@ -95,7 +95,8 @@ public:
     }
 };
 
-auto new_motor_ADRC(CANMotor const &motor, double convergence = 16., double gain = 4.) noexcept -> control::ADRC2d;
+auto new_motor_ADRC_auto(CANMotor const &motor, double convergence = 16., double gain = 6.) noexcept -> control::ADRC2d;
+auto new_motor_ADRC_mec(CANMotor const &motor, double convergence = 16., double gain = 4.) noexcept -> control::ADRC2d;
 
 template <typename Control>
 constexpr auto update_motor_velocity(CANMotor &motor, Control &control, double velocity, double dt) noexcept

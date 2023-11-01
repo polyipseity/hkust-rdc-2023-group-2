@@ -43,9 +43,9 @@ namespace
 
     int cpp_main2()
     {
-        CANMotors<motor_size> motors{{CAN1_MOTOR1}};
+        CANMotors<motor_size> motors{{CAN1_MOTOR0}};
         std::array<control::ADRC2d, 1> motor_adrcs{
-            new_motor_ADRC(motors[0]),
+            new_motor_ADRC_auto(motors[0]),
         };
         PositionADRC pos_adrc{0., 0.};
 
