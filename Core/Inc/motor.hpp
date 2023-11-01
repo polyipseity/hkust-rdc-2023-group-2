@@ -12,10 +12,10 @@ class CANMotor
 
 public:
     explicit CANMotor(decltype(m_handle) handle) noexcept;
-    auto setInput(decltype(MotorStats::actual_current) input) noexcept -> void;
-    auto getInput() const noexcept -> decltype(MotorStats::actual_current);
-    auto getPosition() const noexcept -> decltype(MotorStats::encoder);
-    auto getVelocity() const noexcept -> decltype(MotorStats::vel_rpm);
+    auto setInput(float input) noexcept -> void;
+    auto getInput() const noexcept -> float;
+    auto getPosition() const noexcept -> float;
+    auto getVelocity() const noexcept -> float;
     auto getTemperature() const noexcept -> decltype(MotorStats::temperature);
 };
 
