@@ -12,6 +12,34 @@
 namespace
 {
     constexpr std::size_t const motor_size{1};
+    constexpr auto const tft_update_period{10};
+
+    void motor_open_loop [[maybe_unused]] (Motor motor_handle)
+    {
+        constexpr static auto const input{.5}, duration{1.};
+        CANMotors<1> motors{{motor_handle}};
+        auto const start_tick{HAL_GetTick()};
+        while ((HAL_GetTick() - start_tick) / 1000. <= duration) {
+            CANMotorsControl<1> motors_ctrl{motors};
+            auto &motor{motors_ctrl[0]};
+            motor.setInput(input);
+        }
+        auto velocity{0.};
+        while (velocity == 0.) {
+            CANMotorsControl<1> motors_ctrl{motors};
+            auto &motor{motors_ctrl[0]};
+            motor.setInput(0);
+            velocity = motor.getVelocity();
+        }
+        while (true) {
+            if (tft_update(tft_update_period)) {
+                tft_prints(0, 0, "input: %.6f", input);
+                tft_prints(0, 1, "duration: %.6f", duration);
+                tft_prints(0, 2, "velocity: %.6f", velocity);
+                tft_prints(0, 3, "gain: %.6f", velocity / input / duration / 2.);
+            }
+        }
+    }
 
     int cpp_main2()
     {
@@ -39,7 +67,7 @@ namespace
                 auto &motor{motors_ctrl[ii]};
                 update_motor_velocity(motor, motor_adrcs[ii], pos_adrc.update(target_position, motor.getVelocity(), dt), dt);
             }
-            if (tft_update(10)) {
+            if (tft_update(tft_update_period)) {
                 tft_prints(0, 0, "tick: %u", static_cast<unsigned int>(HAL_GetTick()));
                 tft_prints(0, 1, "input: %.3f", motors[0].getInput());
                 tft_prints(0, 2, "vel: %.3f", motors[0].getVelocity());
