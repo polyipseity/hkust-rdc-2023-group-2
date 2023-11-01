@@ -91,3 +91,9 @@ public:
         return (*m_delegate)[index];
     }
 };
+
+template <typename Control>
+constexpr auto update_motor_velocity(double dt, CANMotor &motor, Control &control, float velocity)
+{
+    motor.setInput(control.update(velocity / 2., motor.getInput(), motor.getVelocity(), dt));
+}

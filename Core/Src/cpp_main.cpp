@@ -19,19 +19,20 @@ namespace
         };
         auto last_tick{HAL_GetTick()};
         while (true) {
-            auto const tick{HAL_GetTick()}, elapsed{tick - last_tick};
             CANMotorsControl<motor_size> motors_ctrl{motors};
+            auto const tick{HAL_GetTick()}, elapsed{tick - last_tick};
+            auto const dt{elapsed / 1000.};
+
             for (std::size_t ii{}; ii < motor_size; ++ii) {
-                auto &motor_ctrl{motors_ctrl[ii]};
-                auto const input{motor_adrcs[ii].update(btn_read(BTN1) ? 0. : 4., motor_ctrl.getInput(), motor_ctrl.getVelocity(), elapsed / 1000.)};
-                motor_ctrl.setInput(input);
-                if (tft_update(10)) {
-                    tft_prints(0, 0, "tick: %u", static_cast<unsigned int>(HAL_GetTick()));
-                    tft_prints(0, 1, "input: %.3f", motor_ctrl.getInput());
-                    tft_prints(0, 2, "pos: %.3f", motor_ctrl.getPosition());
-                    tft_prints(0, 3, "vel: %.3f", motor_ctrl.getVelocity());
-                }
+                update_motor_velocity(dt, motors_ctrl[ii], motor_adrcs[ii], btn_read(BTN1) ? 0 : 9);
             }
+            if (tft_update(10)) {
+                tft_prints(0, 0, "tick: %u", static_cast<unsigned int>(HAL_GetTick()));
+                tft_prints(0, 1, "input: %.3f", motors[0].getInput());
+                tft_prints(0, 2, "pos: %.3f", motors[0].getPosition());
+                tft_prints(0, 3, "vel: %.3f", motors[0].getVelocity());
+            }
+
             last_tick = tick;
         }
         return 0;
