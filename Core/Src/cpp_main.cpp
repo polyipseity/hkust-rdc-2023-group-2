@@ -11,12 +11,14 @@
 namespace
 {
     constexpr std::size_t const motor_size{1};
+
     int cpp_main2()
     {
         CANMotors<motor_size> motors{{CAN1_MOTOR1}};
         std::array<control::ADRC2f, 1> motor_adrcs{
-            control::ADRC2f{8., 16., {motors[0].getVelocity()}},
+            new_motor_ADRC(motors[0], 16.),
         };
+
         auto last_tick{HAL_GetTick()};
         while (true) {
             CANMotorsControl<motor_size> motors_ctrl{motors};
@@ -35,6 +37,7 @@ namespace
 
             last_tick = tick;
         }
+
         return 0;
     }
 }

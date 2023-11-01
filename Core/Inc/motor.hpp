@@ -1,3 +1,5 @@
+#pragma once
+
 #include <array>
 #include <cstddef>
 #include <cstdint>
@@ -5,6 +7,7 @@
 #include <utility>
 
 #include "can.h"
+#include "util/adrc.hpp"
 
 class CANMotor
 {
@@ -91,6 +94,8 @@ public:
         return (*m_delegate)[index];
     }
 };
+
+auto new_motor_ADRC(CANMotor const &motor, float convergence = 16.) -> control::ADRC2f;
 
 template <typename Control>
 constexpr auto update_motor_velocity(double dt, CANMotor &motor, Control &control, float velocity)
