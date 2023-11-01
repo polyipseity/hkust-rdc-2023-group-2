@@ -95,11 +95,11 @@ public:
     }
 };
 
-auto new_motor_ADRC(CANMotor const &motor, float convergence = 16., float gain = 4.) -> control::ADRC2f;
+auto new_motor_ADRC(CANMotor const &motor, float convergence = 16., float gain = 4.) noexcept -> control::ADRC2f;
 
 template <typename Control>
-constexpr auto update_motor_velocity(double dt, CANMotor &motor, Control &control, float velocity)
+constexpr auto update_motor_velocity(CANMotor &motor, Control &control, float velocity, double dt) noexcept
 {
-    auto const input{control.update(velocity / 2., motor.getInput(), motor.getVelocity(), dt)};
+    auto const input{control.update(velocity, motor.getInput(), motor.getVelocity(), dt)};
     motor.setInput(input);
 }

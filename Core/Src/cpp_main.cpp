@@ -35,7 +35,8 @@ namespace
             }
 
             for (std::size_t ii{}; ii < motor_size; ++ii) {
-                update_motor_velocity(dt, motors_ctrl[ii], motor_adrcs[ii], target_velocity);
+                auto &motor{motors_ctrl[ii]};
+                update_motor_velocity(motor, motor_adrcs[ii], target_velocity, dt);
             }
             if (tft_update(10)) {
                 tft_prints(0, 0, "tick: %u", static_cast<unsigned int>(HAL_GetTick()));
