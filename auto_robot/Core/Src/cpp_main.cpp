@@ -7,7 +7,9 @@
 #include "main.h"
 #include "motor.hpp"
 #include "position.hpp"
+#include "receiver.hpp"
 #include "util/adrc.hpp"
+#include "usart.h"
 
 namespace
 {
@@ -48,6 +50,7 @@ namespace
             new_motor_ADRC_auto(motors[0]),
         };
         PositionADRC pos_adrc{0., 0.};
+        Receiver receiver{huart1};
 
         auto last_tick{HAL_GetTick()};
         auto target_position{0.};
@@ -55,6 +58,7 @@ namespace
             CANMotorsControl<motor_size> motors_ctrl{motors};
             auto const tick{HAL_GetTick()}, elapsed{tick - last_tick};
             auto const dt{elapsed / 1000.};
+            receiver.update();
 
             if (!btn_read(BTN1)) {
                 target_position -= 100. * dt;
