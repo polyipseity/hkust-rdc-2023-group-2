@@ -37,10 +37,12 @@ BUILD_DIR = build
 # C sources
 C_SOURCES =  \
 $(wildcard Drivers/STM32F4xx_HAL_Driver/Src/*.c) \
+$(wildcard ../common/src/*.c) \
 $(wildcard Core/Src/*.c)
 
 # C++ sources
 CPP_SOURCES = \
+$(wildcard ../common/src/*.cpp) \
 $(wildcard Core/Src/*.cpp)
 
 # ASM sources
@@ -100,11 +102,12 @@ AS_INCLUDES =
 
 # C includes
 C_INCLUDES =  \
--ICore/Inc \
 -IDrivers/STM32F4xx_HAL_Driver/Inc \
 -IDrivers/STM32F4xx_HAL_Driver/Inc/Legacy \
 -IDrivers/CMSIS/Device/ST/STM32F4xx/Include \
--IDrivers/CMSIS/Include
+-IDrivers/CMSIS/Include \
+-I../common/include \
+-ICore/Inc
 
 
 # compile gcc flags
@@ -154,7 +157,7 @@ $(BUILD_DIR)/%.o: %.c Makefile | $(BUILD_DIR)
 	$(CC) -c $(CFLAGS) -Wa,-a,-ad,-alms=$(BUILD_DIR)/$(notdir $(<:.c=.lst)) $< -o $@
 
 $(BUILD_DIR)/%.o: %.cpp Makefile | $(BUILD_DIR) 
-	$(CX) -c $(CPPFLAGS) -Wa,-a,-ad,-alms=$(BUILD_DIR)/$(notdir $(<:.c=.lst)) $< -o $@
+	$(CX) -c $(CPPFLAGS) -Wa,-a,-ad,-alms=$(BUILD_DIR)/$(notdir $(<:.cpp=.lst)) $< -o $@
 
 $(BUILD_DIR)/%.o: %.s Makefile | $(BUILD_DIR)
 	$(AS) -c $(ASFLAGS) $< -o $@

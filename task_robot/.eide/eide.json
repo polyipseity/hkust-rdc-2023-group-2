@@ -5,7 +5,8 @@
   "srcDirs": [
     ".eide/deps",
     "Core",
-    "Drivers"
+    "Drivers",
+    "../common/src"
   ],
   "virtualFolder": {
     "name": "<virtual_root>",
@@ -226,7 +227,8 @@
           "Drivers/CMSIS/Device/ST/STM32F4xx/Include",
           "Drivers/CMSIS/Include",
           ".cmsis/include",
-          ".eide/deps"
+          ".eide/deps",
+          "../common/include"
         ],
         "libList": [],
         "sourceDirList": [],
