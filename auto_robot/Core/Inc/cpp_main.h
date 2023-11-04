@@ -2,9 +2,9 @@
 extern "C" {
 #endif
 /**
- * @brief A "main" function as a bridge between C and C++
+ * @brief A "main" function acting as a bridge between C and C++
  *
- * @return an exit code
+ * @return exit code
  */
 int cpp_main(void);
 #ifdef __cplusplus
