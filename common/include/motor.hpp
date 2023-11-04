@@ -61,6 +61,14 @@ public:
      * @return temperature
      */
     auto getTemperature [[nodiscard]] () const noexcept -> decltype(MotorStats::temperature);
+
+    constexpr CANMotor(CANMotor const &) noexcept = delete;
+
+    constexpr CANMotor(CANMotor &&right) noexcept = default;
+
+    constexpr auto operator=(CANMotor const &) noexcept -> CANMotor & = delete;
+
+    constexpr auto operator=(CANMotor &&right) noexcept -> CANMotor & = default;
 };
 
 /**
@@ -104,6 +112,14 @@ public:
     {
         return m_handles[index];
     }
+
+    constexpr CANMotors(CANMotors const &) noexcept = delete;
+
+    constexpr CANMotors(CANMotors &&right) noexcept = default;
+
+    constexpr auto operator=(CANMotors const &) noexcept -> CANMotors & = delete;
+
+    constexpr auto operator=(CANMotors &&right) noexcept -> CANMotors & = default;
 };
 
 /**
