@@ -56,6 +56,10 @@ namespace test
     while (true)
     {
       auto const tick{HAL_GetTick()}, elapsed{tick - last_tick};
+      if (elapsed == 0)
+      {
+        continue;
+      }
       auto const dt{elapsed / 1000.};
       CANMotorsControl<1> motors_ctrl{motors};
       auto &motor{motors_ctrl[0]};
@@ -81,7 +85,6 @@ namespace test
       }
 
       last_tick = tick;
-      HAL_Delay(1);
     }
   }
 
