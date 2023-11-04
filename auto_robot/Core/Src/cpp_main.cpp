@@ -5,6 +5,11 @@
 
 namespace
 {
+    /**
+     * @brief The implementation for `cpp_main`
+     * 
+     * @return exit code
+     */
     auto cpp_main2 [[nodiscard]] () noexcept
     {
         test::test_uart(huart1);
