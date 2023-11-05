@@ -10,6 +10,11 @@ namespace math
     constexpr auto const epsilon{1e-6};
 
     /**
+     * @brief Pi
+     */
+    inline auto const pi{std::acos(-1.)};
+
+    /**
      * @brief Calculate the natural logarithm of the specified binominal coefficient
      *
      * @param n n
