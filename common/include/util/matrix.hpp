@@ -512,6 +512,20 @@ namespace math
     }
 
     /**
+     * @brief Get the angle of the 2D rotation matrix
+     *
+     * @tparam Scalar type of scalar
+     * @param matrix 2D rotation matrix
+     * @return angle
+     */
+    template <typename Scalar>
+    constexpr auto rotation_matrix2_angle [[nodiscard]] (SquareMatrix<Scalar, 2> const &matrix) noexcept
+    {
+        const auto point{matrix * Vector<Scalar, 2>{static_cast<Scalar>(1), static_cast<Scalar>(0)}};
+        return std::atan2(point(1), point(0));
+    }
+
+    /**
      * @brief Orthgonalize a 2D rotation matrix to avoiding accumulating rounding errors after matrix operations
      *
      * @tparam Scalar type of scalar
