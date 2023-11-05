@@ -66,11 +66,11 @@ AutoRobotADRC::AutoRobotADRC(decltype(m_position) position, double rotation, dec
 
 auto AutoRobotADRC::update(decltype(m_position) const &target, decltype(m_velocities) const &velocities, double dt) noexcept -> decltype(m_velocities)
 {
-    auto [left_v, right_v] = m_velocities;
+    auto [left_v, right_v]{m_velocities};
     left_v *= m_gain;
     right_v *= m_gain;
 
-    auto [lin_v, ang_v, rad] = calc_linear_angular_velocities(left_v, right_v);
+    auto [lin_v, ang_v, rad]{calc_linear_angular_velocities(left_v, right_v)};
     if (std::isnan(rad))
     {
         m_position += m_rotation * decltype(m_position){0., lin_v * dt};
