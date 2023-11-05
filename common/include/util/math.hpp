@@ -12,7 +12,7 @@ namespace math
     /**
      * @brief Pi
      */
-    inline auto const pi{std::acos(-1.)};
+    constexpr auto const pi{3.14159265358979323846};
 
     /**
      * @brief Calculate the natural logarithm of the specified binominal coefficient

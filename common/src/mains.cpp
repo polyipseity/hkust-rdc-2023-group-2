@@ -138,7 +138,7 @@ namespace test
       }
 
       CANMotorsControl<2> motors{motors_r};
-      auto const [v_l, v_r] = move_adrc.update({4., 4.}, {motors[0].getVelocity(), motors[1].getVelocity()}, dt);
+      auto const [v_l, v_r] = move_adrc.update({2.5, 2.5}, {motors[0].getVelocity(), motors[1].getVelocity()}, dt);
       update_motor_velocity(motors[0], motor_adrcs[0], enabled * v_l, dt);
       update_motor_velocity(motors[1], motor_adrcs[1], enabled * v_r, dt);
 

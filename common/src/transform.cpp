@@ -26,7 +26,8 @@ namespace
     constexpr auto const auto_robot_axle_radius{.175};
     constexpr auto const auto_robot_rotate_velocity_diff_min{auto_robot_axle_radius / 16.};
     constexpr auto const auto_robot_self_rotate_radius_min{auto_robot_axle_radius / 16.};
-    constexpr auto const auto_robot_max_velocity{18. / 5.};
+    constexpr auto const auto_robot_max_velocity{1.8};
+    constexpr auto const auto_robot_max_angular_velocity{math::pi};
     constexpr auto calc_linear_angular_velocities [[nodiscard]] (double left_v, double right_v) noexcept -> std::tuple<double, double, double>
     {
         // https://math.stackexchange.com/a/3680738, https://stackoverflow.com/a/55810955
@@ -45,6 +46,7 @@ namespace
     }
     constexpr auto calc_motor_velocities [[nodiscard]] (double target_lin_v, double target_ang_v) noexcept -> std::tuple<double, double>
     {
+        target_ang_v = std::clamp(target_ang_v, -auto_robot_max_angular_velocity, auto_robot_max_angular_velocity);
         auto const extra_v{target_ang_v * auto_robot_axle_radius};
         target_lin_v = std::clamp(target_lin_v, -auto_robot_max_velocity + extra_v, auto_robot_max_velocity - extra_v);
         return {target_lin_v - extra_v, target_lin_v + extra_v};
