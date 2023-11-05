@@ -8,6 +8,7 @@
 #include "motor.hpp"
 #include "receiver.hpp"
 #include "transform.hpp"
+#include "usart.h"
 #include "util/adrc.hpp"
 #include "util/math.hpp"
 
@@ -118,8 +119,10 @@ namespace test
         new_motor_ADRC_auto(motors_r[1]),
     };
     AutoRobotADRC move_adrc{{0., 0.}, 0., {motors_r[0].getVelocity(), motors_r[1].getVelocity()}};
+    Receiver<1> receiver{huart1};
 
     auto last_tick{HAL_GetTick()};
+    auto enabled{true};
     while (true)
     {
       auto const tick{HAL_GetTick()}, elapsed{tick - last_tick};
@@ -129,10 +132,15 @@ namespace test
       }
       auto const dt{elapsed / 1000.};
 
+      if (receiver.update())
+      {
+        enabled = false;
+      }
+
       CANMotorsControl<2> motors{motors_r};
-      auto const [v_l, v_r] = move_adrc.update({40., 40.}, {motors[0].getVelocity(), motors[1].getVelocity()}, dt);
-      update_motor_velocity(motors[0], motor_adrcs[0], v_l, dt);
-      update_motor_velocity(motors[1], motor_adrcs[1], v_r, dt);
+      auto const [v_l, v_r] = move_adrc.update({1., 1.}, {motors[0].getVelocity(), motors[1].getVelocity()}, dt);
+      update_motor_velocity(motors[0], motor_adrcs[0], enabled * v_l, dt);
+      update_motor_velocity(motors[1], motor_adrcs[1], enabled * v_r, dt);
 
       if (tft_update(tft_update_period))
       {
