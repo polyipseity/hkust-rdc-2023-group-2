@@ -45,11 +45,6 @@ namespace
     }
     constexpr auto calc_motor_velocities [[nodiscard]] (double target_lin_v, double target_ang_v) noexcept -> std::tuple<double, double>
     {
-        if (std::abs(target_ang_v) < math::epsilon)
-        {
-            target_lin_v = std::clamp(target_lin_v, -auto_robot_max_velocity, auto_robot_max_velocity);
-            return {target_lin_v, target_lin_v};
-        }
         auto const extra_v{target_ang_v * auto_robot_axle_radius};
         target_lin_v = std::clamp(target_lin_v, -auto_robot_max_velocity + extra_v, auto_robot_max_velocity - extra_v);
         return {target_lin_v - extra_v, target_lin_v + extra_v};
@@ -88,11 +83,19 @@ auto AutoRobotADRC::update(decltype(m_position) const &target, decltype(m_veloci
 
     m_velocities = velocities;
 
-    auto const forward_vec{m_rotation * decltype(m_position){0., 1.}};
+    auto const forward_unit{m_rotation * decltype(m_position){0., 1.}};
     auto const pos_diff{target - m_position};
-    auto const ang_diff{std::acos(math::dot_product(forward_vec, math::unit_vector(pos_diff)))};
+    auto ang_diff{std::atan2(pos_diff(1), pos_diff(0)) - std::atan2(forward_unit(1), forward_unit(0))};
+    if (ang_diff > math::pi)
+    {
+        ang_diff -= 2. * math::pi;
+    }
+    else if (ang_diff < -math::pi)
+    {
+        ang_diff += 2. * math::pi;
+    }
 
-    lin_v = m_position_control.update(0., lin_v, -math::magnitude(forward_vec * math::dot_product(forward_vec, pos_diff)), dt);
+    lin_v = m_position_control.update(0., lin_v, -math::dot_product(forward_unit, pos_diff), dt);
     ang_v = m_rotation_control.update(0., ang_v, std::isnan(ang_diff) ? 0. : -ang_diff, dt);
 
     std::tie(left_v, right_v) = calc_motor_velocities(lin_v, ang_v);
