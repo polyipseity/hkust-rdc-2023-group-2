@@ -6,6 +6,8 @@
 #include <cstddef>
 #include <functional>
 #include <optional>
+#include <tuple>
+#include <type_traits>
 
 #include "main.h"
 #include "util.hpp"
@@ -43,8 +45,9 @@ auto receiver_unregister_rx_event_callback(UART_HandleTypeDef &handle) noexcept 
  * @brief UART receiver
  *
  * @tparam size_ number of bytes in a message
+ * @tparam fixed whether the message size is fixed
  */
-template <std::size_t size_>
+template <std::size_t size_, bool fixed_ = true>
 class Receiver
 {
 public:
@@ -52,6 +55,11 @@ public:
      * @brief Number of bytes in a message
      */
     constexpr static auto const size{size_};
+
+    /**
+     * @brief Whether the message size is fixed
+     */
+    constexpr static auto const fixed{fixed_};
 
 private:
     /**
@@ -70,6 +78,11 @@ private:
     double m_last_tick;
 
     /**
+     * @brief Size of last message
+     */
+    std::size_t m_size{};
+
+    /**
      * @brief Buffer for receiving the message
      */
     std::array<std::uint8_t, size> m_buffer{};
@@ -81,9 +94,10 @@ private:
      */
     auto callback(std::uint16_t size) noexcept
     {
-        if (size != size_)
+        if (fixed_ && size != size_)
             return;
         m_last_tick = HAL_GetTick() / 1000.;
+        m_size = size;
     }
 
 public:
@@ -93,7 +107,8 @@ public:
      * @param handle UART handle
      * @param timeout time a message is valid for
      */
-    explicit Receiver(decltype(*m_handle) &handle, decltype(m_timeout) timeout = 1.) noexcept : m_handle{&handle}, m_timeout{timeout}, m_last_tick{-timeout}
+    explicit Receiver(decltype(*m_handle) &handle, decltype(m_timeout) timeout = 1.) noexcept
+        : m_handle{&handle}, m_timeout{timeout}, m_last_tick{-timeout}
     {
         if (!receiver_register_rx_event_callback(handle, [this](std::uint16_t size)
                                                  { callback(size); }))
@@ -107,14 +122,28 @@ public:
      *
      * @return a message or empty if no messages have been received with the timeout
      */
-    auto update() noexcept -> std::optional<decltype(m_buffer)>
+    auto update() noexcept -> std::conditional_t<fixed_,
+                                                 std::optional<decltype(m_buffer)>,
+                                                 std::tuple<std::size_t, decltype(m_buffer)>>
     {
         HAL_UARTEx_ReceiveToIdle_IT(m_handle, std::data(m_buffer), size_);
         if (HAL_GetTick() / 1000. - m_last_tick < m_timeout)
         {
-            return m_buffer;
+            if constexpr (fixed_)
+            {
+                return m_buffer;
+            }
+            else
+            {
+                return {m_size, m_buffer};
+            }
         }
         return {};
+    }
+
+    auto invalidate() noexcept
+    {
+        m_last_tick = -m_timeout;
     }
 
     /**
