@@ -28,6 +28,7 @@ namespace
     constexpr auto const auto_robot_self_rotate_radius_min{auto_robot_axle_radius / 16.};
     constexpr auto const auto_robot_max_velocity{1.8};
     constexpr auto const auto_robot_max_angular_velocity{math::pi};
+    constexpr auto const auto_robot_position_tolerance{1. / 16.};
     constexpr auto calc_linear_angular_velocities [[nodiscard]] (double left_v, double right_v) noexcept -> std::tuple<double, double, double>
     {
         // https://math.stackexchange.com/a/3680738, https://stackoverflow.com/a/55810955
@@ -86,7 +87,11 @@ auto AutoRobotADRC::update(decltype(m_position) const &target, decltype(m_veloci
     auto const forward_unit{m_rotation * decltype(m_position){0., 1.}};
     auto const pos_diff{target - m_position};
     auto ang_diff{std::atan2(pos_diff(1), pos_diff(0)) - std::atan2(forward_unit(1), forward_unit(0))};
-    if (ang_diff > math::pi)
+    if (math::magnitude(pos_diff) <= auto_robot_position_tolerance)
+    {
+        ang_diff = 0;
+    }
+    else if (ang_diff > math::pi)
     {
         ang_diff -= 2. * math::pi;
     }
