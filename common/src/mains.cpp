@@ -3,10 +3,10 @@
 #include <array>
 
 #include "can.h"
+#include "communication.hpp"
 #include "lcd/lcd.h"
 #include "main.h"
 #include "motor.hpp"
-#include "receiver.hpp"
 #include "transform.hpp"
 #include "usart.h"
 #include "util/adrc.hpp"
