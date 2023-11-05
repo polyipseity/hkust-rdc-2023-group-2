@@ -8,6 +8,7 @@
 #include <optional>
 
 #include "main.h"
+#include "util.hpp"
 
 /**
  * @brief `RxEventCallback` type
@@ -94,8 +95,11 @@ public:
      */
     explicit Receiver(decltype(*m_handle) &handle, decltype(m_timeout) timeout = 1.) noexcept : m_handle{&handle}, m_timeout{timeout}, m_last_tick{-timeout}
     {
-        receiver_register_rx_event_callback(handle, [this](std::uint16_t size)
-                                            { callback(size); });
+        if (!receiver_register_rx_event_callback(handle, [this](std::uint16_t size)
+                                                 { callback(size); }))
+        {
+            panic("Receiver::Receiver");
+        }
     }
 
     /**
