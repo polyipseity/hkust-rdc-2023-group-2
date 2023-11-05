@@ -20,14 +20,6 @@ using RxEventCallbackT = void(std::uint16_t);
 using RxEventCallbackF = std::function<RxEventCallbackT>;
 
 /**
- * @brief A global `RxEventCallback` listener
- *
- * @param handle UART handle
- * @param size number of bytes received
- */
-auto receiver_rx_event_callback(UART_HandleTypeDef *handle, std::uint16_t size) noexcept -> void;
-
-/**
  * @brief Register a `RxEventCallback` listener for the specified UART
  *
  * @param handle UART handle

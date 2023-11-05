@@ -1,6 +1,7 @@
 {
   "files.associations": {
     "array": "cpp",
+    "functional": "cpp",
     "limits": "cpp"
   }
 }
