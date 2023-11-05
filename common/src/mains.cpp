@@ -1,6 +1,8 @@
 #include "mains.hpp"
 
 #include <array>
+#include <cstdlib>
+#include <tuple>
 
 #include "can.h"
 #include "communication.hpp"
@@ -119,10 +121,49 @@ namespace test
         new_motor_ADRC_auto(motors_r[1]),
     };
     AutoRobotADRC move_adrc{{0., 0.}, 0., {motors_r[0].getVelocity(), motors_r[1].getVelocity()}};
-    Receiver<1> receiver{huart1};
 
+    math::Vector<double, 2> target_pos{};
     auto last_tick{HAL_GetTick()};
     auto enabled{true};
+
+    auto dt{0.};
+    Commander<2> commander{};
+    Receiver<16, false> receiver{huart1, .05};
+    commander.handle('x', [&enabled, &receiver](typename Commander<2>::ParamType const &)
+                     {
+                      receiver.invalidate();
+                      enabled = !enabled; });
+    commander.handle('w', [&dt, &target_pos](typename Commander<2>::ParamType const &)
+                     { target_pos += {0., 1. * dt}; });
+    commander.handle('a', [&dt, &target_pos](typename Commander<2>::ParamType const &)
+                     { target_pos += {-1. * dt, 0.}; });
+    commander.handle('s', [&dt, &target_pos](typename Commander<2>::ParamType const &)
+                     { target_pos += {0., -1. * dt}; });
+    commander.handle('d', [&dt, &target_pos](typename Commander<2>::ParamType const &)
+                     { target_pos += {1. * dt, 0.}; });
+    commander.handle('g',
+                     [&target_pos, &receiver](typename Commander<2>::ParamType const &param)
+                     {
+                       receiver.invalidate();
+                       auto const &[p_x, p_y]{param};
+                       if (std::get<0>(p_x) == 0 || std::get<0>(p_y) == 0)
+                       {
+                         return;
+                       }
+                       char *end{};
+                       auto const xx{std::strtod(std::get<1>(p_x), &end)};
+                       if (std::get<1>(p_x) == end)
+                       {
+                         return;
+                       }
+                       auto const yy{std::strtod(std::get<1>(p_y), &end)};
+                       if (std::get<1>(p_y) == end)
+                       {
+                         return;
+                       }
+                       target_pos = {xx, yy};
+                     });
+
     while (true)
     {
       auto const tick{HAL_GetTick()}, elapsed{tick - last_tick};
@@ -130,15 +171,13 @@ namespace test
       {
         continue;
       }
-      auto const dt{elapsed / 1000.};
+      dt = elapsed / 1000.;
 
-      if (receiver.update())
-      {
-        enabled = false;
-      }
+      auto const received{receiver.update()};
+      commander.dispatch(std::get<1>(received), std::get<0>(received));
 
       CANMotorsControl<2> motors{motors_r};
-      auto const [v_l, v_r] = move_adrc.update({2.5, 2.5}, {motors[0].getVelocity(), motors[1].getVelocity()}, dt);
+      auto const [v_l, v_r] = move_adrc.update(target_pos, {motors[0].getVelocity(), motors[1].getVelocity()}, dt);
       update_motor_velocity(motors[0], motor_adrcs[0], enabled * v_l, dt);
       update_motor_velocity(motors[1], motor_adrcs[1], enabled * v_r, dt);
 

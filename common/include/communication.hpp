@@ -8,6 +8,7 @@
 #include <optional>
 #include <tuple>
 #include <type_traits>
+#include <utility>
 
 #include "main.h"
 #include "util.hpp"
@@ -94,8 +95,11 @@ private:
      */
     auto callback(std::uint16_t size) noexcept
     {
-        if (fixed_ && size != size_)
-            return;
+        if constexpr (fixed_)
+        {
+            if (size != size_)
+                return;
+        }
         m_last_tick = HAL_GetTick() / 1000.;
         m_size = size;
     }
@@ -161,4 +165,72 @@ public:
     constexpr auto operator=(Receiver const &) noexcept -> Receiver & = delete;
 
     constexpr auto operator=(Receiver &&) noexcept -> Receiver & = default;
+};
+
+template <std::size_t max_params_>
+class Commander
+{
+public:
+    using ParamType = std::array<std::tuple<std::size_t, char const *>, max_params_>;
+    using HandlerType = void(ParamType const &);
+
+private:
+    std::array<std::function<HandlerType>, 'z' - 'a' + 1> m_handlers{};
+
+public:
+    auto handle(char command, std::function<HandlerType> func)
+    {
+        m_handlers[command - 'a'] = std::move(func);
+    }
+
+    template <std::size_t size>
+    auto dispatch(std::array<std::uint8_t, size> const &message, std::size_t actual_size)
+    {
+        if constexpr (size == 0)
+        {
+            return;
+        }
+        std::array<char, size + 1> msg_cpy{};
+        std::copy_n(std::cbegin(message), actual_size, std::begin(msg_cpy));
+
+        std::function<HandlerType> *func{};
+        ParamType params{};
+        auto param{std::begin(params)};
+        for (auto &chr : msg_cpy)
+        {
+            if (chr == '\0' || chr == '\n' || chr == '\r')
+            {
+                chr = '\0';
+                break;
+            }
+            if (!func)
+            {
+                if (!('a' <= chr && chr <= 'z'))
+                {
+                    break;
+                }
+                func = &m_handlers[chr - 'a'];
+                continue;
+            }
+            if (chr == ',')
+            {
+                chr = '\0';
+                if (++param == std::end(params))
+                {
+                    break;
+                }
+                continue;
+            }
+            auto &[p_size, p_ptr]{*param};
+            ++p_size;
+            if (!p_ptr)
+            {
+                p_ptr = &chr;
+            }
+        }
+        if (func && *func)
+        {
+            (*func)(params);
+        }
+    }
 };
