@@ -77,7 +77,7 @@ auto AutoRobotADRC::update(decltype(m_position) const &target, decltype(m_veloci
     else
     {
         auto const rot_mat{math::rotation_matrix2(ang_v * dt)};
-        m_position += (rot_mat - math::identity<double, 2>)*m_rotation * decltype(m_position){0., rad};
+        m_position += (rot_mat - math::identity<double, 2>)*m_rotation * decltype(m_position){rad, 0.};
         m_rotation = math::orthogonalize_rotation_matrix2(rot_mat * m_rotation);
     }
 
