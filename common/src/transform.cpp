@@ -23,9 +23,9 @@ auto PositionADRC::update(decltype(m_position) target, decltype(m_velocity) velo
 
 namespace
 {
-    constexpr auto const auto_robot_axle_radius{.185};
-    constexpr auto const auto_robot_rotate_velocity_diff_min{.01};
-    constexpr auto const auto_robot_self_rotate_radius_min{auto_robot_axle_radius / 10.};
+    constexpr auto const auto_robot_axle_radius{.175};
+    constexpr auto const auto_robot_rotate_velocity_diff_min{auto_robot_axle_radius / 16.};
+    constexpr auto const auto_robot_self_rotate_radius_min{auto_robot_axle_radius / 16.};
     constexpr auto const auto_robot_max_velocity{18. / 5.};
     constexpr auto calc_linear_angular_velocities [[nodiscard]] (double left_v, double right_v) noexcept -> std::tuple<double, double, double>
     {
