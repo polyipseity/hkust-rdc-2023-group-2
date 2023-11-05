@@ -15,17 +15,23 @@
 class CANMotor
 {
     /**
-     * @brief The motor handle corresponding to the motor hardware.
+     * @brief The motor handle corresponding to the motor hardware
      */
     Motor m_handle;
+
+    /**
+     * @brief Motor direction factor
+     */
+    int m_factor;
 
 public:
     /**
      * @brief Construct a new `CANMotor` object
      *
      * @param handle motor handle
+     * @param reversed reverse motor direction
      */
-    explicit CANMotor(decltype(m_handle) handle) noexcept;
+    explicit CANMotor(decltype(m_handle) handle, bool reversed = false) noexcept;
 
     /**
      * @brief Set the desired current to the motor
@@ -92,11 +98,13 @@ public:
      * @brief Construct a new `CANMotors` object
      *
      * @param handles an array of CAN motors
+     * @param reversed reverse motor direction
      */
-    constexpr explicit CANMotors(std::array<Motor, size> const &handles) noexcept
-        : m_handles{[&handles]<std::size_t... indices>(std::index_sequence<indices...>)
+    constexpr explicit CANMotors(std::array<Motor, size> const &handles,
+                                 std::array<bool, size> const &reversed = {}) noexcept
+        : m_handles{[&handles, &reversed]<std::size_t... indices>(std::index_sequence<indices...>)
                     {
-                        return decltype(m_handles){CANMotor{handles[indices]}...};
+                        return decltype(m_handles){CANMotor{handles[indices], reversed[indices]}...};
                     }(std::make_index_sequence<size>{})}
     {
         can_init();
