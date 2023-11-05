@@ -27,4 +27,9 @@ namespace test
    * @param uart_handle the UART to test
    */
   auto test_uart [[noreturn]] (UART_HandleTypeDef &uart_handle) noexcept -> void;
+
+  /**
+   * @brief Test movement of the auto robot
+   */
+  auto test_auto_robot_movement [[noreturn]] () noexcept -> void;
 }

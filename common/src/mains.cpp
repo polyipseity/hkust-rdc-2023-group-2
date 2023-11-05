@@ -9,6 +9,7 @@
 #include "receiver.hpp"
 #include "transform.hpp"
 #include "util/adrc.hpp"
+#include "util/math.hpp"
 
 namespace test
 {
@@ -105,6 +106,43 @@ namespace test
           tft_prints(0, 0, "received: %u", received2[0]);
         }
       }
+    }
+  }
+
+  auto test_auto_robot_movement [[noreturn]] () -> void
+  {
+    CANMotors<2> motors_r{{CAN1_MOTOR0, CAN1_MOTOR1},
+                          {false, true}};
+    std::array<control::ADRC2d, 2> motor_adrcs{
+        new_motor_ADRC_auto(motors_r[0]),
+        new_motor_ADRC_auto(motors_r[1]),
+    };
+    AutoRobotADRC move_adrc{{0., 0.}, 0., {motors_r[0].getVelocity(), motors_r[1].getVelocity()}};
+
+    auto last_tick{HAL_GetTick()};
+    while (true)
+    {
+      auto const tick{HAL_GetTick()}, elapsed{tick - last_tick};
+      if (elapsed == 0)
+      {
+        continue;
+      }
+      auto const dt{elapsed / 1000.};
+
+      CANMotorsControl<2> motors{motors_r};
+      auto const [v_l, v_r] = move_adrc.update({40., 40.}, {motors[0].getVelocity(), motors[1].getVelocity()}, dt);
+      update_motor_velocity(motors[0], motor_adrcs[0], v_l, dt);
+      update_motor_velocity(motors[1], motor_adrcs[1], v_r, dt);
+
+      if (tft_update(tft_update_period))
+      {
+        tft_prints(0, 0, "pos: %.2f, %.2f", move_adrc.m_position(0), move_adrc.m_position(1));
+        tft_prints(0, 1, "rot: %.2f", math::rotation_matrix2_angle(move_adrc.m_rotation));
+        tft_prints(0, 2, "v: %.2f, %.2f", motors[0].getVelocity(), motors[1].getVelocity());
+        tft_prints(0, 3, "d_v: %.2f, %.2f", v_l, v_r);
+      }
+
+      last_tick = tick;
     }
   }
 }
