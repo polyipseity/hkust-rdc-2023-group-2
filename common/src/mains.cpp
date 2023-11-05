@@ -124,15 +124,17 @@ namespace test
 
     math::Vector<double, 2> target_pos{};
     auto last_tick{HAL_GetTick()};
-    auto enabled{true};
+    auto stationary{true};
 
     auto dt{0.};
     Commander<2> commander{};
     Receiver<16, false> receiver{huart1, .05};
-    commander.handle('x', [&enabled, &receiver](typename Commander<2>::ParamType const &)
+    commander.handle('x',
+                     [&stationary, &receiver](typename Commander<2>::ParamType const &)
                      {
-                      receiver.invalidate();
-                      enabled = !enabled; });
+                       receiver.invalidate();
+                       stationary = !stationary;
+                     });
     commander.handle('w', [&dt, &target_pos](typename Commander<2>::ParamType const &)
                      { target_pos += {0., 1. * dt}; });
     commander.handle('a', [&dt, &target_pos](typename Commander<2>::ParamType const &)
@@ -177,9 +179,13 @@ namespace test
       commander.dispatch(std::get<1>(received), std::get<0>(received));
 
       CANMotorsControl<2> motors{motors_r};
+      if (!stationary)
+      {
+        target_pos = move_adrc.m_position;
+      }
       auto const [v_l, v_r] = move_adrc.update(target_pos, {motors[0].getVelocity(), motors[1].getVelocity()}, dt);
-      update_motor_velocity(motors[0], motor_adrcs[0], enabled * v_l, dt);
-      update_motor_velocity(motors[1], motor_adrcs[1], enabled * v_r, dt);
+      update_motor_velocity(motors[0], motor_adrcs[0], stationary * v_l, dt);
+      update_motor_velocity(motors[1], motor_adrcs[1], stationary * v_r, dt);
 
       if (tft_update(tft_update_period))
       {
