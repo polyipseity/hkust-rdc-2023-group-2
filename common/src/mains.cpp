@@ -17,7 +17,8 @@
 
 namespace
 {
-  constexpr auto const auto_robot_movement_velocity{3.};
+  constexpr auto const auto_robot_translation_velocity{3.};
+  constexpr auto const auto_robot_rotation_velocity{math::tau / 4.};
 }
 
 namespace test
@@ -150,28 +151,35 @@ namespace test
     auto dt{0.};
     auto active{true};
     math::Vector<double, 2> target_pos{};
+    double target_rot{};
 
-    Commander<2> commander{};
+    Commander<3> commander{};
     Receiver<16, false> receiver{huart1, .05};
     commander.handle('x',
-                     [&active, &receiver](typename Commander<2>::ParamType const &)
+                     [&active, &receiver](typename decltype(commander)::ParamType const &)
                      {
                        receiver.invalidate();
                        active = !active;
                      });
-    commander.handle('w', [&dt, &target_pos](typename Commander<2>::ParamType const &)
-                     { target_pos += {0., auto_robot_movement_velocity * dt}; });
-    commander.handle('a', [&dt, &target_pos](typename Commander<2>::ParamType const &)
-                     { target_pos += {-auto_robot_movement_velocity * dt, 0.}; });
-    commander.handle('s', [&dt, &target_pos](typename Commander<2>::ParamType const &)
-                     { target_pos += {0., -auto_robot_movement_velocity * dt}; });
-    commander.handle('d', [&dt, &target_pos](typename Commander<2>::ParamType const &)
-                     { target_pos += {auto_robot_movement_velocity * dt, 0.}; });
+    commander.handle('w', [&dt, &target_pos](typename decltype(commander)::ParamType const &)
+                     { target_pos += {0., auto_robot_translation_velocity * dt}; });
+    commander.handle('a', [&dt, &target_pos](typename decltype(commander)::ParamType const &)
+                     { target_pos += {-auto_robot_translation_velocity * dt, 0.}; });
+    commander.handle('s', [&dt, &target_pos](typename decltype(commander)::ParamType const &)
+                     { target_pos += {0., -auto_robot_translation_velocity * dt}; });
+    commander.handle('d', [&dt, &target_pos](typename decltype(commander)::ParamType const &)
+                     { target_pos += {auto_robot_translation_velocity * dt, 0.}; });
+    commander.handle('q', [&dt, &target_rot](typename decltype(commander)::ParamType const &)
+                     { target_rot += auto_robot_rotation_velocity * dt; });
+    commander.handle('e', [&dt, &target_rot](typename decltype(commander)::ParamType const &)
+                     { target_rot += -auto_robot_rotation_velocity * dt; });
+    auto g_command_capture{std::tie(target_pos, target_rot, receiver)};
     commander.handle('g',
-                     [&target_pos, &receiver](typename Commander<2>::ParamType const &param)
+                     [&g_command_capture](typename decltype(commander)::ParamType const &param)
                      {
+                       auto &[target_pos, target_rot, receiver]{g_command_capture};
                        receiver.invalidate();
-                       auto const &[p_x, p_y]{param};
+                       auto const &[p_x, p_y, p_r]{param};
                        if (std::get<0>(p_x) == 0 || std::get<0>(p_y) == 0)
                        {
                          return;
@@ -188,6 +196,16 @@ namespace test
                          return;
                        }
                        target_pos = {xx, yy};
+                       if (std::get<0>(p_r) == 0)
+                       {
+                         return;
+                       }
+                       auto const rot{std::strtod(std::get<1>(p_r), &end)};
+                       if (std::get<1>(p_r) == end)
+                       {
+                         return;
+                       }
+                       target_rot = rot;
                      });
 
     Time time{};
@@ -202,17 +220,20 @@ namespace test
       if (!active)
       {
         target_pos = move_adrc.m_position;
+        target_rot = math::rotation_matrix2_angle(move_adrc.m_rotation);
       }
-      auto const [v_l, v_r]{move_adrc.update(target_pos, {motors[0].getVelocity(), motors[1].getVelocity()}, dt)};
+      auto const [v_l, v_r]{move_adrc.update(target_pos, target_rot, {motors[0].getVelocity(), motors[1].getVelocity()}, dt)};
       update_motor_velocity(motors[0], motor_adrcs[0], active * v_l, dt);
       update_motor_velocity(motors[1], motor_adrcs[1], active * v_r, dt);
 
       if (tft_update(tft_update_period))
       {
         tft_prints(0, 0, "pos: %.2f, %.2f", move_adrc.m_position(0), move_adrc.m_position(1));
-        tft_prints(0, 1, "rot: %.2f", math::rotation_matrix2_angle(move_adrc.m_rotation));
-        tft_prints(0, 2, "v: %.2f, %.2f", motors[0].getVelocity(), motors[1].getVelocity());
-        tft_prints(0, 3, "v_t: %.2f, %.2f", v_l, v_r);
+        tft_prints(0, 1, "pos_t: %.2f, %.2f", target_pos(0), target_pos(1));
+        tft_prints(0, 2, "rot: %.2f", math::rotation_matrix2_angle(move_adrc.m_rotation));
+        tft_prints(0, 3, "rot_t: %.2f", target_rot);
+        tft_prints(0, 4, "v: %.2f, %.2f", motors[0].getVelocity(), motors[1].getVelocity());
+        tft_prints(0, 5, "v_t: %.2f, %.2f", v_l, v_r);
       }
     }
   }

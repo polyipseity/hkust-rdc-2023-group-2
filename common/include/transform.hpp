@@ -1,5 +1,6 @@
 #pragma once
 
+#include <optional>
 #include <tuple>
 
 #include "util/adrc.hpp"
@@ -101,15 +102,16 @@ public:
      * @param gain circumference of the wheels in meters
      * @param convergence control reactiveness
      */
-    AutoRobotADRC(decltype(m_position) position, double rotation, decltype(m_velocities) velocities, decltype(m_gain) gain = .102, double convergence = 1.) noexcept;
+    AutoRobotADRC(decltype(m_position) position, double rotation, decltype(m_velocities) velocities, decltype(m_gain) gain = .0987, double convergence = 4.) noexcept;
 
     /**
      * @brief Update the current state and recommend velocities for the two motors
      *
      * @param target desired position
+     * @param target_rot desired rotation
      * @param velocities current velocities reported by the two motors
      * @param dt time since last update
      * @return recommended motor velocities for the two motors
      */
-    auto update(decltype(m_position) const &target, decltype(m_velocities) const &velocities, double dt) noexcept -> decltype(m_velocities);
+    auto update(decltype(m_position) const &target, std::optional<double> target_rot, decltype(m_velocities) const &velocities, double dt) noexcept -> decltype(m_velocities);
 };

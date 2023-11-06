@@ -4,6 +4,7 @@
 
 #include <algorithm>
 #include <cmath>
+#include <optional>
 #include <tuple>
 #include <type_traits>
 #include <utility>
@@ -64,7 +65,7 @@ AutoRobotADRC::AutoRobotADRC(decltype(m_position) position, double rotation, dec
 {
 }
 
-auto AutoRobotADRC::update(decltype(m_position) const &target, decltype(m_velocities) const &velocities, double dt) noexcept -> decltype(m_velocities)
+auto AutoRobotADRC::update(decltype(m_position) const &target, std::optional<double> target_rot, decltype(m_velocities) const &velocities, double dt) noexcept -> decltype(m_velocities)
 {
     auto [left_v, right_v]{m_velocities};
     left_v *= m_gain;
@@ -86,12 +87,25 @@ auto AutoRobotADRC::update(decltype(m_position) const &target, decltype(m_veloci
 
     auto const forward_unit{m_rotation * decltype(m_position){0., 1.}};
     auto const pos_diff{target - m_position};
-    auto ang_diff{std::atan2(pos_diff(1), pos_diff(0)) - std::atan2(forward_unit(1), forward_unit(0))};
+    auto const cur_ang{std::atan2(forward_unit(1), forward_unit(0))};
+    auto ang_diff{std::atan2(pos_diff(1), pos_diff(0)) - cur_ang};
     if (math::magnitude(pos_diff) <= auto_robot_position_tolerance)
     {
-        ang_diff = 0.;
+        if (target_rot)
+        {
+            auto tar_ang{std::fmod(*target_rot + math::tau / 4., math::tau)};
+            if (tar_ang < 0.)
+            {
+                tar_ang += math::tau;
+            }
+            ang_diff = tar_ang - cur_ang;
+        }
+        else
+        {
+            ang_diff = 0.;
+        }
     }
-    else if (ang_diff > math::pi)
+    if (ang_diff > math::pi)
     {
         ang_diff -= math::tau;
     }
