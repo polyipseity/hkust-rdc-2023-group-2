@@ -8,6 +8,7 @@
     "settings": {
         "files.associations": {
             "algorithm": "cpp",
+            "array": "cpp",
             "charconv": "cpp",
             "functional": "cpp",
             "type_traits": "cpp",

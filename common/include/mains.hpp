@@ -3,6 +3,18 @@
 #include "can.h"
 #include "main.h"
 
+/**
+ * @brief Robot type
+ */
+enum class RobotType
+{
+  TASK,
+  AUTO,
+};
+
+/**
+ * @brief Minimum TFT update interval
+ */
 constexpr auto const tft_update_period{10};
 
 namespace test
@@ -10,16 +22,26 @@ namespace test
   /**
    * @brief Test a motor to find its gain
    *
-   * @param motor_handle the motor to test
+   * @param motor_handle motor to test
    */
   auto find_motor_gain [[noreturn]] (Motor motor_handle) noexcept -> void;
 
   /**
+   * @brief Test setting a motor to a certain velocity.
+   *
+   * @param RobotType robot type
+   * @param motor_handle motor to test
+   * @param velocity desired velocity
+   */
+  auto test_motor_velocity [[noreturn]] (RobotType type, Motor motor_handle, double velocity) noexcept -> void;
+
+  /**
    * @brief Test controlling a motor
    *
-   * @param motor_handle the motor to test
+   * @param RobotType robot type
+   * @param motor_handle motor to test
    */
-  auto test_motor [[noreturn]] (Motor motor_handle) noexcept -> void;
+  auto test_motor [[noreturn]] (RobotType type, Motor motor_handle) noexcept -> void;
 
   /**
    * @brief Test UART by echoing back received data

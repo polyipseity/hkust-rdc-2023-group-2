@@ -42,16 +42,49 @@ namespace test
         tft_prints(0, 0, "input: %.6f", input);
         tft_prints(0, 1, "duration: %.6f", duration);
         tft_prints(0, 2, "velocity: %.6f", velocity);
-        tft_prints(0, 3, "gain: %.6f", velocity / input / duration / 2.);
+        tft_prints(0, 3, "gain: %.6f", velocity / input / duration);
       }
     }
   }
 
-  auto test_motor [[noreturn]] (Motor motor_handle) noexcept -> void
+  auto test_motor_velocity [[noreturn]] (RobotType type, Motor motor_handle, double velocity) noexcept -> void
   {
     CANMotors<1> motors{{motor_handle}};
     std::array<control::ADRC2d, 1> motor_adrcs{
-        new_motor_ADRC_auto(motors[0]),
+        type == RobotType::TASK ? new_motor_ADRC_task(motors[0]) : new_motor_ADRC_auto(motors[0]),
+    };
+
+    auto last_tick{HAL_GetTick()};
+    while (true)
+    {
+      auto const tick{HAL_GetTick()}, elapsed{tick - last_tick};
+      if (elapsed <= 0)
+      {
+        continue;
+      }
+      auto dt{elapsed / 1000.};
+
+      CANMotorsControl<1> motors_ctrl{motors};
+      auto &motor{motors_ctrl[0]};
+      update_motor_velocity(motor, motor_adrcs[0], velocity, dt);
+
+      if (tft_update(tft_update_period))
+      {
+        tft_prints(0, 0, "in: %.6f", motor.getInput());
+        tft_prints(0, 1, "v: %.6f", motor.getVelocity());
+        tft_prints(0, 2, "v_t: %.6f", velocity);
+        tft_prints(0, 3, "v_d: %.6f", velocity - motor.getVelocity());
+      }
+
+      last_tick = tick;
+    }
+  }
+
+  auto test_motor [[noreturn]] (RobotType type, Motor motor_handle) noexcept -> void
+  {
+    CANMotors<1> motors{{motor_handle}};
+    std::array<control::ADRC2d, 1> motor_adrcs{
+        type == RobotType::TASK ? new_motor_ADRC_task(motors[0]) : new_motor_ADRC_auto(motors[0]),
     };
     PositionADRC pos_adrc{0., 0.};
 
@@ -60,7 +93,7 @@ namespace test
     while (true)
     {
       auto const tick{HAL_GetTick()}, elapsed{tick - last_tick};
-      if (elapsed == 0)
+      if (elapsed <= 0)
       {
         continue;
       }
@@ -169,7 +202,7 @@ namespace test
     while (true)
     {
       auto const tick{HAL_GetTick()}, elapsed{tick - last_tick};
-      if (elapsed == 0)
+      if (elapsed <= 0)
       {
         continue;
       }

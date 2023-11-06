@@ -12,7 +12,7 @@ namespace
      */
     auto cpp_main2 [[nodiscard]] () noexcept
     {
-        test::test_auto_robot_movement();
+        test::test_motor_velocity(RobotType::AUTO, CAN1_MOTOR0, 4);
         return 0;
     }
 }
