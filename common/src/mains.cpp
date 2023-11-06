@@ -113,7 +113,7 @@ namespace test
       update_motor_velocity(motor, motor_adrcs[0], pos_adrc.update(target_position, motor.getVelocity(), dt), dt);
       if (tft_update(tft_update_period))
       {
-        tft_prints(0, 0, "tick: %u", static_cast<unsigned int>(HAL_GetTick()));
+        tft_prints(0, 0, "tick: %u", (unsigned int){HAL_GetTick()});
         tft_prints(0, 1, "input: %.3f", motor.getInput());
         tft_prints(0, 2, "vel: %.3f", motor.getVelocity());
         tft_prints(0, 3, "pos: %.3f", pos_adrc.m_position);

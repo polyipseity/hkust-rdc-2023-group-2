@@ -252,7 +252,7 @@ namespace math
          */
         constexpr friend auto operator- [[nodiscard]] (Matrix right) noexcept
         {
-            right *= static_cast<Scalar>(-1);
+            right *= Scalar{-1};
             return right;
         }
 
@@ -409,7 +409,7 @@ namespace math
                                       SquareMatrix<Scalar, size> ret{};
                                       for (std::size_t ii{}; ii < size; ++ii)
                                       {
-                                          ret(ii, ii) = static_cast<Scalar>(1);
+                                          ret(ii, ii) = Scalar{1};
                                       }
                                       return ret;
                                   }()};
@@ -536,7 +536,7 @@ namespace math
     template <typename Scalar>
     constexpr auto rotation_matrix2_angle [[nodiscard]] (SquareMatrix<Scalar, 2> const &matrix) noexcept
     {
-        const auto point{matrix * Vector<Scalar, 2>{static_cast<Scalar>(1), static_cast<Scalar>(0)}};
+        const auto point{matrix * Vector<Scalar, 2>{Scalar{1}}};
         return std::atan2(point(1), point(0));
     }
 
