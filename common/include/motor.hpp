@@ -263,12 +263,13 @@ auto new_motor_ADRC_task [[nodiscard]] (CANMotor const &motor, double convergenc
 /**
  * @brief Minimum motor velocity
  */
-constexpr auto const minimum_motor_velocity{.2};
+constexpr auto const minimum_motor_velocity{.25};
 
 /**
+ *
  * @brief Minimum desired motor velocity for movement
  */
-constexpr auto const motor_velocity_threshold{minimum_motor_velocity / 2.};
+constexpr auto const motor_velocity_threshold{.2};
 
 /**
  * @brief Update the velocity of a motor using the specified controller
