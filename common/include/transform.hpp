@@ -7,6 +7,11 @@
 #include "util/matrix.hpp"
 
 /**
+ * @brief Ratio of convergence rate of rotation over translation
+ */
+constexpr auto const adrc_rotation_convergence_factor{4.};
+
+/**
  * @brief An ADRC controller to control position for testing purpose
  */
 class PositionADRC
@@ -56,7 +61,7 @@ public:
 };
 
 /**
- * @brief An ADRC controller to control auto robot
+ * @brief An ADRC controller to control the auto robot
  */
 class AutoRobotADRC
 {
@@ -102,7 +107,7 @@ public:
      * @param gain circumference of the wheels in meters
      * @param convergence control reactiveness
      */
-    AutoRobotADRC(decltype(m_position) position, double rotation, decltype(m_velocities) velocities, decltype(m_gain) gain = .0987, double convergence = 4.) noexcept;
+    AutoRobotADRC(decltype(m_position) position, double rotation, decltype(m_velocities) velocities, decltype(m_gain) gain = .0987, double convergence = 1.) noexcept;
 
     /**
      * @brief Update the current state and recommend velocities for the two motors
@@ -163,7 +168,7 @@ public:
      * @param gain circumference of the wheels in meters
      * @param convergence control reactiveness
      */
-    AutoRobotTestADRC(decltype(m_position) position, double rotation, decltype(m_velocities) velocities, decltype(m_gain) gain = .0987, double convergence = 4.) noexcept;
+    AutoRobotTestADRC(decltype(m_position) position, double rotation, decltype(m_velocities) velocities, decltype(m_gain) gain = .0987, double convergence = 1.) noexcept;
 
     /**
      * @brief Update the current state and recommend velocities for the two motors

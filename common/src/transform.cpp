@@ -61,7 +61,7 @@ AutoRobotADRC::AutoRobotADRC(decltype(m_position) position, double rotation, dec
       m_velocities{std::move(velocities)},
       m_gain{gain},
       m_position_control{1., convergence, {0.}},
-      m_rotation_control{1., convergence, {0.}}
+      m_rotation_control{1., adrc_rotation_convergence_factor * convergence, {0.}}
 {
 }
 
@@ -111,7 +111,7 @@ AutoRobotTestADRC::AutoRobotTestADRC(decltype(m_position) position, double rotat
       m_velocities{std::move(velocities)},
       m_gain{gain},
       m_position_control{1., convergence, {0.}},
-      m_rotation_control{1., convergence, {0.}}
+      m_rotation_control{1., adrc_rotation_convergence_factor * convergence, {0.}}
 {
 }
 
