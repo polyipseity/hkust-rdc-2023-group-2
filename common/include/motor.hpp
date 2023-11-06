@@ -261,6 +261,16 @@ auto new_motor_ADRC_auto [[nodiscard]] (CANMotor const &motor, double convergenc
 auto new_motor_ADRC_task [[nodiscard]] (CANMotor const &motor, double convergence = 16., double gain = 8.) noexcept -> control::ADRC2d;
 
 /**
+ * @brief Minimum motor velocity
+ */
+constexpr auto const minimum_motor_velocity{.2};
+
+/**
+ * @brief Minimum desired motor velocity for movement
+ */
+constexpr auto const motor_velocity_threshold{minimum_motor_velocity / 2.};
+
+/**
  * @brief Update the velocity of a motor using the specified controller
  *
  * @tparam Controller controller type
@@ -272,6 +282,9 @@ auto new_motor_ADRC_task [[nodiscard]] (CANMotor const &motor, double convergenc
 template <typename Controller>
 constexpr auto update_motor_velocity(CANMotor &motor, Controller &controller, double velocity, double dt) noexcept
 {
+    velocity = std::abs(velocity) >= motor_velocity_threshold
+                   ? std::copysign(std::max(minimum_motor_velocity, std::abs(velocity)), velocity)
+                   : 0.;
     auto const input{controller.update(velocity, motor.getInput(), motor.getVelocity(), dt)};
     motor.setInput(input);
 }

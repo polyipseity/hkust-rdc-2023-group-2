@@ -18,7 +18,7 @@
 namespace
 {
   constexpr auto const auto_robot_translation_velocity{3.};
-  constexpr auto const auto_robot_rotation_velocity{math::tau / 4.};
+  constexpr auto const auto_robot_rotation_velocity{math::pi};
 }
 
 namespace test
