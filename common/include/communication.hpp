@@ -234,18 +234,24 @@ public:
         auto param{std::begin(params)};
         for (auto &chr : msg_cpy)
         {
-            if (chr == '\0' || chr == '\n' || chr == '\r')
+            if (chr == '\0' || chr == '\n' || chr == '\r' || chr == ';')
             {
                 chr = '\0';
-                break;
+                if (func && *func)
+                {
+                    (*func)(params);
+                }
+                func = nullptr;
+                params = {};
+                param = std::begin(params);
+                continue;
             }
             if (!func)
             {
-                if (!('a' <= chr && chr <= 'z'))
+                if ('a' <= chr && chr <= 'z')
                 {
-                    break;
+                    func = &m_handlers[chr - 'a'];
                 }
-                func = &m_handlers[chr - 'a'];
                 continue;
             }
             if (chr == ',')
@@ -253,7 +259,13 @@ public:
                 chr = '\0';
                 if (++param == std::end(params))
                 {
-                    break;
+                    if (func && *func)
+                    {
+                        (*func)(params);
+                    }
+                    func = nullptr;
+                    params = {};
+                    param = std::begin(params);
                 }
                 continue;
             }
