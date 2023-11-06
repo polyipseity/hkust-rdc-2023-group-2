@@ -24,11 +24,11 @@ auto PositionADRC::update(decltype(m_position) target, decltype(m_velocity) velo
 namespace
 {
     constexpr auto const auto_robot_axle_radius{.175};
-    constexpr auto const auto_robot_rotate_velocity_diff_min{auto_robot_axle_radius / 16.};
-    constexpr auto const auto_robot_self_rotate_radius_min{auto_robot_axle_radius / 16.};
+    constexpr auto const auto_robot_rotate_velocity_diff_min{auto_robot_axle_radius / 4.};
+    constexpr auto const auto_robot_self_rotate_radius_min{auto_robot_axle_radius / 4.};
     constexpr auto const auto_robot_max_velocity{1.8};
-    constexpr auto const auto_robot_max_angular_velocity{math::pi};
-    constexpr auto const auto_robot_position_tolerance{1. / 16.};
+    constexpr auto const auto_robot_max_angular_velocity{math::tau};
+    constexpr auto const auto_robot_position_tolerance{1. / 8.};
     constexpr auto calc_linear_angular_velocities [[nodiscard]] (double left_v, double right_v) noexcept -> std::tuple<double, double, double>
     {
         // https://math.stackexchange.com/a/3680738, https://stackoverflow.com/a/55810955
@@ -89,18 +89,18 @@ auto AutoRobotADRC::update(decltype(m_position) const &target, decltype(m_veloci
     auto ang_diff{std::atan2(pos_diff(1), pos_diff(0)) - std::atan2(forward_unit(1), forward_unit(0))};
     if (math::magnitude(pos_diff) <= auto_robot_position_tolerance)
     {
-        ang_diff = 0;
+        ang_diff = 0.;
     }
     else if (ang_diff > math::pi)
     {
-        ang_diff -= 2. * math::pi;
+        ang_diff -= math::tau;
     }
     else if (ang_diff < -math::pi)
     {
-        ang_diff += 2. * math::pi;
+        ang_diff += math::tau;
     }
 
-    lin_v = m_position_control.update(0., lin_v, -math::dot_product(forward_unit, pos_diff), dt);
+    lin_v = m_position_control.update(0., lin_v, -math::dot_product(forward_unit, pos_diff) * std::max(0., std::cos(ang_diff)), dt);
     ang_v = m_rotation_control.update(0., ang_v, std::isnan(ang_diff) ? 0. : -ang_diff, dt);
 
     std::tie(left_v, right_v) = calc_motor_velocities(lin_v, ang_v);

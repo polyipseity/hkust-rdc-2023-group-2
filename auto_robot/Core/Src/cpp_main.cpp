@@ -1,7 +1,6 @@
 #include "cpp_main.h"
 
 #include "mains.hpp"
-#include "usart.h"
 
 namespace
 {
@@ -12,7 +11,7 @@ namespace
      */
     auto cpp_main2 [[nodiscard]] () noexcept
     {
-        test::test_motor_velocity(RobotType::AUTO, CAN1_MOTOR0, 4);
+        test::test_auto_robot_movement();
         return 0;
     }
 }

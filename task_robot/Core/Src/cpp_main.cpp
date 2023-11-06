@@ -1,5 +1,6 @@
 #include "cpp_main.h"
 
+#include "main.h"
 #include "mains.hpp"
 #include "usart.h"
 

@@ -101,7 +101,7 @@ public:
      * @param gain circumference of the wheels in meters
      * @param convergence control reactiveness
      */
-    AutoRobotADRC(decltype(m_position) position, double rotation, decltype(m_velocities) velocities, decltype(m_gain) gain = .21, double convergence = 1.) noexcept;
+    AutoRobotADRC(decltype(m_position) position, double rotation, decltype(m_velocities) velocities, decltype(m_gain) gain = .102, double convergence = 1.) noexcept;
 
     /**
      * @brief Update the current state and recommend velocities for the two motors

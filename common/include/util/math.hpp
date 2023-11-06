@@ -15,6 +15,11 @@ namespace math
     constexpr auto const pi{3.14159265358979323846};
 
     /**
+     * @brief Tau
+     */
+    constexpr auto const tau{2. * 3.14159265358979323846};
+
+    /**
      * @brief Calculate the natural logarithm of the specified binominal coefficient
      *
      * @param n n

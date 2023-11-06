@@ -15,6 +15,11 @@
 #include "util/adrc.hpp"
 #include "util/math.hpp"
 
+namespace
+{
+  constexpr auto const auto_robot_movement_velocity{3.};
+}
+
 namespace test
 {
   auto find_motor_gain [[noreturn]] (Motor motor_handle) noexcept -> void
@@ -155,13 +160,13 @@ namespace test
                        active = !active;
                      });
     commander.handle('w', [&dt, &target_pos](typename Commander<2>::ParamType const &)
-                     { target_pos += {0., 1. * dt}; });
+                     { target_pos += {0., auto_robot_movement_velocity * dt}; });
     commander.handle('a', [&dt, &target_pos](typename Commander<2>::ParamType const &)
-                     { target_pos += {-1. * dt, 0.}; });
+                     { target_pos += {-auto_robot_movement_velocity * dt, 0.}; });
     commander.handle('s', [&dt, &target_pos](typename Commander<2>::ParamType const &)
-                     { target_pos += {0., -1. * dt}; });
+                     { target_pos += {0., -auto_robot_movement_velocity * dt}; });
     commander.handle('d', [&dt, &target_pos](typename Commander<2>::ParamType const &)
-                     { target_pos += {1. * dt, 0.}; });
+                     { target_pos += {auto_robot_movement_velocity * dt, 0.}; });
     commander.handle('g',
                      [&target_pos, &receiver](typename Commander<2>::ParamType const &param)
                      {
@@ -198,7 +203,7 @@ namespace test
       {
         target_pos = move_adrc.m_position;
       }
-      auto const [v_l, v_r] = move_adrc.update(target_pos, {motors[0].getVelocity(), motors[1].getVelocity()}, dt);
+      auto const [v_l, v_r]{move_adrc.update(target_pos, {motors[0].getVelocity(), motors[1].getVelocity()}, dt)};
       update_motor_velocity(motors[0], motor_adrcs[0], active * v_l, dt);
       update_motor_velocity(motors[1], motor_adrcs[1], active * v_r, dt);
 
@@ -207,7 +212,7 @@ namespace test
         tft_prints(0, 0, "pos: %.2f, %.2f", move_adrc.m_position(0), move_adrc.m_position(1));
         tft_prints(0, 1, "rot: %.2f", math::rotation_matrix2_angle(move_adrc.m_rotation));
         tft_prints(0, 2, "v: %.2f, %.2f", motors[0].getVelocity(), motors[1].getVelocity());
-        tft_prints(0, 3, "d_v: %.2f, %.2f", v_l, v_r);
+        tft_prints(0, 3, "v_t: %.2f, %.2f", v_l, v_r);
       }
     }
   }
