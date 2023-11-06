@@ -4,7 +4,15 @@ import cv2
 
 
 ## change depending on the size in the future
-working_area = 30000
+# working area defines min size of box
+min_working_area = 30000
+max_working_area = 50000
+#subject to change based on actual tests
+
+
+#red team = 0, blue team = 1
+Team = 1
+
 
 
 
@@ -13,6 +21,9 @@ webcam = cv2.VideoCapture(0)
 
 # Start a while loop 
 while(1): 
+	Red_List = []
+	Blue_List = []
+	Green_List = []
 
 	# Reading the video from the 
 	# webcam in image frames 
@@ -78,8 +89,16 @@ while(1):
 
 	for pic, contour in enumerate(contours): 
 		area = cv2.contourArea(contour) 
-		if(area > working_area): 
+		if(area > min_working_area and area < max_working_area): 
+			
 			x, y, w, h = cv2.boundingRect(contour) 
+			#store the position and color of the box in a common array
+			x_pos = (x + w)/2
+			y_pos = (y + h)/2
+			List = []
+			List.append(x_pos)
+			List.append(y_pos)
+			Red_List.append(List)
 			imageFrame = cv2.rectangle(imageFrame, (x, y), 
 									(x + w, y + h), 
 									(0, 0, 255), 2) 
@@ -95,9 +114,17 @@ while(1):
 
 	for pic, contour in enumerate(contours): 
 		area = cv2.contourArea(contour) 
-		if(area > working_area): 
+		if(area > min_working_area and area < max_working_area): 
+			
 			x, y, w, h = cv2.boundingRect(contour)
-			print(x, y) 
+			#store the position and color of the box in a common array
+			x_pos = (x + w)/2
+			y_pos = (y + h)/2
+			List = []
+			List.append(x_pos)
+			List.append(y_pos)
+			Green_List.append(List)
+			print(x, y)
 			imageFrame = cv2.rectangle(imageFrame, (x, y), 
 									(x + w, y + h), 
 									(0, 255, 0), 2) 
@@ -115,8 +142,16 @@ while(1):
 										cv2.CHAIN_APPROX_SIMPLE) 
 	for pic, contour in enumerate(contours): 
 		area = cv2.contourArea(contour) 
-		if(area > working_area): 
+		if(area > min_working_area and area < max_working_area): 
+			
 			x, y, w, h = cv2.boundingRect(contour) 
+			#store the position and color of the box in a common array
+			x_pos = (x + w)/2
+			y_pos = (y + h)/2
+			List = []
+			List.append(x_pos)
+			List.append(y_pos)
+			Blue_List.append(List)
 			imageFrame = cv2.rectangle(imageFrame, (x, y), 
 									(x + w, y + h), 
 									(255, 0, 0), 2) 
@@ -125,13 +160,25 @@ while(1):
 						cv2.FONT_HERSHEY_SIMPLEX, 
 						1.0, (255, 0, 0)) 
 
-	# Program Termination 
+	
   
 	cv2.imshow("Multiple Color Detection in Real-TIme", imageFrame) 
-	cv2.imshow("blue mask", res_blue)
-	cv2.imshow("red mask", res_red)
-	
-	
+
+	#make an unsorted array of the x positions of the boxes detected, 1 represents blue/red, 0 represents green
+	FinalPos = []
+	if(Team):
+		FinalPos = [['0', Green_List[0][0]], ['0', Green_List[1][0]], ['0',Blue_List[0][0]], ['0',Blue_List[1][0]]]
+	else:
+		FinalPos = [['0', Green_List[0][0]], ['0', Green_List[1][0]], ['0',Red_List[0][0]], ['0',Red_List[1][0]]]
+
+	#sort array and convert into a string
+	FinalPos_sorted = sorted(FinalPos,key=lambda x: x[1])
+	data = np.array(FinalPos_sorted)
+	str = ""
+	finalString = str.join(data[:, 0:1].squeeze().tolist())
+	print(finalString)
+
+	# Program Termination 
 	if cv2.waitKey(10) & 0xFF == ord('q'): 
 		cv2.destroyAllWindows() 
 		break
