@@ -1,5 +1,9 @@
 {
-    "extensions": {},
+    "extensions": {
+        "recommendations": [
+            "cl.eide"
+        ]
+    },
     "folders": [
         {
             "path": "."
