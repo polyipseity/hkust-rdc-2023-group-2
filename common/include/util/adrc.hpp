@@ -166,7 +166,14 @@ namespace control
     class ADRC
     {
     public:
+        /**
+         * @brief Type of scalar
+         */
         using Scalar = Scalar_;
+
+        /**
+         * @brief System order
+         */
         constexpr static auto const order{order_};
 
         /**
