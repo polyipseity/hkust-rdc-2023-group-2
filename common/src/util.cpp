@@ -33,6 +33,7 @@ auto Time::update() noexcept -> double
   {
     tick = HAL_GetTick();
   }
+  auto const ret{(tick - m_last_tick) / 1000.};
   m_last_tick = tick;
-  return (tick - m_last_tick) / 1000.;
+  return ret;
 }
