@@ -12,19 +12,34 @@ namespace math
     /**
      * @brief Mathematical matrix
      *
-     * @tparam Scalar type of scalar
-     * @tparam rows number of rows
-     * @tparam cols number of columns
+     * @tparam Scalar_ type of scalar
+     * @tparam rows_ number of rows
+     * @tparam cols_ number of columns
      */
-    template <typename Scalar, std::size_t rows, std::size_t cols>
+    template <typename Scalar_, std::size_t rows_, std::size_t cols_>
     struct Matrix
     {
-        template <typename Scalar_,
-                  std::size_t rows_,
-                  std::size_t size_,
-                  std::size_t cols_>
-        constexpr friend auto operator* [[nodiscard]] (Matrix<Scalar_, rows_, size_> const &left,
-                                                       Matrix<Scalar_, size_, cols_> const &right) noexcept;
+        /**
+         * @brief Type of scalar
+         */
+        using Scalar = Scalar_;
+
+        /**
+         * @brief Number of rows
+         */
+        constexpr static auto const rows{rows_};
+
+        /**
+         * @brief Number of columns
+         */
+        constexpr static auto const cols{cols_};
+
+        template <typename Scalar,
+                  std::size_t rows,
+                  std::size_t size,
+                  std::size_t cols>
+        constexpr friend auto operator* [[nodiscard]] (Matrix<Scalar, rows, size> const &left,
+                                                       Matrix<Scalar, size, cols> const &right) noexcept;
 
         /**
          * @brief Matrix data

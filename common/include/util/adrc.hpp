@@ -12,13 +12,23 @@ namespace control
     /**
      * @brief A state observer tracking the system state and unknown disturbances
      *
-     * @tparam Scalar type of scalar
-     * @tparam order system order
+     * @tparam Scalar_ type of scalar
+     * @tparam order_ system order
      */
-    template <typename Scalar, std::size_t order>
+    template <typename Scalar_, std::size_t order_>
     class ESO
     {
     public:
+        /**
+         * @brief Type of scalar
+         */
+        using Scalar = Scalar_;
+
+        /**
+         * @brief System order
+         */
+        constexpr static auto const order{order_};
+
         /**
          * @brief State type
          */
@@ -150,13 +160,16 @@ namespace control
     /**
      * @brief Controller implementing active disturbance rejection control (ADRC)
      *
-     * @tparam Scalar type of scalar
-     * @tparam order system order
+     * @tparam Scalar_ type of scalar
+     * @tparam order_ system order
      */
-    template <typename Scalar, std::size_t order>
+    template <typename Scalar_, std::size_t order_>
     class ADRC
     {
     public:
+        using Scalar = Scalar_;
+        constexpr static auto const order{order_};
+
         /**
          * @brief Extended state observer type
          */

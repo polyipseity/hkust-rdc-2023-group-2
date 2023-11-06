@@ -80,14 +80,21 @@ public:
 /**
  * @brief Set of CAN motors
  *
- * @tparam size number of motors
+ * @tparam size_ number of motors
  */
-template <std::size_t size>
+template <std::size_t size_>
 class CANMotors
 {
-    template <std::size_t size_>
+private:
+    /**
+     * @brief Number of motors
+     */
+    constexpr static auto const size{size_};
+
+    template <std::size_t size>
     friend class CANMotorsControl;
 
+public:
     /**
      * @brief CAN motors
      */
@@ -133,11 +140,18 @@ public:
 /**
  * @brief Controller for a set of CAN motors
  *
- * @tparam size number of motors
+ * @tparam size_ number of motors
  */
-template <std::size_t size>
+template <std::size_t size_>
 class CANMotorsControl
 {
+public:
+    /**
+     * @brief Number of motors
+     */
+    constexpr static auto const size{size_};
+
+private:
     /**
      * @brief The set of CAN motors
      */

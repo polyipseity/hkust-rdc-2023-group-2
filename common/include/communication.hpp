@@ -46,7 +46,7 @@ auto receiver_unregister_rx_event_callback(UART_HandleTypeDef &handle) noexcept 
  * @brief UART receiver
  *
  * @tparam size_ number of bytes in a message
- * @tparam fixed whether the message size is fixed
+ * @tparam fixed_ whether the message size is fixed
  */
 template <std::size_t size_, bool fixed_ = true>
 class Receiver
@@ -95,9 +95,9 @@ private:
      */
     auto callback(std::uint16_t size) noexcept
     {
-        if constexpr (fixed_)
+        if constexpr (fixed)
         {
-            if (size != size_)
+            if (size != this->size)
                 return;
         }
         m_last_tick = HAL_GetTick() / 1000.;
@@ -126,14 +126,14 @@ public:
      *
      * @return a message or empty if no messages have been received with the timeout
      */
-    auto update() noexcept -> std::conditional_t<fixed_,
+    auto update() noexcept -> std::conditional_t<fixed,
                                                  std::optional<decltype(m_buffer)>,
                                                  std::tuple<std::size_t, decltype(m_buffer)>>
     {
-        HAL_UARTEx_ReceiveToIdle_IT(m_handle, std::data(m_buffer), size_);
+        HAL_UARTEx_ReceiveToIdle_IT(m_handle, std::data(m_buffer), size);
         if (HAL_GetTick() / 1000. - m_last_tick < m_timeout)
         {
-            if constexpr (fixed_)
+            if constexpr (fixed)
             {
                 return m_buffer;
             }
@@ -171,7 +171,8 @@ template <std::size_t max_params_>
 class Commander
 {
 public:
-    using ParamType = std::array<std::tuple<std::size_t, char const *>, max_params_>;
+    constexpr static auto const max_params{max_params_};
+    using ParamType = std::array<std::tuple<std::size_t, char const *>, max_params>;
     using HandlerType = void(ParamType const &);
 
 private:
