@@ -55,7 +55,7 @@ namespace
     }
 }
 
-AutoRobotADRC::AutoRobotADRC(decltype(m_position) position, double rotation, decltype(m_velocities) velocities, decltype(m_gain) gain, double convergence) noexcept
+AutoRobotTestADRC::AutoRobotTestADRC(decltype(m_position) position, double rotation, decltype(m_velocities) velocities, decltype(m_gain) gain, double convergence) noexcept
     : m_position{std::move(position)},
       m_rotation{math::rotation_matrix2(rotation)},
       m_velocities{std::move(velocities)},
@@ -65,7 +65,7 @@ AutoRobotADRC::AutoRobotADRC(decltype(m_position) position, double rotation, dec
 {
 }
 
-auto AutoRobotADRC::update(decltype(m_position) const &target, std::optional<double> target_rot, decltype(m_velocities) const &velocities, double dt) noexcept -> decltype(m_velocities)
+auto AutoRobotTestADRC::update(decltype(m_position) const &target, std::optional<double> target_rot, decltype(m_velocities) const &velocities, double dt) noexcept -> decltype(m_velocities)
 {
     auto [left_v, right_v]{m_velocities};
     left_v *= m_gain;

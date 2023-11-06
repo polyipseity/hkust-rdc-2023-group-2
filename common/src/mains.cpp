@@ -147,7 +147,7 @@ namespace test
         new_motor_ADRC_auto(motors_r[0]),
         new_motor_ADRC_auto(motors_r[1]),
     };
-    AutoRobotADRC move_adrc{{0., 0.}, 0., {motors_r[0].getVelocity(), motors_r[1].getVelocity()}};
+    AutoRobotTestADRC move_adrc{{0., 0.}, 0., {motors_r[0].getVelocity(), motors_r[1].getVelocity()}};
 
     auto dt{0.};
     auto active{true};

@@ -58,7 +58,7 @@ public:
 /**
  * @brief An ADRC controller to control auto robot
  */
-class AutoRobotADRC
+class AutoRobotTestADRC
 {
 public:
     /**
@@ -94,7 +94,7 @@ private:
 
 public:
     /**
-     * @brief Construct a new `AutoRobotADRC` object
+     * @brief Construct a new `AutoRobotTestADRC` object
      *
      * @param position current position in meters
      * @param rotation current rotation in radians
@@ -102,7 +102,7 @@ public:
      * @param gain circumference of the wheels in meters
      * @param convergence control reactiveness
      */
-    AutoRobotADRC(decltype(m_position) position, double rotation, decltype(m_velocities) velocities, decltype(m_gain) gain = .0987, double convergence = 4.) noexcept;
+    AutoRobotTestADRC(decltype(m_position) position, double rotation, decltype(m_velocities) velocities, decltype(m_gain) gain = .0987, double convergence = 4.) noexcept;
 
     /**
      * @brief Update the current state and recommend velocities for the two motors
