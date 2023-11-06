@@ -17,7 +17,7 @@ namespace
     constexpr auto const auto_robot_max_velocity{1.8};
     constexpr auto const auto_robot_max_angular_velocity{math::tau};
     constexpr auto const auto_robot_position_tolerance{1. / 8.};
-    constexpr auto calc_linear_angular_velocities [[nodiscard]] (double left_v, double right_v) noexcept -> std::tuple<double, double, double>
+    constexpr auto calc_auto_robot_velocities [[nodiscard]] (double left_v, double right_v) noexcept -> std::tuple<double, double, double>
     {
         // https://math.stackexchange.com/a/3680738, https://stackoverflow.com/a/55810955
 
@@ -33,7 +33,7 @@ namespace
         }
         return {vv, vv / rad_to_left, rad_to_left};
     }
-    constexpr auto calc_motor_velocities [[nodiscard]] (double target_lin_v, double target_ang_v) noexcept -> std::tuple<double, double>
+    constexpr auto calc_auto_robot_motor_velocities [[nodiscard]] (double target_lin_v, double target_ang_v) noexcept -> std::tuple<double, double>
     {
         target_ang_v = std::clamp(target_ang_v, -auto_robot_max_angular_velocity, auto_robot_max_angular_velocity);
         auto const extra_v{target_ang_v * auto_robot_axle_radius};
@@ -71,7 +71,7 @@ auto AutoRobotADRC::update(decltype(m_position) target, double target_rot, declt
     left_v *= m_gain;
     right_v *= m_gain;
 
-    auto [lin_v, ang_v, rad]{calc_linear_angular_velocities(left_v, right_v)};
+    auto [lin_v, ang_v, rad]{calc_auto_robot_velocities(left_v, right_v)};
     m_position += lin_v * dt;
     if (!std::isnan(rad))
     {
@@ -101,7 +101,7 @@ auto AutoRobotADRC::update(decltype(m_position) target, double target_rot, declt
     lin_v = m_position_control.update(0., lin_v, m_position - target, dt);
     ang_v = m_rotation_control.update(0., ang_v, std::isnan(ang_diff) ? 0. : -ang_diff, dt);
 
-    std::tie(left_v, right_v) = calc_motor_velocities(lin_v, ang_v);
+    std::tie(left_v, right_v) = calc_auto_robot_motor_velocities(lin_v, ang_v);
     return {left_v / m_gain, right_v / m_gain};
 }
 
@@ -121,7 +121,7 @@ auto AutoRobotTestADRC::update(decltype(m_position) const &target, std::optional
     left_v *= m_gain;
     right_v *= m_gain;
 
-    auto [lin_v, ang_v, rad]{calc_linear_angular_velocities(left_v, right_v)};
+    auto [lin_v, ang_v, rad]{calc_auto_robot_velocities(left_v, right_v)};
     if (std::isnan(rad))
     {
         m_position += m_rotation * decltype(m_position){0., lin_v * dt};
@@ -167,6 +167,6 @@ auto AutoRobotTestADRC::update(decltype(m_position) const &target, std::optional
     lin_v = m_position_control.update(0., lin_v, -math::dot_product(forward_unit, pos_diff) * std::max(0., std::cos(ang_diff)), dt);
     ang_v = m_rotation_control.update(0., ang_v, std::isnan(ang_diff) ? 0. : -ang_diff, dt);
 
-    std::tie(left_v, right_v) = calc_motor_velocities(lin_v, ang_v);
+    std::tie(left_v, right_v) = calc_auto_robot_motor_velocities(lin_v, ang_v);
     return {left_v / m_gain, right_v / m_gain};
 }
