@@ -58,6 +58,67 @@ public:
 /**
  * @brief An ADRC controller to control auto robot
  */
+class AutoRobotADRC
+{
+public:
+    /**
+     * @brief Current position, useful for relative calculations only
+     */
+    double m_position;
+
+    /**
+     * @brief Current rotation represented by a 2D rotation matrix, useful for relative calculations only
+     */
+    math::SquareMatrix<double, 2> m_rotation;
+
+    /**
+     * @brief Current velocities reported by the two motors
+     */
+    std::tuple<double, double> m_velocities;
+
+private:
+    /**
+     * @brief Circumference of the wheels in meters
+     */
+    double m_gain;
+
+    /**
+     * @brief Controller for position
+     */
+    control::ADRC2d m_position_control;
+
+    /**
+     * @brief Controller for rotation
+     */
+    control::ADRC2d m_rotation_control;
+
+public:
+    /**
+     * @brief Construct a new `AutoRobotADRC` object
+     *
+     * @param position current position in meters
+     * @param rotation current rotation in radians
+     * @param velocities current velocities reported by the two motors
+     * @param gain circumference of the wheels in meters
+     * @param convergence control reactiveness
+     */
+    AutoRobotADRC(decltype(m_position) position, double rotation, decltype(m_velocities) velocities, decltype(m_gain) gain = .0987, double convergence = 4.) noexcept;
+
+    /**
+     * @brief Update the current state and recommend velocities for the two motors
+     *
+     * @param target desired position
+     * @param target_rot desired rotation
+     * @param velocities current velocities reported by the two motors
+     * @param dt time since last update
+     * @return recommended motor velocities for the two motors
+     */
+    auto update(decltype(m_position) target, double target_rot, decltype(m_velocities) const &velocities, double dt) noexcept -> decltype(m_velocities);
+};
+
+/**
+ * @brief A testing ADRC controller to control auto robot
+ */
 class AutoRobotTestADRC
 {
 public:

@@ -55,3 +55,11 @@ namespace test
    */
   auto test_auto_robot_movement [[noreturn]] () noexcept -> void;
 }
+
+namespace main
+{
+  /**
+   * @brief Code for auto robot
+   */
+  auto auto_robot [[noreturn]] () noexcept -> void;
+}

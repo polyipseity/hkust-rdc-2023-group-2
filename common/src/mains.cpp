@@ -262,3 +262,108 @@ namespace test
     }
   }
 }
+
+namespace main
+{
+  auto auto_robot [[noreturn]] () -> void
+  {
+    CANMotors<2> motors_r{{CAN1_MOTOR0, CAN1_MOTOR1},
+                          {false, true}};
+    std::array<control::ADRC2d, 2> motor_adrcs{
+        new_motor_ADRC_auto(motors_r[0]),
+        new_motor_ADRC_auto(motors_r[1]),
+    };
+    AutoRobotADRC move_adrc{0., 0., {motors_r[0].getVelocity(), motors_r[1].getVelocity()}};
+
+    auto dt{0.};
+    auto active{true};
+    double target_pos{}, target_rot{};
+
+    Commander<2> commander{};
+    Receiver<16, false> receiver{huart1, .05};
+    commander.handle('x',
+                     [&active, &receiver](typename decltype(commander)::ParamType const &)
+                     {
+                       receiver.invalidate();
+                       active = !active;
+                     });
+    commander.handle('w',
+                     [&dt, &target_pos](typename decltype(commander)::ParamType const &)
+                     {
+                       target_pos += auto_robot_translation_velocity * dt;
+                     });
+    commander.handle('s',
+                     [&dt, &target_pos](typename decltype(commander)::ParamType const &)
+                     {
+                       target_pos += -auto_robot_translation_velocity * dt;
+                     });
+    commander.handle('q',
+                     [&dt, &target_rot](typename decltype(commander)::ParamType const &)
+                     {
+                       target_rot += auto_robot_rotation_velocity * dt;
+                     });
+    commander.handle('e',
+                     [&dt, &target_rot](typename decltype(commander)::ParamType const &)
+                     {
+                       target_rot += -auto_robot_rotation_velocity * dt;
+                     });
+    auto g_command_capture{std::tie(target_pos, target_rot, receiver)};
+    commander.handle('g',
+                     [&g_command_capture](typename decltype(commander)::ParamType const &param)
+                     {
+                       auto &[target_pos, target_rot, receiver]{g_command_capture};
+                       receiver.invalidate();
+                       auto const &[p_x, p_r]{param};
+                       if (std::get<0>(p_x) == 0)
+                       {
+                         return;
+                       }
+                       char *end{};
+                       auto const xx{std::strtod(std::get<1>(p_x), &end)};
+                       if (std::get<1>(p_x) == end)
+                       {
+                         return;
+                       }
+                       target_pos = xx;
+                       if (std::get<0>(p_r) == 0)
+                       {
+                         return;
+                       }
+                       auto const rot{std::strtod(std::get<1>(p_r), &end)};
+                       if (std::get<1>(p_r) == end)
+                       {
+                         return;
+                       }
+                       target_rot = rot;
+                     });
+
+    Time time{};
+    while (true)
+    {
+      dt = time.update();
+
+      auto const received{receiver.update()};
+      commander.dispatch(std::get<1>(received), std::get<0>(received));
+
+      CANMotorsControl<2> motors{motors_r};
+      if (!active)
+      {
+        target_pos = move_adrc.m_position;
+        target_rot = math::rotation_matrix2_angle(move_adrc.m_rotation);
+      }
+      auto const [v_l, v_r]{move_adrc.update(target_pos, target_rot, {motors[0].getVelocity(), motors[1].getVelocity()}, dt)};
+      update_motor_velocity(motors[0], motor_adrcs[0], active * v_l, dt);
+      update_motor_velocity(motors[1], motor_adrcs[1], active * v_r, dt);
+
+      if (tft_update(tft_update_period))
+      {
+        tft_prints(0, 0, "pos: %.2f", move_adrc.m_position);
+        tft_prints(0, 1, "pos_t: %.2f", target_pos);
+        tft_prints(0, 2, "rot: %.2f", math::rotation_matrix2_angle(move_adrc.m_rotation));
+        tft_prints(0, 3, "rot_t: %.2f", target_rot);
+        tft_prints(0, 4, "v: %.2f, %.2f", motors[0].getVelocity(), motors[1].getVelocity());
+        tft_prints(0, 5, "v_t: %.2f, %.2f", v_l, v_r);
+      }
+    }
+  }
+}

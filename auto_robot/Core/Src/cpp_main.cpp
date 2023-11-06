@@ -11,7 +11,7 @@ namespace
      */
     auto cpp_main2 [[nodiscard]] () noexcept
     {
-        test::test_auto_robot_movement();
+        main::auto_robot();
         return 0;
     }
 }

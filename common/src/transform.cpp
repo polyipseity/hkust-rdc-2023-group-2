@@ -55,6 +55,56 @@ namespace
     }
 }
 
+AutoRobotADRC::AutoRobotADRC(decltype(m_position) position, double rotation, decltype(m_velocities) velocities, decltype(m_gain) gain, double convergence) noexcept
+    : m_position{position},
+      m_rotation{math::rotation_matrix2(rotation)},
+      m_velocities{std::move(velocities)},
+      m_gain{gain},
+      m_position_control{1., convergence, {0.}},
+      m_rotation_control{1., convergence, {0.}}
+{
+}
+
+auto AutoRobotADRC::update(decltype(m_position) target, double target_rot, decltype(m_velocities) const &velocities, double dt) noexcept -> decltype(m_velocities)
+{
+    auto [left_v, right_v]{m_velocities};
+    left_v *= m_gain;
+    right_v *= m_gain;
+
+    auto [lin_v, ang_v, rad]{calc_linear_angular_velocities(left_v, right_v)};
+    m_position += lin_v * dt;
+    if (!std::isnan(rad))
+    {
+        auto const rot_mat{math::rotation_matrix2(ang_v * dt)};
+        m_rotation = math::orthogonalize_rotation_matrix2(rot_mat * m_rotation);
+    }
+
+    m_velocities = velocities;
+
+    target_rot = std::fmod(target_rot + math::tau / 4., math::tau);
+    if (target_rot < 0.)
+    {
+        target_rot += math::tau;
+    }
+
+    auto const forward_unit{m_rotation * math::Vector<double, 2>{0., 1.}};
+    auto ang_diff{target_rot - std::atan2(forward_unit(1), forward_unit(0))};
+    if (ang_diff > math::pi)
+    {
+        ang_diff -= math::tau;
+    }
+    else if (ang_diff < -math::pi)
+    {
+        ang_diff += math::tau;
+    }
+
+    lin_v = m_position_control.update(0., lin_v, m_position - target, dt);
+    ang_v = m_rotation_control.update(0., ang_v, std::isnan(ang_diff) ? 0. : -ang_diff, dt);
+
+    std::tie(left_v, right_v) = calc_motor_velocities(lin_v, ang_v);
+    return {left_v / m_gain, right_v / m_gain};
+}
+
 AutoRobotTestADRC::AutoRobotTestADRC(decltype(m_position) position, double rotation, decltype(m_velocities) velocities, decltype(m_gain) gain, double convergence) noexcept
     : m_position{std::move(position)},
       m_rotation{math::rotation_matrix2(rotation)},
