@@ -11,6 +11,7 @@
 #include "motor.hpp"
 #include "transform.hpp"
 #include "usart.h"
+#include "util.hpp"
 #include "util/adrc.hpp"
 #include "util/math.hpp"
 
@@ -54,15 +55,10 @@ namespace test
         type == RobotType::TASK ? new_motor_ADRC_task(motors[0]) : new_motor_ADRC_auto(motors[0]),
     };
 
-    auto last_tick{HAL_GetTick()};
+    Time time{};
     while (true)
     {
-      auto const tick{HAL_GetTick()}, elapsed{tick - last_tick};
-      if (elapsed <= 0)
-      {
-        continue;
-      }
-      auto dt{elapsed / 1000.};
+      auto const dt{time.update()};
 
       CANMotorsControl<1> motors_ctrl{motors};
       auto &motor{motors_ctrl[0]};
@@ -75,8 +71,6 @@ namespace test
         tft_prints(0, 2, "v_t: %.6f", velocity);
         tft_prints(0, 3, "v_d: %.6f", velocity - motor.getVelocity());
       }
-
-      last_tick = tick;
     }
   }
 
@@ -88,16 +82,11 @@ namespace test
     };
     PositionADRC pos_adrc{0., 0.};
 
-    auto last_tick{HAL_GetTick()};
+    Time time{};
     auto target_position{0.};
     while (true)
     {
-      auto const tick{HAL_GetTick()}, elapsed{tick - last_tick};
-      if (elapsed <= 0)
-      {
-        continue;
-      }
-      auto const dt{elapsed / 1000.};
+      auto const dt{time.update()};
       CANMotorsControl<1> motors_ctrl{motors};
       auto &motor{motors_ctrl[0]};
 
@@ -120,8 +109,6 @@ namespace test
         tft_prints(0, 4, "t pos: %.3f", target_position);
         tft_prints(0, 5, "diff: %.3f", pos_adrc.m_position - target_position);
       }
-
-      last_tick = tick;
     }
   }
 
@@ -155,11 +142,10 @@ namespace test
     };
     AutoRobotADRC move_adrc{{0., 0.}, 0., {motors_r[0].getVelocity(), motors_r[1].getVelocity()}};
 
-    math::Vector<double, 2> target_pos{};
-    auto last_tick{HAL_GetTick()};
-    auto active{true};
-
     auto dt{0.};
+    auto active{true};
+    math::Vector<double, 2> target_pos{};
+
     Commander<2> commander{};
     Receiver<16, false> receiver{huart1, .05};
     commander.handle('x',
@@ -199,14 +185,10 @@ namespace test
                        target_pos = {xx, yy};
                      });
 
+    Time time{};
     while (true)
     {
-      auto const tick{HAL_GetTick()}, elapsed{tick - last_tick};
-      if (elapsed <= 0)
-      {
-        continue;
-      }
-      dt = elapsed / 1000.;
+      dt = time.update();
 
       auto const received{receiver.update()};
       commander.dispatch(std::get<1>(received), std::get<0>(received));
@@ -227,8 +209,6 @@ namespace test
         tft_prints(0, 2, "v: %.2f, %.2f", motors[0].getVelocity(), motors[1].getVelocity());
         tft_prints(0, 3, "d_v: %.2f, %.2f", v_l, v_r);
       }
-
-      last_tick = tick;
     }
   }
 }
