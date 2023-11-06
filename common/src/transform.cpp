@@ -9,19 +9,6 @@
 #include <type_traits>
 #include <utility>
 
-PositionADRC::PositionADRC(decltype(m_position) position, decltype(m_velocity) velocity, decltype(m_gain) gain, double convergence) noexcept
-    : m_position{position}, m_velocity{velocity}, m_gain{gain}, m_control{gain, convergence, {position}}
-{
-}
-
-auto PositionADRC::update(decltype(m_position) target, decltype(m_velocity) velocity, double dt) noexcept -> decltype(m_velocity)
-{
-    m_position += m_gain * m_velocity * dt;
-    m_velocity = velocity;
-    auto const input{m_control.update(target, m_velocity, m_position, dt)};
-    return input;
-}
-
 namespace
 {
     constexpr auto const auto_robot_axle_radius{.175};
@@ -53,6 +40,19 @@ namespace
         target_lin_v = std::clamp(target_lin_v, -auto_robot_max_velocity + extra_v, auto_robot_max_velocity - extra_v);
         return {target_lin_v - extra_v, target_lin_v + extra_v};
     }
+}
+
+PositionADRC::PositionADRC(decltype(m_position) position, decltype(m_velocity) velocity, decltype(m_gain) gain, double convergence) noexcept
+    : m_position{position}, m_velocity{velocity}, m_gain{gain}, m_control{gain, convergence, {position}}
+{
+}
+
+auto PositionADRC::update(decltype(m_position) target, decltype(m_velocity) velocity, double dt) noexcept -> decltype(m_velocity)
+{
+    m_position += m_gain * m_velocity * dt;
+    m_velocity = velocity;
+    auto const input{m_control.update(target, m_velocity, m_position, dt)};
+    return input;
 }
 
 AutoRobotADRC::AutoRobotADRC(decltype(m_position) position, double rotation, decltype(m_velocities) velocities, decltype(m_gain) gain, double convergence) noexcept
