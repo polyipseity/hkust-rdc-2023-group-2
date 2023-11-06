@@ -3,6 +3,7 @@
 #include <array>
 #include <cstdlib>
 #include <tuple>
+#include <type_traits>
 
 #include "can.h"
 #include "communication.hpp"
@@ -17,7 +18,7 @@
 
 namespace
 {
-  constexpr auto const auto_robot_translation_velocity{3.};
+  constexpr auto const auto_robot_translation_velocity{2.5};
   constexpr auto const auto_robot_rotation_velocity{math::pi};
 }
 
@@ -161,18 +162,41 @@ namespace test
                        receiver.invalidate();
                        active = !active;
                      });
-    commander.handle('w', [&dt, &target_pos](typename decltype(commander)::ParamType const &)
-                     { target_pos += {0., auto_robot_translation_velocity * dt}; });
-    commander.handle('a', [&dt, &target_pos](typename decltype(commander)::ParamType const &)
-                     { target_pos += {-auto_robot_translation_velocity * dt, 0.}; });
-    commander.handle('s', [&dt, &target_pos](typename decltype(commander)::ParamType const &)
-                     { target_pos += {0., -auto_robot_translation_velocity * dt}; });
-    commander.handle('d', [&dt, &target_pos](typename decltype(commander)::ParamType const &)
-                     { target_pos += {auto_robot_translation_velocity * dt, 0.}; });
-    commander.handle('q', [&dt, &target_rot](typename decltype(commander)::ParamType const &)
-                     { target_rot += auto_robot_rotation_velocity * dt; });
-    commander.handle('e', [&dt, &target_rot](typename decltype(commander)::ParamType const &)
-                     { target_rot += -auto_robot_rotation_velocity * dt; });
+    auto wasd_command_capture{std::tie(dt, target_pos, target_rot)};
+    commander.handle('w',
+                     [&wasd_command_capture](typename decltype(commander)::ParamType const &)
+                     {
+                       auto &[dt, target_pos, target_rot]{wasd_command_capture};
+                       target_pos += math::rotation_matrix2(target_rot) * std::remove_reference_t<decltype(target_pos)>{0., auto_robot_translation_velocity * dt};
+                     });
+    commander.handle('a',
+                     [&wasd_command_capture](typename decltype(commander)::ParamType const &)
+                     {
+                       auto &[dt, target_pos, target_rot]{wasd_command_capture};
+                       target_pos += math::rotation_matrix2(target_rot) * std::remove_reference_t<decltype(target_pos)>{-auto_robot_translation_velocity * dt, 0.};
+                     });
+    commander.handle('s',
+                     [&wasd_command_capture](typename decltype(commander)::ParamType const &)
+                     {
+                       auto &[dt, target_pos, target_rot]{wasd_command_capture};
+                       target_pos += math::rotation_matrix2(target_rot) * std::remove_reference_t<decltype(target_pos)>{0., -auto_robot_translation_velocity * dt};
+                     });
+    commander.handle('d',
+                     [&wasd_command_capture](typename decltype(commander)::ParamType const &)
+                     {
+                       auto &[dt, target_pos, target_rot]{wasd_command_capture};
+                       target_pos += math::rotation_matrix2(target_rot) * std::remove_reference_t<decltype(target_pos)>{auto_robot_translation_velocity * dt, 0.};
+                     });
+    commander.handle('q',
+                     [&dt, &target_rot](typename decltype(commander)::ParamType const &)
+                     {
+                       target_rot += auto_robot_rotation_velocity * dt;
+                     });
+    commander.handle('e',
+                     [&dt, &target_rot](typename decltype(commander)::ParamType const &)
+                     {
+                       target_rot += -auto_robot_rotation_velocity * dt;
+                     });
     auto g_command_capture{std::tie(target_pos, target_rot, receiver)};
     commander.handle('g',
                      [&g_command_capture](typename decltype(commander)::ParamType const &param)
