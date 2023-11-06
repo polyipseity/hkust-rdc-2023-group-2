@@ -1,4 +1,5 @@
 {
+    "extensions": {},
     "folders": [
         {
             "path": "."
@@ -6,12 +7,11 @@
     ],
     "settings": {
         "files.associations": {
-            "type_traits": "cpp",
             "algorithm": "cpp",
             "charconv": "cpp",
-            "xutility": "cpp",
-            "functional": "cpp"
+            "functional": "cpp",
+            "type_traits": "cpp",
+            "xutility": "cpp"
         }
-    },
-    "extensions": {}
+    }
 }

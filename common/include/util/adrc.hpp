@@ -132,8 +132,7 @@ namespace control
          */
         constexpr auto update(Scalar input, Scalar output, Scalar dt) noexcept
         {
-            m_state += dt * (m_A * m_state + m_B * math::Vector<Scalar, 2>{
-                                                       input, output - m_state(0)});
+            m_state += dt * (m_A * m_state + m_B * math::Vector<Scalar, 2>{input, output});
         }
     };
 
@@ -255,7 +254,7 @@ namespace control
                               Scalar dt) noexcept
         {
             m_observer.update(input, output, dt);
-            return control(target / static_cast<Scalar>(2));
+            return control(target);
         }
     };
 
