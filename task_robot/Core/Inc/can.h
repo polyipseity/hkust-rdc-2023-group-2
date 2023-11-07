@@ -130,7 +130,7 @@ MotorStats get_motor_feedback(Motor tar_motor);
 
 /**
  * @brief Clockwise if current if is positive, and vice versa. Max current is
- * 16384 / 1024.
+ * 20.
  **/
 void set_motor_current(Motor tar_motor, float tar_current);
 
