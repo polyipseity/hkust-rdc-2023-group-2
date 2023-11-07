@@ -114,7 +114,6 @@ public:
                         return decltype(m_handles){CANMotor{handles[indices], reversed[indices]}...};
                     }(std::make_index_sequence<size>{})}
     {
-        can_init();
     }
 
     /**

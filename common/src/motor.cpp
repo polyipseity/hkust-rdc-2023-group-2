@@ -12,6 +12,7 @@ namespace
 CANMotor::CANMotor(decltype(m_handle) handle, bool reversed)
     : m_handle{handle}, m_factor{reversed ? -1 : 1}
 {
+    can_init();
 }
 
 auto CANMotor::setInput(double input) noexcept -> void
