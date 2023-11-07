@@ -258,7 +258,7 @@ auto new_motor_ADRC_auto [[nodiscard]] (CANMotor const &motor, double convergenc
  * @param gain acceleration per current
  * @return a controller for the motor
  */
-auto new_motor_ADRC_task [[nodiscard]] (CANMotor const &motor, double convergence = 4., double gain = 25.) noexcept -> control::ADRC2d;
+auto new_motor_ADRC_task [[nodiscard]] (CANMotor const &motor, double convergence = 4., double gain = 20.) noexcept -> control::ADRC2d;
 
 /**
  * @brief Minimum motor velocity
