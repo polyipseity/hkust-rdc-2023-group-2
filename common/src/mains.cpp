@@ -239,8 +239,8 @@ namespace test
     {
       dt = time.update();
 
-      auto const received{receiver.update()};
-      commander.dispatch(std::get<1>(received), std::get<0>(received));
+      auto const [received_size, received]{receiver.update()};
+      commander.dispatch(received, received_size);
 
       CANMotorsControl<2> motors{motors_r};
       if (!active)
@@ -344,8 +344,8 @@ namespace main
     {
       dt = time.update();
 
-      auto const received{receiver.update()};
-      commander.dispatch(std::get<1>(received), std::get<0>(received));
+      auto const [received_size, received]{receiver.update()};
+      commander.dispatch(received, received_size);
 
       CANMotorsControl<2> motors{motors_r};
       if (!active)
@@ -469,8 +469,8 @@ namespace main
     {
       dt = time.update();
 
-      auto const received{receiver.update()};
-      commander.dispatch(std::get<1>(received), std::get<0>(received));
+      auto const [received_size, received]{receiver.update()};
+      commander.dispatch(received, received_size);
 
       CANMotorsControl<4> motors{motors_r};
       if (!active)
