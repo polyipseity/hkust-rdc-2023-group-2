@@ -14,5 +14,6 @@
 *.ept
 *.eide-template
 
+# self {
 .DS_Store
-make
+# }

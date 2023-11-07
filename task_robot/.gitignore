@@ -13,3 +13,7 @@
 # eide template
 *.ept
 *.eide-template
+
+# self {
+/make
+# }
