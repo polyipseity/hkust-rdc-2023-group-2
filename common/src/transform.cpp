@@ -43,24 +43,23 @@ namespace
 
     // https://ecam-eurobot.github.io/Tutorials/mechanical/mecanum.html, https://research.ijcaonline.org/volume113/number3/pxc3901586.pdf
 
-    constexpr auto const task_robot_axle_radius{.175}; // todo: use real values
-    constexpr auto const task_robot_width{1.};         // todo: use real values
-    constexpr auto const task_robot_height{1.};        // todo: use real values
+    constexpr auto const task_robot_semi_width{.19};
+    constexpr auto const task_robot_semi_height{.0875};
     constexpr auto const task_robot_minimum_angular_velocity{.01};
     constexpr auto const task_robot_forward_kinematics_matrix{[]()
                                                               {
                                                                   math::Matrix<double, 3, 4> ret{
                                                                       -1., 1., 1., -1.,
                                                                       1., 1., 1., 1.,
-                                                                      -1. / (task_robot_width + task_robot_height), 1. / (task_robot_width + task_robot_height), -1. / (task_robot_width + task_robot_height), 1. / (task_robot_width + task_robot_height)};
+                                                                      -1. / (task_robot_semi_width + task_robot_semi_height), 1. / (task_robot_semi_width + task_robot_semi_height), -1. / (task_robot_semi_width + task_robot_semi_height), 1. / (task_robot_semi_width + task_robot_semi_height)};
                                                                   ret /= 4.;
                                                                   return ret;
                                                               }()};
     constexpr math::Matrix<double, 4, 3> const task_robot_inverse_kinematics_matrix{
-        -1., 1., -(task_robot_width + task_robot_height),
-        1., 1., task_robot_width + task_robot_height,
-        1., 1., -(task_robot_width + task_robot_height),
-        -1., 1., task_robot_width + task_robot_height};
+        -1., 1., -(task_robot_semi_width + task_robot_semi_height),
+        1., 1., task_robot_semi_width + task_robot_semi_height,
+        1., 1., -(task_robot_semi_width + task_robot_semi_height),
+        -1., 1., task_robot_semi_width + task_robot_semi_height};
     constexpr auto calc_task_robot_velocities [[nodiscard]] (double v_fl, double v_fr, double v_rl, double v_rr) noexcept
     {
         return task_robot_forward_kinematics_matrix * math::Vector<double, 4>{v_fl, v_fr, v_rl, v_rr};
