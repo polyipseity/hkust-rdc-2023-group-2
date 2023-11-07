@@ -28,7 +28,7 @@ namespace test
 {
   auto find_motor_gain [[noreturn]] (Motor motor_handle) noexcept -> void
   {
-    constexpr static auto const input{.5}, duration{1.};
+    constexpr static auto const input{1.}, duration{1.};
     CANMotors<1> motors{{motor_handle}};
     auto const start_tick{HAL_GetTick()};
     while ((HAL_GetTick() - start_tick) / 1000. <= duration)

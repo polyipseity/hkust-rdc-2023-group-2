@@ -214,15 +214,7 @@ auto TaskRobotADRC::update(decltype(m_position) const &target, double target_rot
     auto const [v_fl, v_fr, v_rl, v_rr]{(m_gain * velocities).transpose()[0]};
     auto const [v_lin_x, v_lin_y, v_ang]{calc_task_robot_velocities(v_fl, v_fr, v_rl, v_rr).transpose()[0]};
     auto const rot_mat{math::rotation_matrix2(v_ang * dt)};
-    if (std::abs(v_ang) >= task_robot_minimum_angular_velocity)
-    {
-        auto const rad{math::magnitude(math::Vector<double, 2>{v_lin_x, v_lin_y}) / std::abs(v_ang)};
-        m_position += (rot_mat - math::identity<double, 2>)*m_rotation * math::rotation_matrix2(std::atan2(v_lin_y, v_lin_x)) * decltype(m_position){0., -rad};
-    }
-    else
-    {
-        m_position += m_rotation * decltype(m_position){v_lin_x, v_lin_y} * dt;
-    }
+    m_position += m_rotation * decltype(m_position){v_lin_x, v_lin_y} * dt;
     m_rotation = math::orthogonalize_rotation_matrix2(rot_mat * m_rotation);
 
     m_velocities = velocities;

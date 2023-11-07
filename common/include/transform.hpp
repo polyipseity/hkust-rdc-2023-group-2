@@ -229,7 +229,7 @@ public:
      * @param gain circumference of the wheels in meters
      * @param convergence control reactiveness
      */
-    TaskRobotADRC(decltype(m_position) position, double rotation, decltype(m_velocities) velocities, decltype(m_gain) gain = .15 * math::pi * 16.5 / 30., double convergence = 1.) noexcept;
+    TaskRobotADRC(decltype(m_position) position, double rotation, decltype(m_velocities) velocities, decltype(m_gain) gain = .15 * math::pi * 16.5 / 30. / 10., double convergence = 1.) noexcept;
 
     /**
      * @brief Update the current state and recommend velocities for the four motors
