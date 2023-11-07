@@ -1,8 +1,6 @@
 #include "cpp_main.h"
 
-#include "main.h"
 #include "mains.hpp"
-#include "usart.h"
 
 namespace
 {
@@ -13,7 +11,7 @@ namespace
      */
     auto cpp_main2 [[nodiscard]] () noexcept
     {
-        test::test_uart(huart1);
+        main::task_robot();
         return 0;
     }
 }
