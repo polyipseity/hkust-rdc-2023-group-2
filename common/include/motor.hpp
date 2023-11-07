@@ -248,7 +248,7 @@ public:
  * @param gain acceleration per current
  * @return a controller for the motor
  */
-auto new_motor_ADRC_auto [[nodiscard]] (CANMotor const &motor, double convergence = 16., double gain = 12.) noexcept -> control::ADRC2d;
+auto new_motor_ADRC_auto [[nodiscard]] (CANMotor const &motor, double convergence = 1., double gain = 1. * 36.) noexcept -> control::ADRC2d; // todo: readjust
 
 /**
  * @brief Construct a new controller for motors in the task robot
@@ -258,12 +258,12 @@ auto new_motor_ADRC_auto [[nodiscard]] (CANMotor const &motor, double convergenc
  * @param gain acceleration per current
  * @return a controller for the motor
  */
-auto new_motor_ADRC_task [[nodiscard]] (CANMotor const &motor, double convergence = 16., double gain = 8.) noexcept -> control::ADRC2d;
+auto new_motor_ADRC_task [[nodiscard]] (CANMotor const &motor, double convergence = 4., double gain = 25.) noexcept -> control::ADRC2d;
 
 /**
  * @brief Minimum motor velocity
  */
-constexpr auto const minimum_motor_velocity{.4};
+constexpr auto const minimum_motor_velocity{.3};
 
 /**
  *

@@ -33,7 +33,7 @@ auto CANMotor::getPosition [[nodiscard]] () const noexcept -> double
 
 auto CANMotor::getVelocity [[nodiscard]] () const noexcept -> double
 {
-    return m_factor * get_motor_feedback(m_handle).vel_rpm / 1024.;
+    return m_factor * get_motor_feedback(m_handle).vel_rpm / 60.;
 }
 
 auto CANMotor::getTemperature [[nodiscard]] () const noexcept -> decltype(MotorStats::temperature)

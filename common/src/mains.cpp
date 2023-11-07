@@ -371,8 +371,8 @@ namespace main
 
   auto task_robot [[noreturn]] () -> void
   {
-    CANMotors<4> motors_r{{CAN1_MOTOR0, CAN1_MOTOR1, CAN1_MOTOR2, CAN1_MOTOR3},
-                          {false, false, false, false}}; // todo: find reversed
+    CANMotors<4> motors_r{{CAN1_MOTOR3, CAN1_MOTOR0, CAN2_MOTOR0, CAN2_MOTOR1},
+                          {false, true, false, true}};
     std::array<control::ADRC2d, 4> motor_adrcs{
         new_motor_ADRC_task(motors_r[0]),
         new_motor_ADRC_task(motors_r[1]),

@@ -107,7 +107,7 @@ public:
      * @param gain circumference of the wheels in meters
      * @param convergence control reactiveness
      */
-    AutoRobotADRC(decltype(m_position) position, double rotation, decltype(m_velocities) velocities, decltype(m_gain) gain = .0987, double convergence = 1.) noexcept;
+    AutoRobotADRC(decltype(m_position) position, double rotation, decltype(m_velocities) velocities, decltype(m_gain) gain = .0987, double convergence = 1.) noexcept; // todo: readjust
 
     /**
      * @brief Update the current state and recommend velocities for the two motors
@@ -168,7 +168,7 @@ public:
      * @param gain circumference of the wheels in meters
      * @param convergence control reactiveness
      */
-    AutoRobotTestADRC(decltype(m_position) position, double rotation, decltype(m_velocities) velocities, decltype(m_gain) gain = .0987, double convergence = 1.) noexcept;
+    AutoRobotTestADRC(decltype(m_position) position, double rotation, decltype(m_velocities) velocities, decltype(m_gain) gain = .0987, double convergence = 1.) noexcept; // todo: readjust
 
     /**
      * @brief Update the current state and recommend velocities for the two motors
@@ -229,7 +229,7 @@ public:
      * @param gain circumference of the wheels in meters
      * @param convergence control reactiveness
      */
-    TaskRobotADRC(decltype(m_position) position, double rotation, decltype(m_velocities) velocities, decltype(m_gain) gain = 1., double convergence = 1.) noexcept;
+    TaskRobotADRC(decltype(m_position) position, double rotation, decltype(m_velocities) velocities, decltype(m_gain) gain = .15 * math::pi * 16.5 / 30., double convergence = 1.) noexcept;
 
     /**
      * @brief Update the current state and recommend velocities for the four motors
