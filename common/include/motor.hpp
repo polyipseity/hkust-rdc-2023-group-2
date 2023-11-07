@@ -55,7 +55,7 @@ public:
     auto getPosition [[nodiscard]] () const noexcept -> double;
 
     /**
-     * @brief Get the rotation velocity of the motor
+     * @brief Get the rotation velocity of the motor bearing
      *
      * @return rotation velocity in revolutions per second
      */

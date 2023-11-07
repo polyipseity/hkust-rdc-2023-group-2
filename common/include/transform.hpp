@@ -44,7 +44,7 @@ public:
      *
      * @param position current position in meters
      * @param velocity current velocity reported by the motor
-     * @param gain circumference of the wheel in meters
+     * @param gain meters per bearing turn
      * @param convergence control reactiveness
      */
     PositionADRC(decltype(m_position) position, decltype(m_velocity) velocity, decltype(m_gain) gain = 1., double convergence = 16.) noexcept;
@@ -104,7 +104,7 @@ public:
      * @param position current position in meters
      * @param rotation current rotation in radians
      * @param velocities current velocities reported by the two motors
-     * @param gain circumference of the wheels in meters
+     * @param gain meters per bearing turn
      * @param convergence control reactiveness
      */
     AutoRobotADRC(decltype(m_position) position, double rotation, decltype(m_velocities) velocities, decltype(m_gain) gain = .0987, double convergence = 1.) noexcept; // todo: readjust
@@ -165,7 +165,7 @@ public:
      * @param position current position in meters
      * @param rotation current rotation in radians
      * @param velocities current velocities reported by the two motors
-     * @param gain circumference of the wheels in meters
+     * @param gain meters per bearing turn
      * @param convergence control reactiveness
      */
     AutoRobotTestADRC(decltype(m_position) position, double rotation, decltype(m_velocities) velocities, decltype(m_gain) gain = .0987, double convergence = 1.) noexcept; // todo: readjust
@@ -226,7 +226,7 @@ public:
      * @param position current position in meters
      * @param rotation current rotation in radians
      * @param velocities current velocities reported by the four motors
-     * @param gain circumference of the wheels in meters
+     * @param gain meters per bearing turn
      * @param convergence control reactiveness
      */
     TaskRobotADRC(decltype(m_position) position, double rotation, decltype(m_velocities) velocities, decltype(m_gain) gain = .15 * math::pi * 16.5 / 30. / 10., double convergence = 1.) noexcept;
