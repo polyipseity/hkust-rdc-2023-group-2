@@ -11,6 +11,8 @@
 
 namespace
 {
+    // https://archive.seattlerobotics.org/encoder/200108/using_a_pid.html#SteeringEquations, https://math.stackexchange.com/a/3680738, https://stackoverflow.com/a/55810955
+
     constexpr auto const auto_robot_axle_radius{.175};
     constexpr auto const auto_robot_rotate_velocity_diff_min{auto_robot_axle_radius / 4.};
     constexpr auto const auto_robot_self_rotate_radius_min{auto_robot_axle_radius / 4.};
@@ -19,8 +21,6 @@ namespace
     constexpr auto const auto_robot_position_tolerance{1. / 8.};
     constexpr auto calc_auto_robot_velocities [[nodiscard]] (double left_v, double right_v) noexcept -> std::tuple<double, double, double>
     {
-        // https://math.stackexchange.com/a/3680738, https://stackoverflow.com/a/55810955
-
         auto const v_diff{right_v - left_v}, vv{left_v + v_diff / 2.};
         if (std::abs(v_diff) < auto_robot_rotate_velocity_diff_min)
         {
@@ -39,6 +39,35 @@ namespace
         auto const extra_v{target_ang_v * auto_robot_axle_radius};
         target_lin_v = std::clamp(target_lin_v, -auto_robot_max_velocity + extra_v, auto_robot_max_velocity - extra_v);
         return {target_lin_v - extra_v, target_lin_v + extra_v};
+    }
+
+    // https://ecam-eurobot.github.io/Tutorials/mechanical/mecanum.html, https://research.ijcaonline.org/volume113/number3/pxc3901586.pdf
+
+    constexpr auto const task_robot_axle_radius{.175};
+    constexpr auto const task_robot_width{1.};
+    constexpr auto const task_robot_height{1.};
+    constexpr auto const task_robot_minimum_angular_velocity{.01};
+    constexpr auto const task_robot_forward_kinematics_matrix{[]()
+                                                              {
+                                                                  math::Matrix<double, 3, 4> ret{
+                                                                      1., 1., 1., 1.,
+                                                                      -1., 1., 1., -1.,
+                                                                      -1. / (task_robot_width + task_robot_height), 1. / (task_robot_width + task_robot_height), -1. / (task_robot_width + task_robot_height), 1. / (task_robot_width + task_robot_height)};
+                                                                  ret /= 4.;
+                                                                  return ret;
+                                                              }()};
+    constexpr math::Matrix<double, 4, 3> const task_robot_inverse_kinematics_matrix{
+        1., -1., -(task_robot_width + task_robot_height),
+        1., 1., task_robot_width + task_robot_height,
+        1., 1., -(task_robot_width + task_robot_height),
+        1., -1., task_robot_width + task_robot_height};
+    constexpr auto calc_task_robot_velocities [[nodiscard]] (double v_fl, double v_fr, double v_rl, double v_rr) noexcept
+    {
+        return task_robot_forward_kinematics_matrix * math::Vector<double, 4>{v_fl, v_fr, v_rl, v_rr};
+    }
+    constexpr auto calc_task_robot_motor_velocities [[nodiscard]] (double v_lin_x, double v_lin_y, double v_ang) noexcept
+    {
+        return task_robot_inverse_kinematics_matrix * math::Vector<double, 3>{v_lin_x, v_lin_y, v_ang};
     }
 }
 
@@ -99,7 +128,7 @@ auto AutoRobotADRC::update(decltype(m_position) target, double target_rot, declt
     }
 
     lin_v = m_position_control.update(0., lin_v, m_position - target, dt);
-    ang_v = m_rotation_control.update(0., ang_v, std::isnan(ang_diff) ? 0. : -ang_diff, dt);
+    ang_v = m_rotation_control.update(0., ang_v, -ang_diff, dt);
 
     std::tie(left_v, right_v) = calc_auto_robot_motor_velocities(lin_v, ang_v);
     return {left_v / m_gain, right_v / m_gain};
@@ -143,12 +172,12 @@ auto AutoRobotTestADRC::update(decltype(m_position) const &target, std::optional
     {
         if (target_rot)
         {
-            auto tar_ang{std::fmod(*target_rot + math::tau / 4., math::tau)};
-            if (tar_ang < 0.)
+            auto target_rot2{std::fmod(*target_rot + math::tau / 4., math::tau)};
+            if (target_rot2 < 0.)
             {
-                tar_ang += math::tau;
+                target_rot2 += math::tau;
             }
-            ang_diff = tar_ang - cur_ang;
+            ang_diff = target_rot2 - cur_ang;
         }
         else
         {
@@ -164,9 +193,61 @@ auto AutoRobotTestADRC::update(decltype(m_position) const &target, std::optional
         ang_diff += math::tau;
     }
 
-    lin_v = m_position_control.update(0., lin_v, -math::dot_product(forward_unit, pos_diff) * std::max(0., std::cos(ang_diff)), dt);
-    ang_v = m_rotation_control.update(0., ang_v, std::isnan(ang_diff) ? 0. : -ang_diff, dt);
+    lin_v = m_position_control.update(0., lin_v, -math::dot_product(forward_unit, pos_diff), dt);
+    ang_v = m_rotation_control.update(0., ang_v, -ang_diff, dt);
 
     std::tie(left_v, right_v) = calc_auto_robot_motor_velocities(lin_v, ang_v);
     return {left_v / m_gain, right_v / m_gain};
+}
+
+TaskRobotADRC::TaskRobotADRC(decltype(m_position) position, double rotation, decltype(m_velocities) velocities, decltype(m_gain) gain, double convergence) noexcept
+    : m_position{std::move(position)},
+      m_rotation{math::rotation_matrix2(rotation)},
+      m_velocities{std::move(velocities)},
+      m_gain{gain},
+      m_position_control{1., convergence, {0.}},
+      m_rotation_control{1., adrc_rotation_convergence_factor * convergence, {0.}}
+{
+}
+
+auto TaskRobotADRC::update(decltype(m_position) const &target, double target_rot, decltype(m_velocities) const &velocities, double dt) noexcept -> decltype(m_velocities)
+{
+    auto const [v_fl, v_fr, v_rl, v_rr]{(m_gain * velocities).transpose()[0]};
+    auto const [v_lin_x, v_lin_y, v_ang]{calc_task_robot_velocities(v_fl, v_fr, v_rl, v_rr).transpose()[0]};
+    auto const rot_mat{math::rotation_matrix2(v_ang * dt)};
+    if (std::abs(v_ang) >= task_robot_minimum_angular_velocity)
+    {
+        auto const rad{math::magnitude(math::Vector<double, 2>{v_lin_x, v_lin_y}) / std::abs(v_ang)};
+        m_position += (rot_mat - math::identity<double, 2>)*m_rotation * math::rotation_matrix2(std::atan2(v_lin_y, v_lin_x)) * decltype(m_position){0., -rad};
+    }
+    else
+    {
+        m_position += m_rotation * decltype(m_position){v_lin_x, v_lin_y} * dt;
+    }
+    m_rotation = math::orthogonalize_rotation_matrix2(rot_mat * m_rotation);
+
+    m_velocities = velocities;
+
+    target_rot = std::fmod(target_rot + math::tau / 4., math::tau);
+    if (target_rot < 0.)
+    {
+        target_rot += math::tau;
+    }
+    auto const forward_unit{m_rotation * decltype(m_position){0., 1.}};
+    auto const pos_diff{target - m_position};
+    auto const pos_diff_unit{math::unit_vector(pos_diff)};
+    auto ang_diff{target_rot - std::atan2(forward_unit(1), forward_unit(0))};
+    if (ang_diff > math::pi)
+    {
+        ang_diff -= math::tau;
+    }
+    else if (ang_diff < -math::pi)
+    {
+        ang_diff += math::tau;
+    }
+
+    auto const new_v_lin{m_rotation.transpose() * pos_diff_unit * m_position_control.update(0., math::dot_product(pos_diff_unit, m_rotation * math::Vector<double, 2>{v_lin_x, v_lin_y}), -math::magnitude(pos_diff), dt)};
+    auto const new_v_ang{m_rotation_control.update(0., v_ang, -ang_diff, dt)};
+
+    return calc_task_robot_motor_velocities(new_v_lin(0), new_v_lin(1), new_v_ang) / m_gain;
 }

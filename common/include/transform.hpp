@@ -181,3 +181,64 @@ public:
      */
     auto update(decltype(m_position) const &target, std::optional<double> target_rot, decltype(m_velocities) const &velocities, double dt) noexcept -> decltype(m_velocities);
 };
+
+/**
+ * @brief An ADRC controller to control the task robot
+ */
+class TaskRobotADRC
+{
+public:
+    /**
+     * @brief Current position represented by (x, y) in meters, useful for relative calculations only
+     */
+    math::Vector<double, 2> m_position;
+
+    /**
+     * @brief Current rotation represented by a 2D rotation matrix, useful for relative calculations only
+     */
+    math::SquareMatrix<double, 2> m_rotation;
+
+    /**
+     * @brief Current velocities reported by the four motors
+     */
+    math::Vector<double, 4> m_velocities;
+
+private:
+    /**
+     * @brief Circumference of the wheels in meters
+     */
+    double m_gain;
+
+    /**
+     * @brief Controller for position
+     */
+    control::ADRC2d m_position_control;
+
+    /**
+     * @brief Controller for rotation
+     */
+    control::ADRC2d m_rotation_control;
+
+public:
+    /**
+     * @brief Construct a new `TaskRobotADRC` object
+     *
+     * @param position current position in meters
+     * @param rotation current rotation in radians
+     * @param velocities current velocities reported by the four motors
+     * @param gain circumference of the wheels in meters
+     * @param convergence control reactiveness
+     */
+    TaskRobotADRC(decltype(m_position) position, double rotation, decltype(m_velocities) velocities, decltype(m_gain) gain = 1., double convergence = 1.) noexcept;
+
+    /**
+     * @brief Update the current state and recommend velocities for the four motors
+     *
+     * @param target desired position
+     * @param target_rot desired rotation
+     * @param velocities current velocities reported by the two motors
+     * @param dt time since last update
+     * @return recommended motor velocities for the two motors
+     */
+    auto update(decltype(m_position) const &target, double target_rot, decltype(m_velocities) const &velocities, double dt) noexcept -> decltype(m_velocities);
+};
