@@ -50,17 +50,17 @@ namespace
     constexpr auto const task_robot_forward_kinematics_matrix{[]()
                                                               {
                                                                   math::Matrix<double, 3, 4> ret{
-                                                                      1., 1., 1., 1.,
                                                                       -1., 1., 1., -1.,
+                                                                      1., 1., 1., 1.,
                                                                       -1. / (task_robot_width + task_robot_height), 1. / (task_robot_width + task_robot_height), -1. / (task_robot_width + task_robot_height), 1. / (task_robot_width + task_robot_height)};
                                                                   ret /= 4.;
                                                                   return ret;
                                                               }()};
     constexpr math::Matrix<double, 4, 3> const task_robot_inverse_kinematics_matrix{
-        1., -1., -(task_robot_width + task_robot_height),
+        -1., 1., -(task_robot_width + task_robot_height),
         1., 1., task_robot_width + task_robot_height,
         1., 1., -(task_robot_width + task_robot_height),
-        1., -1., task_robot_width + task_robot_height};
+        -1., 1., task_robot_width + task_robot_height};
     constexpr auto calc_task_robot_velocities [[nodiscard]] (double v_fl, double v_fr, double v_rl, double v_rr) noexcept
     {
         return task_robot_forward_kinematics_matrix * math::Vector<double, 4>{v_fl, v_fr, v_rl, v_rr};
