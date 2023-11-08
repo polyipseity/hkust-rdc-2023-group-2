@@ -145,20 +145,20 @@ namespace test
 
   auto test_auto_robot_movement [[noreturn]] () -> void
   {
+
     CANMotors<2> motors_r{{CAN1_MOTOR1, CAN1_MOTOR0},
                           {false, true}};
     std::array<control::ADRC2d, 2> motor_adrcs{
         new_motor_ADRC_auto(motors_r[0]),
         new_motor_ADRC_auto(motors_r[1]),
     };
-    AutoRobotTestADRC move_adrc{{0., 0.}, 0., {motors_r[0].getVelocity(), motors_r[1].getVelocity()}};
+    AutoRobotADRC move_adrc{0., 0., {motors_r[0].getVelocity(), motors_r[1].getVelocity()}};
 
     auto dt{0.};
     auto active{true};
-    math::Vector<double, 2> target_pos{};
-    double target_rot{};
+    double target_pos{}, target_rot{};
 
-    Commander<3> commander{};
+    Commander<2> commander{};
     Receiver<16, false> receiver{huart1, .05};
     commander.handle('x',
                      [&active, &receiver](typename decltype(commander)::ParamType const &)
@@ -166,30 +166,15 @@ namespace test
                        receiver.invalidate();
                        active = !active;
                      });
-    auto wasd_command_capture{std::tie(dt, target_pos, target_rot)};
     commander.handle('w',
-                     [&wasd_command_capture](typename decltype(commander)::ParamType const &)
+                     [&dt, &target_pos](typename decltype(commander)::ParamType const &)
                      {
-                       auto &[dt, target_pos, target_rot]{wasd_command_capture};
-                       target_pos += math::rotation_matrix2(target_rot) * std::remove_reference_t<decltype(target_pos)>{0., auto_robot_translation_velocity * dt};
-                     });
-    commander.handle('a',
-                     [&wasd_command_capture](typename decltype(commander)::ParamType const &)
-                     {
-                       auto &[dt, target_pos, target_rot]{wasd_command_capture};
-                       target_pos += math::rotation_matrix2(target_rot) * std::remove_reference_t<decltype(target_pos)>{-auto_robot_translation_velocity * dt, 0.};
+                       target_pos += auto_robot_translation_velocity * dt;
                      });
     commander.handle('s',
-                     [&wasd_command_capture](typename decltype(commander)::ParamType const &)
+                     [&dt, &target_pos](typename decltype(commander)::ParamType const &)
                      {
-                       auto &[dt, target_pos, target_rot]{wasd_command_capture};
-                       target_pos += math::rotation_matrix2(target_rot) * std::remove_reference_t<decltype(target_pos)>{0., -auto_robot_translation_backward_velocity * dt};
-                     });
-    commander.handle('d',
-                     [&wasd_command_capture](typename decltype(commander)::ParamType const &)
-                     {
-                       auto &[dt, target_pos, target_rot]{wasd_command_capture};
-                       target_pos += math::rotation_matrix2(target_rot) * std::remove_reference_t<decltype(target_pos)>{auto_robot_translation_velocity * dt, 0.};
+                       target_pos += -auto_robot_translation_backward_velocity * dt;
                      });
     commander.handle('q',
                      [&dt, &target_rot](typename decltype(commander)::ParamType const &)
@@ -207,8 +192,8 @@ namespace test
                      {
                        auto &[target_pos, target_rot, receiver]{g_command_capture};
                        receiver.invalidate();
-                       auto const &[p_x, p_y, p_r]{param};
-                       if (std::get<0>(p_x) == 0 || std::get<0>(p_y) == 0)
+                       auto const &[p_x, p_r]{param};
+                       if (std::get<0>(p_x) == 0)
                        {
                          return;
                        }
@@ -218,12 +203,7 @@ namespace test
                        {
                          return;
                        }
-                       auto const yy{std::strtod(std::get<1>(p_y), &end)};
-                       if (std::get<1>(p_y) == end)
-                       {
-                         return;
-                       }
-                       target_pos = {xx, yy};
+                       target_pos = xx;
                        if (std::get<0>(p_r) == 0)
                        {
                          return;
@@ -256,8 +236,8 @@ namespace test
 
       if (tft_update(tft_update_period))
       {
-        tft_prints(0, 0, "pos: %.2f, %.2f", move_adrc.m_position(0), move_adrc.m_position(1));
-        tft_prints(0, 1, "pos_t: %.2f, %.2f", target_pos(0), target_pos(1));
+        tft_prints(0, 0, "pos: %.2f", move_adrc.m_position);
+        tft_prints(0, 1, "pos_t: %.2f", target_pos);
         tft_prints(0, 2, "rot: %.2f", math::rotation_matrix2_angle(move_adrc.m_rotation));
         tft_prints(0, 3, "rot_t: %.2f", target_rot);
         tft_prints(0, 4, "v: %.2f, %.2f", motors[0].getVelocity(), motors[1].getVelocity());
