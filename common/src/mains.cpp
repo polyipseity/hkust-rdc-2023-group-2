@@ -7,6 +7,7 @@
 
 #include "can.h"
 #include "communication.hpp"
+#include "gpio.hpp"
 #include "lcd/lcd.h"
 #include "main.h"
 #include "motor.hpp"
@@ -258,6 +259,7 @@ namespace main
         new_motor_ADRC_auto(motors_r[1]),
     };
     AutoRobotADRC move_adrc{0., 0., {motors_r[0].getVelocity(), motors_r[1].getVelocity()}};
+    GPIO line_sensor_left{CAM_D1_GPIO_Port, CAM_D1_Pin, true}, line_sensor_right{CAM_D3_GPIO_Port, CAM_D3_Pin, true};
 
     auto dt{0.};
     auto active{true};
@@ -298,7 +300,7 @@ namespace main
         tft_prints(0, 3, "rot_t: %.2f", target_rot);
         tft_prints(0, 4, "v: %.2f, %.2f", motors[0].getVelocity(), motors[1].getVelocity());
         tft_prints(0, 5, "v_t: %.2f, %.2f", v_l, v_r);
-        tft_prints(0, 6, "sensor: %d, %d", HAL_GPIO_ReadPin(CAM_D1_GPIO_Port, CAM_D1_Pin), HAL_GPIO_ReadPin(CAM_D3_GPIO_Port, CAM_D3_Pin));
+        tft_prints(0, 6, "sensor: %d, %d", line_sensor_left.read(), line_sensor_right.read());
       }
     }
   }
