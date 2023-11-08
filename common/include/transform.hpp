@@ -12,7 +12,7 @@
 constexpr auto const adrc_rotation_convergence_factor{4.};
 
 /**
- * @brief An ADRC controller to control position for testing purpose
+ * @brief An ADRC controller to control position
  */
 class PositionADRC
 {
@@ -27,12 +27,12 @@ public:
      */
     double m_velocity;
 
-private:
     /**
-     * @brief Circumference of the wheel in meters
+     * @brief Position ber bearing turn
      */
     double m_gain;
 
+private:
     /**
      * @brief Controller for the motor
      */
@@ -44,7 +44,7 @@ public:
      *
      * @param position current position in meters
      * @param velocity current velocity reported by the motor
-     * @param gain meters per bearing turn
+     * @param gain position per bearing turn
      * @param convergence control reactiveness
      */
     PositionADRC(decltype(m_position) position, decltype(m_velocity) velocity, decltype(m_gain) gain = 1., double convergence = 16.) noexcept;
@@ -81,12 +81,12 @@ public:
      */
     std::tuple<double, double> m_velocities;
 
-private:
     /**
-     * @brief Circumference of the wheels in meters
+     * @brief Meters per bearing turn
      */
     double m_gain;
 
+private:
     /**
      * @brief Controller for position
      */
@@ -142,12 +142,12 @@ public:
      */
     std::tuple<double, double> m_velocities;
 
-private:
     /**
-     * @brief Circumference of the wheels in meters
+     * @brief Meters per bearing turn
      */
     double m_gain;
 
+private:
     /**
      * @brief Controller for position
      */
@@ -203,12 +203,12 @@ public:
      */
     math::Vector<double, 4> m_velocities;
 
-private:
     /**
-     * @brief Circumference of the wheels in meters
+     * @brief Meters per bearing turn
      */
     double m_gain;
 
+private:
     /**
      * @brief Controller for position
      */

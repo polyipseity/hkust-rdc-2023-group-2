@@ -1,6 +1,7 @@
 #include "mains.hpp"
 
 #include <array>
+#include <cmath>
 #include <cstdlib>
 #include <tuple>
 #include <type_traits>
@@ -25,8 +26,10 @@ namespace
   constexpr auto const auto_robot_rotation_velocity{math::tau};
   constexpr auto const auto_robot_calibrate_angular_velocity{math::tau / 32.};
   constexpr auto const auto_robot_line_tracker_correction_time{.1};
-  constexpr auto const task_robot_translation_velocity{1.8};    // todo: use real values
-  constexpr auto const task_robot_rotation_velocity{math::tau}; // todo: use real values
+  constexpr auto const auto_robot_thrower_velocity{1.};         // todo: adjust
+  constexpr auto const auto_robot_thrower_max_velocity{1.};     // For safety, do not remove
+  constexpr auto const task_robot_translation_velocity{1.8};    // todo: adjust
+  constexpr auto const task_robot_rotation_velocity{math::tau}; // todo: adjust
 }
 
 namespace test
@@ -148,7 +151,6 @@ namespace test
 
   auto test_auto_robot_movement [[noreturn]] () -> void
   {
-
     CANMotors<2> motors_r{{CAN1_MOTOR1, CAN1_MOTOR0},
                           {false, true}};
     std::array<control::ADRC2d, 2> motor_adrcs{
@@ -255,18 +257,20 @@ namespace main
 {
   auto auto_robot [[noreturn]] () -> void
   {
-    CANMotors<2> motors_r{{CAN1_MOTOR1, CAN1_MOTOR0},
+    CANMotors<3> motors_r{{CAN1_MOTOR1, CAN1_MOTOR0, CAN2_MOTOR0},
                           {false, true}};
-    std::array<control::ADRC2d, 2> motor_adrcs{
+    std::array<control::ADRC2d, 3> motor_adrcs{
         new_motor_ADRC_auto(motors_r[0]),
         new_motor_ADRC_auto(motors_r[1]),
+        new_motor_ADRC_auto(motors_r[2]),
     };
     AutoRobotADRC move_adrc{0., 0., {motors_r[0].getVelocity(), motors_r[1].getVelocity()}};
+    PositionADRC thrower_adrc{0., 0., .1 * 8.5 / 30.};
     GPIO line_sensor_left{CAM_D1_GPIO_Port, CAM_D1_Pin}, line_sensor_right{CAM_D3_GPIO_Port, CAM_D3_Pin};
 
     auto dt{0.};
     auto active{true};
-    double target_pos{}, target_rot{};
+    double target_pos{}, target_rot{}, thrower_rot{};
 
     Commander<2> commander{};
     Receiver<16, false> receiver{huart1, .05};
@@ -275,6 +279,16 @@ namespace main
                      {
                        receiver.invalidate();
                        active = !active;
+                     });
+    commander.handle('a',
+                     [&dt, &thrower_rot](typename decltype(commander)::ParamType const &)
+                     {
+                       thrower_rot += -auto_robot_thrower_velocity * dt;
+                     });
+    commander.handle('d',
+                     [&dt, &thrower_rot](typename decltype(commander)::ParamType const &)
+                     {
+                       thrower_rot += auto_robot_thrower_velocity * dt;
                      });
 
     HAL_Delay(1000);
@@ -302,10 +316,11 @@ namespace main
         target_rot -= auto_robot_calibrate_angular_velocity * dt;
       }
 
-      CANMotorsControl<2> motors{motors_r};
+      CANMotorsControl<3> motors{motors_r};
       auto const [v_l, v_r]{move_adrc.update(target_pos, target_rot, {motors[0].getVelocity(), motors[1].getVelocity()}, dt)};
       update_motor_velocity(motors[0], motor_adrcs[0], v_l, dt);
       update_motor_velocity(motors[1], motor_adrcs[1], v_r, dt);
+      update_motor_velocity(motors[2], motor_adrcs[2], 0., dt);
 
       if (tft_update(tft_update_period))
       {
@@ -350,10 +365,12 @@ namespace main
         target_pos += auto_robot_translation_velocity / 4. * dt;
       }
 
-      CANMotorsControl<2> motors{motors_r};
+      CANMotorsControl<3> motors{motors_r};
       auto const [v_l, v_r]{move_adrc.update(target_pos, target_rot, {motors[0].getVelocity(), motors[1].getVelocity()}, dt)};
       update_motor_velocity(motors[0], motor_adrcs[0], active * v_l, dt);
       update_motor_velocity(motors[1], motor_adrcs[1], active * v_r, dt);
+      auto const thrower_v{thrower_adrc.update(thrower_rot, motors[2].getVelocity(), dt) * thrower_adrc.m_gain};
+      update_motor_velocity(motors[2], motor_adrcs[2], std::copysign(std::min(auto_robot_thrower_max_velocity, std::abs(thrower_v)) / thrower_adrc.m_gain, thrower_v), dt);
 
       if (tft_update(tft_update_period))
       {
