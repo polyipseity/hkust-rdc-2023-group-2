@@ -271,55 +271,6 @@ namespace main
                        receiver.invalidate();
                        active = !active;
                      });
-    commander.handle('w',
-                     [&dt, &target_pos](typename decltype(commander)::ParamType const &)
-                     {
-                       target_pos += auto_robot_translation_velocity * dt;
-                     });
-    commander.handle('s',
-                     [&dt, &target_pos](typename decltype(commander)::ParamType const &)
-                     {
-                       target_pos += -auto_robot_translation_backward_velocity * dt;
-                     });
-    commander.handle('q',
-                     [&dt, &target_rot](typename decltype(commander)::ParamType const &)
-                     {
-                       target_rot += auto_robot_rotation_velocity * dt;
-                     });
-    commander.handle('e',
-                     [&dt, &target_rot](typename decltype(commander)::ParamType const &)
-                     {
-                       target_rot += -auto_robot_rotation_velocity * dt;
-                     });
-    auto g_command_capture{std::tie(target_pos, target_rot, receiver)};
-    commander.handle('g',
-                     [&g_command_capture](typename decltype(commander)::ParamType const &param)
-                     {
-                       auto &[target_pos, target_rot, receiver]{g_command_capture};
-                       receiver.invalidate();
-                       auto const &[p_x, p_r]{param};
-                       if (std::get<0>(p_x) == 0)
-                       {
-                         return;
-                       }
-                       char *end{};
-                       auto const xx{std::strtod(std::get<1>(p_x), &end)};
-                       if (std::get<1>(p_x) == end)
-                       {
-                         return;
-                       }
-                       target_pos = xx;
-                       if (std::get<0>(p_r) == 0)
-                       {
-                         return;
-                       }
-                       auto const rot{std::strtod(std::get<1>(p_r), &end)};
-                       if (std::get<1>(p_r) == end)
-                       {
-                         return;
-                       }
-                       target_rot = rot;
-                     });
 
     Time time{};
     while (true)
@@ -347,6 +298,7 @@ namespace main
         tft_prints(0, 3, "rot_t: %.2f", target_rot);
         tft_prints(0, 4, "v: %.2f, %.2f", motors[0].getVelocity(), motors[1].getVelocity());
         tft_prints(0, 5, "v_t: %.2f, %.2f", v_l, v_r);
+        tft_prints(0, 6, "sensor: %d, %d", HAL_GPIO_ReadPin(CAM_D1_GPIO_Port, CAM_D1_Pin), HAL_GPIO_ReadPin(CAM_D3_GPIO_Port, CAM_D3_Pin));
       }
     }
   }
