@@ -20,6 +20,7 @@ namespace
 {
   constexpr auto const motor_test_velocity{1000.};
   constexpr auto const auto_robot_translation_velocity{1.8};
+  constexpr auto const auto_robot_translation_backward_velocity{.8};
   constexpr auto const auto_robot_rotation_velocity{math::tau};
   constexpr auto const task_robot_translation_velocity{1.8};    // todo: use real values
   constexpr auto const task_robot_rotation_velocity{math::tau}; // todo: use real values
@@ -182,7 +183,7 @@ namespace test
                      [&wasd_command_capture](typename decltype(commander)::ParamType const &)
                      {
                        auto &[dt, target_pos, target_rot]{wasd_command_capture};
-                       target_pos += math::rotation_matrix2(target_rot) * std::remove_reference_t<decltype(target_pos)>{0., -auto_robot_translation_velocity * dt};
+                       target_pos += math::rotation_matrix2(target_rot) * std::remove_reference_t<decltype(target_pos)>{0., -auto_robot_translation_backward_velocity * dt};
                      });
     commander.handle('d',
                      [&wasd_command_capture](typename decltype(commander)::ParamType const &)
@@ -298,7 +299,7 @@ namespace main
     commander.handle('s',
                      [&dt, &target_pos](typename decltype(commander)::ParamType const &)
                      {
-                       target_pos += -auto_robot_translation_velocity * dt;
+                       target_pos += -auto_robot_translation_backward_velocity * dt;
                      });
     commander.handle('q',
                      [&dt, &target_rot](typename decltype(commander)::ParamType const &)

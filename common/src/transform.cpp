@@ -17,6 +17,7 @@ namespace
     constexpr auto const auto_robot_rotate_velocity_diff_min{auto_robot_axle_radius / 16.};
     constexpr auto const auto_robot_self_rotate_radius_min{auto_robot_axle_radius / 16.};
     constexpr auto const auto_robot_max_velocity{1.8};
+    constexpr auto const auto_robot_backward_max_velocity{.8}; // Needed because there is a odd wheel
     constexpr auto const auto_robot_max_angular_velocity{math::tau};
     constexpr auto const auto_robot_position_tolerance{1. / 16.};
     constexpr auto calc_auto_robot_velocities [[nodiscard]] (double left_v, double right_v) noexcept -> std::tuple<double, double, double>
@@ -37,7 +38,7 @@ namespace
     {
         target_ang_v = std::clamp(target_ang_v, -auto_robot_max_angular_velocity, auto_robot_max_angular_velocity);
         auto const extra_v{target_ang_v * auto_robot_axle_radius};
-        target_lin_v = std::clamp(target_lin_v, -auto_robot_max_velocity + extra_v, auto_robot_max_velocity - extra_v);
+        target_lin_v = std::clamp(target_lin_v, -auto_robot_backward_max_velocity + extra_v, auto_robot_max_velocity - extra_v);
         return {target_lin_v - extra_v, target_lin_v + extra_v};
     }
 
