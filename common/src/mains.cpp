@@ -18,6 +18,7 @@
 
 namespace
 {
+  constexpr auto const motor_test_velocity{1000.};
   constexpr auto const auto_robot_translation_velocity{1.8};
   constexpr auto const auto_robot_rotation_velocity{math::tau};
   constexpr auto const task_robot_translation_velocity{1.8};    // todo: use real values
@@ -28,7 +29,7 @@ namespace test
 {
   auto find_motor_gain [[noreturn]] (Motor motor_handle) noexcept -> void
   {
-    constexpr static auto const input{1.}, duration{1.};
+    constexpr static auto const input{1.}, duration{.5};
     CANMotors<1> motors{{motor_handle}};
     auto const start_tick{HAL_GetTick()};
     while ((HAL_GetTick() - start_tick) / 1000. <= duration)
@@ -101,11 +102,11 @@ namespace test
 
       if (!btn_read(BTN1))
       {
-        target_position -= 100. * dt;
+        target_position -= motor_test_velocity * dt;
       }
       if (!btn_read(BTN2))
       {
-        target_position += 100. * dt;
+        target_position += motor_test_velocity * dt;
       }
 
       update_motor_velocity(motor, motor_adrcs[0], pos_adrc.update(target_position, motor.getVelocity(), dt), dt);
@@ -143,7 +144,7 @@ namespace test
 
   auto test_auto_robot_movement [[noreturn]] () -> void
   {
-    CANMotors<2> motors_r{{CAN1_MOTOR0, CAN1_MOTOR1},
+    CANMotors<2> motors_r{{CAN1_MOTOR1, CAN1_MOTOR0},
                           {false, true}};
     std::array<control::ADRC2d, 2> motor_adrcs{
         new_motor_ADRC_auto(motors_r[0]),
@@ -269,7 +270,7 @@ namespace main
 {
   auto auto_robot [[noreturn]] () -> void
   {
-    CANMotors<2> motors_r{{CAN1_MOTOR0, CAN1_MOTOR1},
+    CANMotors<2> motors_r{{CAN1_MOTOR1, CAN1_MOTOR0},
                           {false, true}};
     std::array<control::ADRC2d, 2> motor_adrcs{
         new_motor_ADRC_auto(motors_r[0]),

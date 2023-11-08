@@ -107,7 +107,7 @@ public:
      * @param gain meters per bearing turn
      * @param convergence control reactiveness
      */
-    AutoRobotADRC(decltype(m_position) position, double rotation, decltype(m_velocities) velocities, decltype(m_gain) gain = .0987, double convergence = 1.) noexcept; // todo: readjust
+    AutoRobotADRC(decltype(m_position) position, double rotation, decltype(m_velocities) velocities, decltype(m_gain) gain = .068 * math::pi * 23. / 30. / 25., double convergence = 1.) noexcept;
 
     /**
      * @brief Update the current state and recommend velocities for the two motors
@@ -168,7 +168,7 @@ public:
      * @param gain meters per bearing turn
      * @param convergence control reactiveness
      */
-    AutoRobotTestADRC(decltype(m_position) position, double rotation, decltype(m_velocities) velocities, decltype(m_gain) gain = .0987, double convergence = 1.) noexcept; // todo: readjust
+    AutoRobotTestADRC(decltype(m_position) position, double rotation, decltype(m_velocities) velocities, decltype(m_gain) gain = .068 * math::pi * 23. / 30. / 25., double convergence = 1.) noexcept;
 
     /**
      * @brief Update the current state and recommend velocities for the two motors
