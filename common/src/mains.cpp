@@ -23,6 +23,8 @@ namespace
   constexpr auto const auto_robot_translation_velocity{1.8};
   constexpr auto const auto_robot_translation_backward_velocity{.8};
   constexpr auto const auto_robot_rotation_velocity{math::tau};
+  constexpr auto const auto_robot_calibrate_angular_velocity{math::tau / 32.};
+  constexpr auto const auto_robot_line_tracker_correction_time{.1};
   constexpr auto const task_robot_translation_velocity{1.8};    // todo: use real values
   constexpr auto const task_robot_rotation_velocity{math::tau}; // todo: use real values
 }
@@ -225,12 +227,13 @@ namespace test
       auto const [received_size, received]{receiver.update()};
       commander.dispatch(received, received_size);
 
-      CANMotorsControl<2> motors{motors_r};
       if (!active)
       {
         target_pos = move_adrc.m_position;
         target_rot = math::rotation_matrix2_angle(move_adrc.m_rotation);
       }
+
+      CANMotorsControl<2> motors{motors_r};
       auto const [v_l, v_r]{move_adrc.update(target_pos, target_rot, {motors[0].getVelocity(), motors[1].getVelocity()}, dt)};
       update_motor_velocity(motors[0], motor_adrcs[0], active * v_l, dt);
       update_motor_velocity(motors[1], motor_adrcs[1], active * v_r, dt);
@@ -259,7 +262,7 @@ namespace main
         new_motor_ADRC_auto(motors_r[1]),
     };
     AutoRobotADRC move_adrc{0., 0., {motors_r[0].getVelocity(), motors_r[1].getVelocity()}};
-    GPIO line_sensor_left{CAM_D1_GPIO_Port, CAM_D1_Pin, true}, line_sensor_right{CAM_D3_GPIO_Port, CAM_D3_Pin, true};
+    GPIO line_sensor_left{CAM_D1_GPIO_Port, CAM_D1_Pin}, line_sensor_right{CAM_D3_GPIO_Port, CAM_D3_Pin};
 
     auto dt{0.};
     auto active{true};
@@ -274,7 +277,49 @@ namespace main
                        active = !active;
                      });
 
+    HAL_Delay(1000);
+
     Time time{};
+    double rot_correct_to_right{}, rot_correct_to_left{};
+    while (rot_correct_to_right == 0. || rot_correct_to_left == 0.)
+    {
+      dt = time.update();
+
+      if (rot_correct_to_right == 0.)
+      {
+        if (line_sensor_right.read())
+        {
+          rot_correct_to_right = -target_rot;
+        }
+        target_rot += auto_robot_calibrate_angular_velocity * dt;
+      }
+      else
+      {
+        if (line_sensor_left.read())
+        {
+          rot_correct_to_left = -target_rot;
+        }
+        target_rot -= auto_robot_calibrate_angular_velocity * dt;
+      }
+
+      CANMotorsControl<2> motors{motors_r};
+      auto const [v_l, v_r]{move_adrc.update(target_pos, target_rot, {motors[0].getVelocity(), motors[1].getVelocity()}, dt)};
+      update_motor_velocity(motors[0], motor_adrcs[0], v_l, dt);
+      update_motor_velocity(motors[1], motor_adrcs[1], v_r, dt);
+
+      if (tft_update(tft_update_period))
+      {
+        tft_prints(0, 0, "pos: %.2f", move_adrc.m_position);
+        tft_prints(0, 1, "pos_t: %.2f", target_pos);
+        tft_prints(0, 2, "rot: %.2f", math::rotation_matrix2_angle(move_adrc.m_rotation));
+        tft_prints(0, 3, "rot_t: %.2f", target_rot);
+        tft_prints(0, 4, "v: %.2f, %.2f", motors[0].getVelocity(), motors[1].getVelocity());
+        tft_prints(0, 5, "v_t: %.2f, %.2f", v_l, v_r);
+        tft_prints(0, 6, "sensor: %d, %d", line_sensor_left.read(), line_sensor_right.read());
+        tft_prints(0, 7, "calibrating");
+      }
+    }
+
     while (true)
     {
       dt = time.update();
@@ -282,12 +327,30 @@ namespace main
       auto const [received_size, received]{receiver.update()};
       commander.dispatch(received, received_size);
 
-      CANMotorsControl<2> motors{motors_r};
       if (!active)
       {
         target_pos = move_adrc.m_position;
         target_rot = math::rotation_matrix2_angle(move_adrc.m_rotation);
       }
+      else
+      {
+        auto const line_left{line_sensor_left.read()}, line_right{line_sensor_right.read()};
+        if (line_left && line_right)
+        {
+          active = false;
+        }
+        else if (line_left)
+        {
+          target_rot += rot_correct_to_left * dt / auto_robot_line_tracker_correction_time;
+        }
+        else if (line_right)
+        {
+          target_rot += rot_correct_to_right * dt / auto_robot_line_tracker_correction_time;
+        }
+        target_pos += auto_robot_translation_velocity / 4. * dt;
+      }
+
+      CANMotorsControl<2> motors{motors_r};
       auto const [v_l, v_r]{move_adrc.update(target_pos, target_rot, {motors[0].getVelocity(), motors[1].getVelocity()}, dt)};
       update_motor_velocity(motors[0], motor_adrcs[0], active * v_l, dt);
       update_motor_velocity(motors[1], motor_adrcs[1], active * v_r, dt);
@@ -408,12 +471,13 @@ namespace main
       auto const [received_size, received]{receiver.update()};
       commander.dispatch(received, received_size);
 
-      CANMotorsControl<4> motors{motors_r};
       if (!active)
       {
         target_pos = move_adrc.m_position;
         target_rot = math::rotation_matrix2_angle(move_adrc.m_rotation);
       }
+
+      CANMotorsControl<4> motors{motors_r};
       auto const [v_fl, v_fr, v_rl, v_rr]{(active * move_adrc.update(target_pos, target_rot, {motors[0].getVelocity(), motors[1].getVelocity(), motors[2].getVelocity(), motors[3].getVelocity()}, dt)).transpose()[0]};
       update_motor_velocity(motors[0], motor_adrcs[0], v_fl, dt);
       update_motor_velocity(motors[1], motor_adrcs[1], v_fr, dt);
