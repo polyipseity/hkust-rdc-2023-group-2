@@ -1,4 +1,4 @@
-#include "gpio.hpp"
+#include "gpio_ext.hpp"
 
 #include "main.h"
 

@@ -8,7 +8,7 @@
 
 #include "can.h"
 #include "communication.hpp"
-#include "gpio.hpp"
+#include "gpio_ext.hpp"
 #include "lcd/lcd.h"
 #include "main.h"
 #include "motor.hpp"
