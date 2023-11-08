@@ -14,11 +14,11 @@ namespace
     // https://archive.seattlerobotics.org/encoder/200108/using_a_pid.html#SteeringEquations, https://math.stackexchange.com/a/3680738, https://stackoverflow.com/a/55810955
 
     constexpr auto const auto_robot_axle_radius{.175};
-    constexpr auto const auto_robot_rotate_velocity_diff_min{auto_robot_axle_radius / 4.};
-    constexpr auto const auto_robot_self_rotate_radius_min{auto_robot_axle_radius / 4.};
+    constexpr auto const auto_robot_rotate_velocity_diff_min{auto_robot_axle_radius / 16.};
+    constexpr auto const auto_robot_self_rotate_radius_min{auto_robot_axle_radius / 16.};
     constexpr auto const auto_robot_max_velocity{1.8};
     constexpr auto const auto_robot_max_angular_velocity{math::tau};
-    constexpr auto const auto_robot_position_tolerance{1. / 8.};
+    constexpr auto const auto_robot_position_tolerance{1. / 16.};
     constexpr auto calc_auto_robot_velocities [[nodiscard]] (double left_v, double right_v) noexcept -> std::tuple<double, double, double>
     {
         auto const v_diff{right_v - left_v}, vv{left_v + v_diff / 2.};
