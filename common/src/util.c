@@ -1,6 +1,7 @@
 #include "util.h"
 
 #include <inttypes.h>
+#include <stdbool.h>
 
 #include "globals.h"
 #include "lcd/lcd.h"
