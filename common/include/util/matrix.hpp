@@ -5,7 +5,7 @@
 #include <cstddef>
 #include <type_traits>
 
-#include "math.hpp"
+#include "math.h"
 
 namespace math
 {
@@ -484,7 +484,7 @@ namespace math
     constexpr auto unit_vector [[nodiscard]] (Vector<Scalar, size> vector) noexcept
     {
         auto const mag{magnitude(vector)};
-        if (std::abs(mag - 0.) < math::epsilon)
+        if (std::abs(mag - 0.) < math_epsilon)
         {
             return decltype(vector){};
         }
@@ -504,7 +504,7 @@ namespace math
     constexpr auto unit_vector [[nodiscard]] (RowVector<Scalar, size> vector) noexcept
     {
         auto const mag{magnitude(vector)};
-        if (std::abs(mag - 0.) < math::epsilon)
+        if (std::abs(mag - 0.) < math_epsilon)
         {
             return decltype(vector){};
         }

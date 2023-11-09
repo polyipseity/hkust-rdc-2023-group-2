@@ -12,11 +12,6 @@ enum class RobotType
   AUTO,
 };
 
-/**
- * @brief Minimum TFT update interval
- */
-constexpr auto const tft_update_period{10};
-
 namespace test
 {
   /**

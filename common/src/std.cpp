@@ -1,8 +1,8 @@
-#include "util.hpp"
+#include "util.h"
 
 namespace std
 {
-  auto __throw_bad_function_call()
+  auto __throw_bad_function_call [[noreturn]] ()
   {
     panic("__throw_bad_function_call");
   }
