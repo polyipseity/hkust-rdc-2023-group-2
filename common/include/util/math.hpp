@@ -1,28 +1,23 @@
 #pragma once
 
-#include <math.h>
+#include <cmath>
 
-#include "globals.h"
-
-#ifdef __cplusplus
-extern "C"
+namespace math
 {
-#endif
-
     /**
      * @brief A small number
      */
-    CONSTEXPR double const math_epsilon = 1e-6;
+    constexpr auto const epsilon{1e-6};
 
     /**
      * @brief Pi
      */
-    CONSTEXPR double const math_pi = 3.14159265358979323846;
+    constexpr auto const pi{3.14159265358979323846};
 
     /**
      * @brief Tau
      */
-    CONSTEXPR double const math_tau = 2. * 3.14159265358979323846;
+    constexpr auto const tau{2. * 3.14159265358979323846};
 
     /**
      * @brief Calculate the natural logarithm of the specified binominal coefficient
@@ -31,21 +26,9 @@ extern "C"
      * @param k k
      * @return the natural logarithm of the specified binominal coefficient
      */
-    __attribute__((warn_unused_result)) inline float math_lbinomf(float n, float k) NOEXCEPT
+    constexpr auto lbinom [[nodiscard]] (float n, float k) noexcept
     {
-        return lgammaf(n + 1) - lgammaf(n - k + 1) - lgammaf(k + 1);
-    }
-
-    /**
-     * @brief Calculate the natural logarithm of the specified binominal coefficient
-     *
-     * @param n n
-     * @param k k
-     * @return the natural logarithm of the specified binominal coefficient
-     */
-    __attribute__((warn_unused_result)) inline double math_lbinom(double n, double k) NOEXCEPT
-    {
-        return lgamma(n + 1) - lgamma(n - k + 1) - lgamma(k + 1);
+        return std::lgamma(n + 1) - std::lgamma(n - k + 1) - std::lgamma(k + 1);
     }
 
     /**
@@ -55,9 +38,21 @@ extern "C"
      * @param k k
      * @return the natural logarithm of the specified binominal coefficient
      */
-    __attribute__((warn_unused_result)) inline long double math_lbinoml(long double n, long double k) NOEXCEPT
+    constexpr auto lbinom [[nodiscard]] (double n, double k) noexcept
     {
-        return lgammal(n + 1) - lgammal(n - k + 1) - lgammal(k + 1);
+        return std::lgamma(n + 1) - std::lgamma(n - k + 1) - std::lgamma(k + 1);
+    }
+
+    /**
+     * @brief Calculate the natural logarithm of the specified binominal coefficient
+     *
+     * @param n n
+     * @param k k
+     * @return the natural logarithm of the specified binominal coefficient
+     */
+    constexpr auto lbinom [[nodiscard]] (long double n, long double k) noexcept
+    {
+        return std::lgamma(n + 1) - std::lgamma(n - k + 1) - std::lgamma(k + 1);
     }
 
     /**
@@ -67,9 +62,9 @@ extern "C"
      * @param k k
      * @return the specified binominal coefficient
      */
-    __attribute__((warn_unused_result)) inline float math_tbinomf(float n, float k) NOEXCEPT
+    constexpr auto tbinom [[nodiscard]] (float n, float k) noexcept
     {
-        return expf(math_lbinomf(n, k));
+        return std::exp(lbinom(n, k));
     }
 
     /**
@@ -79,9 +74,9 @@ extern "C"
      * @param k k
      * @return the specified binominal coefficient
      */
-    __attribute__((warn_unused_result)) inline double math_tbinom(double n, double k) NOEXCEPT
+    constexpr auto tbinom [[nodiscard]] (double n, double k) noexcept
     {
-        return exp(math_lbinom(n, k));
+        return std::exp(lbinom(n, k));
     }
 
     /**
@@ -91,11 +86,8 @@ extern "C"
      * @param k k
      * @return the specified binominal coefficient
      */
-    __attribute__((warn_unused_result)) inline long double math_tbinoml(long double n, long double k) NOEXCEPT
+    constexpr auto tbinom [[nodiscard]] (long double n, long double k) noexcept
     {
-        return expl(math_lbinoml(n, k));
+        return std::exp(lbinom(n, k));
     }
-
-#ifdef __cplusplus
 }
-#endif

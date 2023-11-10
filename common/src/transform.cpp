@@ -18,7 +18,7 @@ namespace
     constexpr auto const auto_robot_self_rotate_radius_min{auto_robot_axle_radius / 16.};
     constexpr auto const auto_robot_max_velocity{1.8};
     constexpr auto const auto_robot_backward_max_velocity{.8}; // Needed because there is a odd wheel
-    constexpr auto const auto_robot_max_angular_velocity{math_tau};
+    constexpr auto const auto_robot_max_angular_velocity{math::tau};
     constexpr auto const auto_robot_position_tolerance{1. / 16.};
     constexpr auto calc_auto_robot_velocities [[nodiscard]] (double left_v, double right_v) noexcept -> std::tuple<double, double, double>
     {
@@ -110,21 +110,21 @@ auto AutoRobotADRC::update(decltype(m_position) target, double target_rot, declt
 
     m_velocities = velocities;
 
-    target_rot = std::fmod(target_rot + math_tau / 4., math_tau);
+    target_rot = std::fmod(target_rot + math::tau / 4., math::tau);
     if (target_rot < 0.)
     {
-        target_rot += math_tau;
+        target_rot += math::tau;
     }
 
     auto const forward_unit{m_rotation * math::Vector<double, 2>{0., 1.}};
     auto ang_diff{target_rot - std::atan2(forward_unit(1), forward_unit(0))};
-    if (ang_diff > math_pi)
+    if (ang_diff > math::pi)
     {
-        ang_diff -= math_tau;
+        ang_diff -= math::tau;
     }
-    else if (ang_diff < -math_pi)
+    else if (ang_diff < -math::pi)
     {
-        ang_diff += math_tau;
+        ang_diff += math::tau;
     }
 
     lin_v = m_position_control.update(0., lin_v, m_position - target, dt);
@@ -172,10 +172,10 @@ auto AutoRobotTestADRC::update(decltype(m_position) const &target, std::optional
     {
         if (target_rot)
         {
-            auto target_rot2{std::fmod(*target_rot + math_tau / 4., math_tau)};
+            auto target_rot2{std::fmod(*target_rot + math::tau / 4., math::tau)};
             if (target_rot2 < 0.)
             {
-                target_rot2 += math_tau;
+                target_rot2 += math::tau;
             }
             ang_diff = target_rot2 - cur_ang;
         }
@@ -184,13 +184,13 @@ auto AutoRobotTestADRC::update(decltype(m_position) const &target, std::optional
             ang_diff = 0.;
         }
     }
-    if (ang_diff > math_pi)
+    if (ang_diff > math::pi)
     {
-        ang_diff -= math_tau;
+        ang_diff -= math::tau;
     }
-    else if (ang_diff < -math_pi)
+    else if (ang_diff < -math::pi)
     {
-        ang_diff += math_tau;
+        ang_diff += math::tau;
     }
 
     lin_v = m_position_control.update(0., lin_v, -math::dot_product(forward_unit, pos_diff), dt);
@@ -220,22 +220,22 @@ auto TaskRobotADRC::update(decltype(m_position) const &target, double target_rot
 
     m_velocities = velocities;
 
-    target_rot = std::fmod(target_rot + math_tau / 4., math_tau);
+    target_rot = std::fmod(target_rot + math::tau / 4., math::tau);
     if (target_rot < 0.)
     {
-        target_rot += math_tau;
+        target_rot += math::tau;
     }
     auto const forward_unit{m_rotation * decltype(m_position){0., 1.}};
     auto const pos_diff{target - m_position};
     auto const pos_diff_unit{math::unit_vector(pos_diff)};
     auto ang_diff{target_rot - std::atan2(forward_unit(1), forward_unit(0))};
-    if (ang_diff > math_pi)
+    if (ang_diff > math::pi)
     {
-        ang_diff -= math_tau;
+        ang_diff -= math::tau;
     }
-    else if (ang_diff < -math_pi)
+    else if (ang_diff < -math::pi)
     {
-        ang_diff += math_tau;
+        ang_diff += math::tau;
     }
 
     auto const new_v_lin{m_rotation.transpose() * pos_diff_unit * m_position_control.update(0., math::dot_product(pos_diff_unit, m_rotation * math::Vector<double, 2>{v_lin_x, v_lin_y}), -math::magnitude(pos_diff), dt)};

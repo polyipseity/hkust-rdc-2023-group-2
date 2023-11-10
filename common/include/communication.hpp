@@ -11,7 +11,7 @@
 #include <utility>
 
 #include "main.h"
-#include "util.h"
+#include "util.hpp"
 
 /**
  * @brief `RxEventCallback` type

@@ -8,28 +8,28 @@
 
 #include "can.h"
 #include "communication.hpp"
-#include "gpio_ext.h"
+#include "gpio_ext.hpp"
 #include "lcd/lcd.h"
 #include "main.h"
 #include "motor.hpp"
 #include "transform.hpp"
 #include "usart.h"
-#include "util.h"
+#include "util.hpp"
 #include "util/adrc.hpp"
-#include "util/math.h"
+#include "util/math.hpp"
 
 namespace
 {
   constexpr auto const motor_test_velocity{1000.};
   constexpr auto const auto_robot_translation_velocity{1.8};
   constexpr auto const auto_robot_translation_backward_velocity{.8};
-  constexpr auto const auto_robot_rotation_velocity{math_tau};
-  constexpr auto const auto_robot_calibrate_angular_velocity{math_tau / 32.};
+  constexpr auto const auto_robot_rotation_velocity{math::tau};
+  constexpr auto const auto_robot_calibrate_angular_velocity{math::tau / 32.};
   constexpr auto const auto_robot_line_tracker_correction_time{.1};
-  constexpr auto const auto_robot_thrower_velocity{1.};        // todo: adjust
-  constexpr auto const auto_robot_thrower_max_velocity{1.};    // For safety, do not remove
-  constexpr auto const task_robot_translation_velocity{1.8};   // todo: adjust
-  constexpr auto const task_robot_rotation_velocity{math_tau}; // todo: adjust
+  constexpr auto const auto_robot_thrower_velocity{1.};         // todo: adjust
+  constexpr auto const auto_robot_thrower_max_velocity{1.};     // For safety, do not remove
+  constexpr auto const task_robot_translation_velocity{1.8};    // todo: adjust
+  constexpr auto const task_robot_rotation_velocity{math::tau}; // todo: adjust
 }
 
 namespace test
@@ -75,7 +75,7 @@ namespace test
     Time time{};
     while (true)
     {
-      auto const dt{Time_update(&time)};
+      auto const dt{time.update()};
 
       CANMotorsControl<1> motors_ctrl{motors};
       auto &motor{motors_ctrl[0]};
@@ -103,7 +103,7 @@ namespace test
     auto target_position{0.};
     while (true)
     {
-      auto const dt{Time_update(&time)};
+      auto const dt{time.update()};
       CANMotorsControl<1> motors_ctrl{motors};
       auto &motor{motors_ctrl[0]};
 
@@ -224,7 +224,7 @@ namespace test
     Time time{};
     while (true)
     {
-      dt = Time_update(&time);
+      dt = time.update();
 
       auto const [received_size, received]{receiver.update()};
       commander.dispatch(received, received_size);
@@ -297,11 +297,11 @@ namespace main
     double rot_correct_to_right{}, rot_correct_to_left{};
     while (rot_correct_to_right == 0. || rot_correct_to_left == 0.)
     {
-      dt = Time_update(&time);
+      dt = time.update();
 
       if (rot_correct_to_right == 0.)
       {
-        if (GPIO_read(&line_sensor_right))
+        if (line_sensor_right.read())
         {
           rot_correct_to_right = -target_rot;
         }
@@ -309,7 +309,7 @@ namespace main
       }
       else
       {
-        if (GPIO_read(&line_sensor_left))
+        if (line_sensor_left.read())
         {
           rot_correct_to_left = -target_rot;
         }
@@ -330,14 +330,14 @@ namespace main
         tft_prints(0, 3, "rot_t: %.2f", target_rot);
         tft_prints(0, 4, "v: %.2f, %.2f", motors[0].getVelocity(), motors[1].getVelocity());
         tft_prints(0, 5, "v_t: %.2f, %.2f", v_l, v_r);
-        tft_prints(0, 6, "sensor: %d, %d", GPIO_read(&line_sensor_left), GPIO_read(&line_sensor_right));
+        tft_prints(0, 6, "sensor: %d, %d", line_sensor_left.read(), line_sensor_right.read());
         tft_prints(0, 7, "calibrating");
       }
     }
 
     while (true)
     {
-      dt = Time_update(&time);
+      dt = time.update();
 
       auto const [received_size, received]{receiver.update()};
       commander.dispatch(received, received_size);
@@ -349,7 +349,7 @@ namespace main
       }
       else
       {
-        auto const line_left{GPIO_read(&line_sensor_left)}, line_right{GPIO_read(&line_sensor_right)};
+        auto const line_left{line_sensor_left.read()}, line_right{line_sensor_right.read()};
         if (line_left && line_right)
         {
           active = false;
@@ -380,7 +380,7 @@ namespace main
         tft_prints(0, 3, "rot_t: %.2f", target_rot);
         tft_prints(0, 4, "v: %.2f, %.2f", motors[0].getVelocity(), motors[1].getVelocity());
         tft_prints(0, 5, "v_t: %.2f, %.2f", v_l, v_r);
-        tft_prints(0, 6, "sensor: %d, %d", GPIO_read(&line_sensor_left), GPIO_read(&line_sensor_right));
+        tft_prints(0, 6, "sensor: %d, %d", line_sensor_left.read(), line_sensor_right.read());
       }
     }
   }
@@ -483,7 +483,7 @@ namespace main
     Time time{};
     while (true)
     {
-      dt = Time_update(&time);
+      dt = time.update();
 
       auto const [received_size, received]{receiver.update()};
       commander.dispatch(received, received_size);

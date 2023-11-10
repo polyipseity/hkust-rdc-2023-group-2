@@ -5,7 +5,7 @@
 #include <utility>
 
 #include "matrix.hpp"
-#include "util/math.h"
+#include "util/math.hpp"
 
 namespace control
 {
@@ -78,7 +78,7 @@ namespace control
             {
                 // (s+w)^n
                 // n=3, (s+w)^3=s^3+3s^2*w+3sw^2+w^3
-                ret(ii) = math_tbinom(Scalar{order}, static_cast<Scalar>(ii + 1)) * std::pow(convergence, static_cast<Scalar>(ii + 1));
+                ret(ii) = math::tbinom(Scalar{order}, static_cast<Scalar>(ii + 1)) * std::pow(convergence, static_cast<Scalar>(ii + 1));
             }
             return ret;
         }
@@ -227,7 +227,7 @@ namespace control
                       {
                           // (s+w)^(n-1)
                           // n=3, (s+w)^2=w^2+2ws+s^2
-                          ret(ii) = math_tbinom(Scalar{order - 1}, static_cast<Scalar>(order - 1 - ii)) * std::pow(convergence, static_cast<Scalar>(order - 1 - ii));
+                          ret(ii) = math::tbinom(Scalar{order - 1}, static_cast<Scalar>(order - 1 - ii)) * std::pow(convergence, static_cast<Scalar>(order - 1 - ii));
                       }
                       return ret;
                   }()}
