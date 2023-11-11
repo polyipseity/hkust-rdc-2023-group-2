@@ -45,7 +45,7 @@ public:
      * @param position current position in meters
      * @param velocity current velocity reported by the motor
      * @param gain position per bearing turn
-     * @param convergence control reactiveness
+     * @param convergence control sensitivity
      */
     PositionADRC(decltype(m_position) position, decltype(m_velocity) velocity, decltype(m_gain) gain = 1., double convergence = 16.) noexcept;
 
@@ -105,7 +105,7 @@ public:
      * @param rotation current rotation in radians
      * @param velocities current velocities reported by the two motors
      * @param gain meters per bearing turn
-     * @param convergence control reactiveness
+     * @param convergence control sensitivity
      */
     AutoRobotADRC(decltype(m_position) position, double rotation, decltype(m_velocities) velocities, decltype(m_gain) gain = .068 * math::pi * 23. / 30. / 25., double convergence = 16.) noexcept;
 
@@ -166,7 +166,7 @@ public:
      * @param rotation current rotation in radians
      * @param velocities current velocities reported by the two motors
      * @param gain meters per bearing turn
-     * @param convergence control reactiveness
+     * @param convergence control sensitivity
      */
     AutoRobotTestADRC(decltype(m_position) position, double rotation, decltype(m_velocities) velocities, decltype(m_gain) gain = .068 * math::pi * 23. / 30. / 25., double convergence = 16.) noexcept;
 
@@ -227,7 +227,7 @@ public:
      * @param rotation current rotation in radians
      * @param velocities current velocities reported by the four motors
      * @param gain meters per bearing turn
-     * @param convergence control reactiveness
+     * @param convergence control sensitivity
      */
     TaskRobotADRC(decltype(m_position) position, double rotation, decltype(m_velocities) velocities, decltype(m_gain) gain = .15 * math::pi * 16.5 / 30. / 10., double convergence = 1.) noexcept;
 

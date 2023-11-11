@@ -243,7 +243,7 @@ public:
  * @brief Construct a new controller for motors in the auto robot
  *
  * @param motor motor handle
- * @param convergence control reactiveness
+ * @param convergence control sensitivity
  * @param gain acceleration per current
  * @return a controller for the motor
  */
@@ -253,7 +253,7 @@ auto new_motor_ADRC_auto [[nodiscard]] (CANMotor const &motor, double convergenc
  * @brief Construct a new controller for motors in the task robot
  *
  * @param motor motor handle
- * @param convergence control reactiveness
+ * @param convergence control sensitivity
  * @param gain acceleration per current
  * @return a controller for the motor
  */
