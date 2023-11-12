@@ -44,8 +44,8 @@ namespace
 
     // https://ecam-eurobot.github.io/Tutorials/mechanical/mecanum.html, https://research.ijcaonline.org/volume113/number3/pxc3901586.pdf
 
-    constexpr auto const task_robot_semi_width{.19};
-    constexpr auto const task_robot_semi_height{.0875};
+    constexpr auto const task_robot_semi_width{.53 / 2.};
+    constexpr auto const task_robot_semi_height{.19 / 2.};
     constexpr auto const task_robot_minimum_angular_velocity{.01};
     constexpr auto const task_robot_forward_kinematics_matrix{[]()
                                                               {
