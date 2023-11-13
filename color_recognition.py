@@ -165,26 +165,27 @@ while True:
 
     # make an unsorted array of the x positions of the boxes detected, 1 represents blue/red, 0 represents green
     FinalPos = []
-    if Team:
+    if Team and len(Green_List) >= 2 and len(Blue_List >= 2):
         FinalPos = [
             ["0", Green_List[0][0]],
             ["0", Green_List[1][0]],
             ["0", Blue_List[0][0]],
             ["0", Blue_List[1][0]],
         ]
-    else:
+    elif not (Team) and len(Green_List) >= 2 and len(Red_List >= 2):
         FinalPos = [
             ["0", Green_List[0][0]],
             ["0", Green_List[1][0]],
             ["0", Red_List[0][0]],
             ["0", Red_List[1][0]],
         ]
-
-    # sort array and convert into a string
-    FinalPos_sorted = sorted(FinalPos, key=lambda x: x[1])
-    data = np.array(FinalPos_sorted)
-    str = ""
-    finalString = str.join(data[:, 0:1].squeeze().tolist())
+    finalString = ""
+    if len(FinalPos):
+        # sort array and convert into a string
+        FinalPos_sorted = sorted(FinalPos, key=lambda x: x[1])
+        data = np.array(FinalPos_sorted)
+        str1 = ""
+        finalString = str1.join(data[:, 0:1].squeeze().tolist())
     print(finalString)
 
     # Program Termination
