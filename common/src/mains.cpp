@@ -251,6 +251,22 @@ namespace test
       }
     }
   }
+
+  auto read_auto_robot_motor_velocities [[noreturn]] () noexcept -> void
+  {
+    CANMotors<3> motors_r{{CAN1_MOTOR1, CAN1_MOTOR0, CAN2_MOTOR0},
+                          {false, true}};
+    while (true)
+    {
+      CANMotorsControl<3> motors{motors_r};
+      if (tft_update(tft_update_period))
+      {
+        tft_prints(0, 0, "left: %.2f", motors[0].getVelocity());
+        tft_prints(0, 1, "right: %.2f", motors[1].getVelocity());
+        tft_prints(0, 2, "spin: %.2f", motors[2].getVelocity());
+      }
+    }
+  }
 }
 
 namespace main
