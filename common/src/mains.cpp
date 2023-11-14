@@ -283,10 +283,10 @@ namespace main
     std::array<control::ADRC2d, 3> motor_adrcs{
         new_motor_ADRC_auto(motors_r[0]),
         new_motor_ADRC_auto(motors_r[1]),
-        new_motor_ADRC_auto(motors_r[2]),
+        new_motor_ADRC_auto(motors_r[2], .5, 8.5),
     };
     AutoRobotADRC move_adrc{0., 0., {motors_r[0].getVelocity(), motors_r[1].getVelocity()}};
-    PositionADRC thrower_adrc{0., 0., .1 * 8.5 / 30.};
+    PositionADRC thrower_adrc{0., motors_r[2].getVelocity(), .1 * 8.5 / 30.};
     GPIO line_sensor_left{CAM_D1_GPIO_Port, CAM_D1_Pin}, line_sensor_right{CAM_D3_GPIO_Port, CAM_D3_Pin};
 
     auto dt{0.};
@@ -312,7 +312,7 @@ namespace main
                        thrower_rot += auto_robot_thrower_velocity * dt;
                      });
 
-    HAL_Delay(1000);
+    HAL_Delay(2000);
 
     Time time{};
     double rot_correct_to_right{}, rot_correct_to_left{};
@@ -373,7 +373,7 @@ namespace main
         auto const line_left{line_sensor_left.read()}, line_right{line_sensor_right.read()};
         if (line_left && line_right)
         {
-          active = false;
+          // active = false;
         }
         else if (line_left)
         {
@@ -383,15 +383,15 @@ namespace main
         {
           target_rot += rot_correct_to_right * dt / auto_robot_line_tracker_correction_time;
         }
-        target_pos += auto_robot_translation_velocity / 4. * dt;
+        // target_pos += auto_robot_translation_velocity * dt;
       }
 
       CANMotorsControl<3> motors{motors_r};
       auto const [v_l, v_r]{move_adrc.update(target_pos, target_rot, {motors[0].getVelocity(), motors[1].getVelocity()}, dt)};
       update_motor_velocity(motors[0], motor_adrcs[0], active * v_l, dt);
       update_motor_velocity(motors[1], motor_adrcs[1], active * v_r, dt);
-      auto const thrower_v{thrower_adrc.update(thrower_rot, motors[2].getVelocity(), dt) * thrower_adrc.m_gain};
-      update_motor_velocity(motors[2], motor_adrcs[2], std::copysign(std::min(auto_robot_thrower_max_velocity, std::abs(thrower_v)) / thrower_adrc.m_gain, thrower_v), dt);
+      auto const thrower_v{thrower_adrc.update(thrower_rot, motors[2].getVelocity(), dt)};
+      update_motor_velocity(motors[2], motor_adrcs[2], active * std::copysign(std::min(auto_robot_thrower_max_velocity / thrower_adrc.m_gain, std::abs(thrower_v)), thrower_v), dt);
 
       if (tft_update(tft_update_period))
       {
@@ -402,6 +402,7 @@ namespace main
         tft_prints(0, 4, "v: %.2f, %.2f", motors[0].getVelocity(), motors[1].getVelocity());
         tft_prints(0, 5, "v_t: %.2f, %.2f", v_l, v_r);
         tft_prints(0, 6, "sensor: %d, %d", line_sensor_left.read(), line_sensor_right.read());
+        tft_prints(0, 7, "v_m: %.2f", motors[2].getVelocity());
       }
     }
   }
