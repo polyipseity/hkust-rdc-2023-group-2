@@ -7,75 +7,8 @@
 #include <utility>
 
 #include "can.h"
+#include "motor_c.h"
 #include "util/adrc.hpp"
-
-/**
- * @brief A CAN motor.
- */
-class CANMotor
-{
-    /**
-     * @brief The motor handle corresponding to the motor hardware
-     */
-    Motor m_handle;
-
-    /**
-     * @brief Motor direction factor
-     */
-    int m_factor;
-
-public:
-    /**
-     * @brief Construct a new `CANMotor` object
-     *
-     * @param handle motor handle
-     * @param reversed reverse motor direction
-     */
-    explicit CANMotor(decltype(m_handle) handle, bool reversed = false) noexcept;
-
-    /**
-     * @brief Set the desired current to the motor
-     *
-     * @param input desired current
-     */
-    auto setInput(double input) noexcept -> void;
-
-    /**
-     * @brief Get the actual current to the motor
-     *
-     * @return actual current
-     */
-    auto getInput [[nodiscard]] () const noexcept -> double;
-
-    /**
-     * @brief Get the bearing position of the motor
-     *
-     * @return bearing position in the range [0, 1]
-     */
-    auto getPosition [[nodiscard]] () const noexcept -> double;
-
-    /**
-     * @brief Get the rotation velocity of the motor bearing
-     *
-     * @return rotation velocity in revolutions per second
-     */
-    auto getVelocity [[nodiscard]] () const noexcept -> double;
-
-    /**
-     * @brief Get the temperature of the motor
-     *
-     * @return temperature
-     */
-    auto getTemperature [[nodiscard]] () const noexcept -> decltype(MotorStats::temperature);
-
-    constexpr CANMotor(CANMotor const &) noexcept = delete;
-
-    constexpr CANMotor(CANMotor &&right) noexcept = default;
-
-    constexpr auto operator=(CANMotor const &) noexcept -> CANMotor & = delete;
-
-    constexpr auto operator=(CANMotor &&right) noexcept -> CANMotor & = default;
-};
 
 /**
  * @brief Set of CAN motors
@@ -111,7 +44,7 @@ public:
                                  std::array<bool, size> const &reversed = {}) noexcept
         : m_handles{[&handles, &reversed]<std::size_t... indices>(std::index_sequence<indices...>)
                     {
-                        return decltype(m_handles){CANMotor{handles[indices], reversed[indices]}...};
+                        return decltype(m_handles){CANMotor_new(handles[indices], reversed[indices])...};
                     }(std::make_index_sequence<size>{})}
     {
     }
@@ -285,6 +218,6 @@ constexpr auto update_motor_velocity(CANMotor &motor, Controller &controller, do
     velocity = std::abs(velocity) >= motor_velocity_threshold
                    ? std::copysign(std::max(minimum_motor_velocity, std::abs(velocity)), velocity)
                    : 0.;
-    auto const input{controller.update(velocity, motor.getInput(), motor.getVelocity(), dt)};
-    motor.setInput(input);
+    auto const input{controller.update(velocity, CANMotor_get_input(&motor), CANMotor_get_velocity(&motor), dt)};
+    CANMotor_set_input(&motor, input);
 }
