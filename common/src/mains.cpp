@@ -399,6 +399,7 @@ namespace main
 
     auto dt{0.};
     auto active{true};
+    auto automode{false};
     math::Vector<double, 2> target_pos{};
     double target_rot{};
 
@@ -451,39 +452,46 @@ namespace main
                        target_rot += -task_robot_rotation_velocity * dt;
                      });
 
+    auto qezc_command_capture{std::tie(dt, target_pos, target_rot)};
+
     // move to NW direction
     commander.handle('q',
-                     [&dt, &target_rot](typename decltype(commander)::ParamType const &)
+                     [&qezc_command_capture](typename decltype(commander)::ParamType const &)
                      {
-
+                        auto &[dt, target_pos, target_rot]{qezc_command_capture};
+                        target_pos += math::rotation_matrix2(target_rot) * std::remove_reference_t<decltype(target_pos)>{-task_robot_translation_velocity * dt, task_robot_translation_velocity * dt};
                      });
 
     // move to NE direction
     commander.handle('e',
-                     [&dt, &target_rot](typename decltype(commander)::ParamType const &)
+                     [&qezc_command_capture](typename decltype(commander)::ParamType const &)
                      {
-
+                        auto &[dt, target_pos, target_rot]{qezc_command_capture};
+                        target_pos += math::rotation_matrix2(target_rot) * std::remove_reference_t<decltype(target_pos)>{task_robot_translation_velocity * dt, task_robot_translation_velocity * dt};
                      });
 
     // move to SW direction
     commander.handle('z',
-                     [&dt, &target_rot](typename decltype(commander)::ParamType const &)
+                     [&qezc_command_capture](typename decltype(commander)::ParamType const &)
                      {
-
+                        auto &[dt, target_pos, target_rot]{qezc_command_capture};
+                        target_pos += math::rotation_matrix2(target_rot) * std::remove_reference_t<decltype(target_pos)>{-task_robot_translation_velocity * dt, -task_robot_translation_velocity * dt};
                      });
 
     // move to SE direction
     commander.handle('c',
-                     [&dt, &target_rot](typename decltype(commander)::ParamType const &)
+                     [&qezc_command_capture](typename decltype(commander)::ParamType const &)
                      {
-
+                        auto &[dt, target_pos, target_rot]{qezc_command_capture};
+                        target_pos += math::rotation_matrix2(target_rot) * std::remove_reference_t<decltype(target_pos)>{task_robot_translation_velocity * dt, -task_robot_translation_velocity * dt};
                      });
                   
     // brake
     commander.handle('b',
-                     [&dt, &target_rot](typename decltype(commander)::ParamType const &)
+                     [&qezc_command_capture](typename decltype(commander)::ParamType const &)
                      {
-
+                        auto &[dt, target_pos, target_rot]{qezc_command_capture};
+                        target_pos += math::rotation_matrix2(target_rot) * std::remove_reference_t<decltype(target_pos)>{0., 0.};
                      });
     
     // grab 1 seedlings
@@ -498,6 +506,13 @@ namespace main
                      [&dt, &target_rot](typename decltype(commander)::ParamType const &)
                      {
 
+                     });
+
+    // Auto Shortcut
+    commander.handle('n',
+                     [&automode](typename decltype(commander)::ParamType const &)
+                     {
+                        automode = !automode;
                      });
     // auto g_command_capture{std::tie(target_pos, target_rot, receiver)};
     // commander.handle('g',
@@ -546,6 +561,11 @@ namespace main
       {
         target_pos = move_adrc.m_position;
         target_rot = math::rotation_matrix2_angle(move_adrc.m_rotation);
+      }
+
+      // auto shortcut
+      if (automode) {
+        
       }
 
       CANMotorsControl<4> motors{motors_r};
