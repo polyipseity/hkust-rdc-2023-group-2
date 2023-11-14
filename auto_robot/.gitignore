@@ -15,5 +15,6 @@
 *.eide-template
 
 # self {
+/.vscode/c_cpp_properties.json
 /make
 # }
