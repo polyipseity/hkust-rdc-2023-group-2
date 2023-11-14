@@ -404,6 +404,7 @@ namespace main
 
     Commander<3> commander{};
     Receiver<16, false> receiver{huart1, .05};
+    // Turn ON/OFF
     commander.handle('x',
                      [&active, &receiver](typename decltype(commander)::ParamType const &)
                      {
@@ -435,50 +436,103 @@ namespace main
                        auto &[dt, target_pos, target_rot]{wasd_command_capture};
                        target_pos += math::rotation_matrix2(target_rot) * std::remove_reference_t<decltype(target_pos)>{task_robot_translation_velocity * dt, 0.};
                      });
-    commander.handle('q',
+
+    // rotate anticlockwise
+    commander.handle('o',
                      [&dt, &target_rot](typename decltype(commander)::ParamType const &)
                      {
                        target_rot += task_robot_rotation_velocity * dt;
                      });
-    commander.handle('e',
+
+    // rotote clockwise
+    commander.handle('p',
                      [&dt, &target_rot](typename decltype(commander)::ParamType const &)
                      {
                        target_rot += -task_robot_rotation_velocity * dt;
                      });
-    auto g_command_capture{std::tie(target_pos, target_rot, receiver)};
-    commander.handle('g',
-                     [&g_command_capture](typename decltype(commander)::ParamType const &param)
+
+    // move to NW direction
+    commander.handle('q',
+                     [&dt, &target_rot](typename decltype(commander)::ParamType const &)
                      {
-                       auto &[target_pos, target_rot, receiver]{g_command_capture};
-                       receiver.invalidate();
-                       auto const &[p_x, p_y, p_r]{param};
-                       if (std::get<0>(p_x) == 0 || std::get<0>(p_y) == 0)
-                       {
-                         return;
-                       }
-                       char *end{};
-                       auto const xx{std::strtod(std::get<1>(p_x), &end)};
-                       if (std::get<1>(p_x) == end)
-                       {
-                         return;
-                       }
-                       auto const yy{std::strtod(std::get<1>(p_y), &end)};
-                       if (std::get<1>(p_y) == end)
-                       {
-                         return;
-                       }
-                       target_pos = {xx, yy};
-                       if (std::get<0>(p_r) == 0)
-                       {
-                         return;
-                       }
-                       auto const rot{std::strtod(std::get<1>(p_r), &end)};
-                       if (std::get<1>(p_r) == end)
-                       {
-                         return;
-                       }
-                       target_rot = rot;
+
                      });
+
+    // move to NE direction
+    commander.handle('e',
+                     [&dt, &target_rot](typename decltype(commander)::ParamType const &)
+                     {
+
+                     });
+
+    // move to SW direction
+    commander.handle('z',
+                     [&dt, &target_rot](typename decltype(commander)::ParamType const &)
+                     {
+
+                     });
+
+    // move to SE direction
+    commander.handle('c',
+                     [&dt, &target_rot](typename decltype(commander)::ParamType const &)
+                     {
+
+                     });
+                  
+    // brake
+    commander.handle('b',
+                     [&dt, &target_rot](typename decltype(commander)::ParamType const &)
+                     {
+
+                     });
+    
+    // grab 1 seedlings
+    commander.handle('k',
+                     [&dt, &target_rot](typename decltype(commander)::ParamType const &)
+                     {
+
+                     });
+
+    // grab 2 seedlings
+    commander.handle('l',
+                     [&dt, &target_rot](typename decltype(commander)::ParamType const &)
+                     {
+
+                     });
+    // auto g_command_capture{std::tie(target_pos, target_rot, receiver)};
+    // commander.handle('g',
+    //                  [&g_command_capture](typename decltype(commander)::ParamType const &param)
+    //                  {
+    //                    auto &[target_pos, target_rot, receiver]{g_command_capture};
+    //                    receiver.invalidate();
+    //                    auto const &[p_x, p_y, p_r]{param};
+    //                    if (std::get<0>(p_x) == 0 || std::get<0>(p_y) == 0)
+    //                    {
+    //                      return;
+    //                    }
+    //                    char *end{};
+    //                    auto const xx{std::strtod(std::get<1>(p_x), &end)};
+    //                    if (std::get<1>(p_x) == end)
+    //                    {
+    //                      return;
+    //                    }
+    //                    auto const yy{std::strtod(std::get<1>(p_y), &end)};
+    //                    if (std::get<1>(p_y) == end)
+    //                    {
+    //                      return;
+    //                    }
+    //                    target_pos = {xx, yy};
+    //                    if (std::get<0>(p_r) == 0)
+    //                    {
+    //                      return;
+    //                    }
+    //                    auto const rot{std::strtod(std::get<1>(p_r), &end)};
+    //                    if (std::get<1>(p_r) == end)
+    //                    {
+    //                      return;
+    //                    }
+    //                    target_rot = rot;
+    //                  });
 
     Time time{};
     while (true)
