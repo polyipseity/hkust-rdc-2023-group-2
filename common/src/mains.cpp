@@ -21,15 +21,9 @@
 namespace
 {
   constexpr auto const motor_test_velocity{1000.};
-  constexpr auto const auto_robot_translation_velocity{1.8};
-  constexpr auto const auto_robot_translation_backward_velocity{.8};
-  constexpr auto const auto_robot_rotation_velocity{math::tau};
-  constexpr auto const auto_robot_calibrate_angular_velocity{math::tau / 32.};
-  constexpr auto const auto_robot_line_tracker_correction_time{.1};
-  constexpr auto const auto_robot_thrower_velocity{1.};         // todo: adjust
-  constexpr auto const auto_robot_thrower_max_velocity{1.};     // For safety, do not remove
-  constexpr auto const task_robot_translation_velocity{1.8};    // todo: adjust
-  constexpr auto const task_robot_rotation_velocity{math::tau}; // todo: adjust
+  constexpr auto const test_auto_robot_translation_velocity{1.8};
+  constexpr auto const test_auto_robot_translation_backward_velocity{.8};
+  constexpr auto const test_auto_robot_rotation_velocity{math::tau};
 }
 
 namespace test
@@ -174,22 +168,22 @@ namespace test
     commander.handle('w',
                      [&dt, &target_pos](typename decltype(commander)::ParamType const &)
                      {
-                       target_pos += auto_robot_translation_velocity * dt;
+                       target_pos += test_auto_robot_translation_velocity * dt;
                      });
     commander.handle('s',
                      [&dt, &target_pos](typename decltype(commander)::ParamType const &)
                      {
-                       target_pos += -auto_robot_translation_backward_velocity * dt;
+                       target_pos += -test_auto_robot_translation_backward_velocity * dt;
                      });
     commander.handle('q',
                      [&dt, &target_rot](typename decltype(commander)::ParamType const &)
                      {
-                       target_rot += auto_robot_rotation_velocity * dt;
+                       target_rot += test_auto_robot_rotation_velocity * dt;
                      });
     commander.handle('e',
                      [&dt, &target_rot](typename decltype(commander)::ParamType const &)
                      {
-                       target_rot += -auto_robot_rotation_velocity * dt;
+                       target_rot += -test_auto_robot_rotation_velocity * dt;
                      });
     auto g_command_capture{std::tie(target_pos, target_rot, receiver)};
     commander.handle('g',
@@ -276,6 +270,18 @@ namespace test
 
 namespace main
 {
+  namespace
+  {
+    constexpr auto const auto_robot_initial_delay{2.};
+    constexpr auto const auto_robot_translation_velocity{1.8};
+    constexpr auto const auto_robot_translation_backward_velocity{.8};
+    constexpr auto const auto_robot_rotation_velocity{math::tau};
+    constexpr auto const auto_robot_calibrate_angular_velocity{math::tau / 32.};
+    constexpr auto const auto_robot_line_tracker_correction_time{.1};
+    constexpr auto const auto_robot_thrower_velocity{1.};     // todo: adjust
+    constexpr auto const auto_robot_thrower_max_velocity{1.}; // For safety, do not remove
+  }
+
   auto auto_robot [[noreturn]] () -> void
   {
     CANMotors<3> motors_r{{CAN1_MOTOR1, CAN1_MOTOR0, CAN2_MOTOR0},
@@ -312,7 +318,7 @@ namespace main
                        thrower_rot += auto_robot_thrower_velocity * dt;
                      });
 
-    HAL_Delay(2000);
+    HAL_Delay(auto_robot_initial_delay * 1000.);
 
     Time time{};
     double rot_correct_to_right{}, rot_correct_to_left{};
@@ -405,6 +411,12 @@ namespace main
         tft_prints(0, 7, "v_m: %.2f", motors[2].getVelocity());
       }
     }
+  }
+
+  namespace
+  {
+    constexpr auto const task_robot_translation_velocity{1.8};    // todo: adjust
+    constexpr auto const task_robot_rotation_velocity{math::tau}; // todo: adjust
   }
 
   auto task_robot [[noreturn]] () -> void
