@@ -297,7 +297,7 @@ namespace main
 
     auto dt{0.};
     auto active{true};
-    double target_pos{}, target_rot{}, thrower_rot{};
+    double target_pos{}, target_rot{math::tau / 4.}, thrower_rot{};
 
     Commander<2> commander{};
     Receiver<16, false> receiver{huart1, .05};
@@ -434,7 +434,7 @@ namespace main
     auto dt{0.};
     auto active{true};
     math::Vector<double, 2> target_pos{};
-    double target_rot{};
+    double target_rot{math::tau / 4.};
 
     Commander<3> commander{};
     Receiver<16, false> receiver{huart1, .05};

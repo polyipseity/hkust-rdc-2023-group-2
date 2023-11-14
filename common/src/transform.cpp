@@ -110,7 +110,7 @@ auto AutoRobotADRC::update(decltype(m_position) target, double target_rot, declt
 
     m_velocities = velocities;
 
-    target_rot = std::fmod(target_rot + math::tau / 4., math::tau);
+    target_rot = std::fmod(target_rot, math::tau);
     if (target_rot < 0.)
     {
         target_rot += math::tau;
@@ -172,7 +172,7 @@ auto AutoRobotTestADRC::update(decltype(m_position) const &target, std::optional
     {
         if (target_rot)
         {
-            auto target_rot2{std::fmod(*target_rot + math::tau / 4., math::tau)};
+            auto target_rot2{std::fmod(*target_rot, math::tau)};
             if (target_rot2 < 0.)
             {
                 target_rot2 += math::tau;
@@ -220,7 +220,7 @@ auto TaskRobotADRC::update(decltype(m_position) const &target, double target_rot
 
     m_velocities = velocities;
 
-    target_rot = std::fmod(target_rot + math::tau / 4., math::tau);
+    target_rot = std::fmod(target_rot, math::tau);
     if (target_rot < 0.)
     {
         target_rot += math::tau;
