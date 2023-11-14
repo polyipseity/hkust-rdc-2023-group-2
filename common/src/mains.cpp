@@ -262,7 +262,7 @@ namespace test
         // tft_prints(0, 2, "spin: %.3f", motors[2].getVelocity());
         tft_prints(0, 3, "left_n: %d", get_motor_feedback(CAN1_MOTOR1).vel_rpm);
         tft_prints(0, 4, "right_n: %d", get_motor_feedback(CAN1_MOTOR0).vel_rpm);
-        tft_prints(0, 5, "spin_n: %d", get_motor_feedback(CAN2_MOTOR0).vel_rpm);
+        tft_prints(0, 5, "spin_n: %d", get_motor_feedback(CAN2_MOTOR2).vel_rpm);
       }
     }
   }
@@ -301,7 +301,7 @@ namespace main
 
   auto auto_robot [[noreturn]] () -> void
   {
-    CANMotors<3> motors_r{{CAN1_MOTOR1, CAN1_MOTOR0, CAN2_MOTOR0},
+    CANMotors<3> motors_r{{CAN1_MOTOR1, CAN1_MOTOR0, CAN2_MOTOR2},
                           {false, true}};
     std::array<control::ADRC2d, 3> motor_adrcs{
         new_motor_ADRC_auto(motors_r[0]),
