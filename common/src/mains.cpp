@@ -248,21 +248,21 @@ namespace test
 
   auto read_auto_robot_motor_velocities [[noreturn]] () noexcept -> void
   {
-    // CANMotors<3> motors_r{{CAN1_MOTOR1, CAN1_MOTOR0, CAN2_MOTOR0},
-    //                       {false, true}};
-    can_init();
+    CANMotors<3> motors_r{{CAN1_MOTOR1, CAN1_MOTOR0, CAN2_MOTOR2},
+                          {false, true}};
+    // can_init();
     while (true)
     {
-      // CANMotorsControl<3> motors{motors_r};
-      can_ctrl_loop();
+      CANMotorsControl<3> motors{motors_r};
+      // can_ctrl_loop();
       if (tft_update(tft_update_period))
       {
-        // tft_prints(0, 0, "left: %.3f", motors[0].getVelocity());
-        // tft_prints(0, 1, "right: %.3f", motors[1].getVelocity());
-        // tft_prints(0, 2, "spin: %.3f", motors[2].getVelocity());
-        tft_prints(0, 3, "left_n: %d", get_motor_feedback(CAN1_MOTOR1).vel_rpm);
-        tft_prints(0, 4, "right_n: %d", get_motor_feedback(CAN1_MOTOR0).vel_rpm);
-        tft_prints(0, 5, "spin_n: %d", get_motor_feedback(CAN2_MOTOR2).vel_rpm);
+        tft_prints(0, 0, "left: %.3f", motors[0].getVelocity());
+        tft_prints(0, 1, "right: %.3f", motors[1].getVelocity());
+        tft_prints(0, 2, "spin: %.3f", motors[2].getVelocity());
+        // tft_prints(0, 3, "left_n: %d", get_motor_feedback(CAN1_MOTOR1).vel_rpm);
+        // tft_prints(0, 4, "right_n: %d", get_motor_feedback(CAN1_MOTOR0).vel_rpm);
+        // tft_prints(0, 5, "spin_n: %d", get_motor_feedback(CAN2_MOTOR2).vel_rpm);
       }
     }
   }
