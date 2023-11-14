@@ -273,12 +273,29 @@ namespace main
   namespace
   {
     constexpr auto const auto_robot_initial_delay{2.};
-    constexpr auto const auto_robot_translation_velocity{1.8};
+    constexpr auto const auto_robot_translation_velocity{.8};
     constexpr auto const auto_robot_translation_backward_velocity{.8};
     constexpr auto const auto_robot_rotation_velocity{math::tau};
+
     constexpr auto const auto_robot_calibrate_angular_velocity{math::tau / 32.};
     constexpr auto const auto_robot_line_tracker_correction_time{.1};
-    constexpr auto const auto_robot_thrower_velocity{1.};     // todo: adjust
+
+    constexpr auto const auto_robot_discovery_initial_translation{.1};
+    constexpr auto const auto_robot_discovery_initial_rotation{math::tau / 3.};
+    constexpr auto const auto_robot_discovery_translation_tolerance{.01};
+    constexpr auto const auto_robot_discovery_rotation_tolerance{math::tau / 64.};
+    constexpr auto const auto_robot_discovery_angular_velocity{math::tau / 8.};
+    constexpr auto const auto_robot_discovery_line_sensor_filter_time{.25};
+    constexpr auto const auto_robot_discovery_final_wiggle{math::tau / 16.};
+    constexpr auto const auto_robot_discovery_final_wiggle_steps{4.};
+
+    constexpr auto const auto_robot_navigation_translation_tolerance{.01};
+    constexpr auto const auto_robot_navigation_rotation_tolerance{math::tau / 64.};
+    constexpr auto const auto_robot_navigation_wiggle{math::tau / 16.};
+    constexpr auto const auto_robot_navigation_wiggle_steps{4.};
+    constexpr auto const auto_robot_navigation_approach_translation{.3};
+
+    constexpr auto const auto_robot_thrower_velocity{1.};
     constexpr auto const auto_robot_thrower_max_velocity{1.}; // For safety, do not remove
   }
 
@@ -298,6 +315,7 @@ namespace main
     auto dt{0.};
     auto active{true};
     double target_pos{}, target_rot{math::tau / 4.}, thrower_rot{};
+    std::optional<std::array<long, 2>> box_targets{};
 
     Commander<2> commander{};
     Receiver<16, false> receiver{huart1, .05};
@@ -307,25 +325,66 @@ namespace main
                        receiver.invalidate();
                        active = !active;
                      });
-    commander.handle('a',
-                     [&dt, &thrower_rot](typename decltype(commander)::ParamType const &)
+    commander.handle('t',
+                     [&box_targets, &receiver](typename decltype(commander)::ParamType const &params)
                      {
-                       thrower_rot += -auto_robot_thrower_velocity * dt;
-                     });
-    commander.handle('d',
-                     [&dt, &thrower_rot](typename decltype(commander)::ParamType const &)
-                     {
-                       thrower_rot += auto_robot_thrower_velocity * dt;
+                       receiver.invalidate();
+                       if (box_targets)
+                       {
+                         return;
+                       }
+                       auto &&[param0, param1]{params};
+                       char *end0{}, *end1{};
+                       auto const tar0{std::strtol(std::get<1>(param0), &end0, 10)},
+                           tar1{std::strtol(std::get<1>(param1), &end1, 10)};
+                       if (std::get<1>(param0) == end0 || std::get<1>(param1) == end1)
+                       {
+                         return;
+                       }
+                       box_targets = {tar0, tar1}; // 1, 2, 3, 4
                      });
 
     HAL_Delay(auto_robot_initial_delay * 1000.);
 
+    // Calibration
     Time time{};
+
+    auto const input{[&]()
+                     {
+                       dt = time.update();
+                       auto const [received_size, received]{receiver.update()};
+                       commander.dispatch(received, received_size);
+                     }};
+    auto const output{[&](char const state[])
+                      {
+                        if (!active)
+                        {
+                          target_pos = move_adrc.m_position;
+                          target_rot = math::rotation_matrix2_angle(move_adrc.m_rotation);
+                        }
+                        CANMotorsControl<3> motors{motors_r};
+                        auto const [v_l, v_r]{move_adrc.update(target_pos, target_rot, {motors[0].getVelocity(), motors[1].getVelocity()}, dt)};
+                        update_motor_velocity(motors[0], motor_adrcs[0], active * v_l, dt);
+                        update_motor_velocity(motors[1], motor_adrcs[1], active * v_r, dt);
+                        auto const thrower_v{thrower_adrc.update(thrower_rot, motors[2].getVelocity(), dt)};
+                        update_motor_velocity(motors[2], motor_adrcs[2], active * std::copysign(std::min(auto_robot_thrower_max_velocity / thrower_adrc.m_gain, std::abs(thrower_v)), thrower_v), dt);
+
+                        if (tft_update(tft_update_period))
+                        {
+                          tft_prints(0, 0, "pos: %.2f", move_adrc.m_position);
+                          tft_prints(0, 1, "pos_t: %.2f", target_pos);
+                          tft_prints(0, 2, "rot: %.2f", math::rotation_matrix2_angle(move_adrc.m_rotation));
+                          tft_prints(0, 3, "rot_t: %.2f", target_rot);
+                          tft_prints(0, 4, "v: %.2f, %.2f", motors[0].getVelocity(), motors[1].getVelocity());
+                          tft_prints(0, 5, "v_t: %.2f, %.2f", v_l, v_r);
+                          tft_prints(0, 6, "sensor: %d, %d", line_sensor_left.read(), line_sensor_right.read());
+                          tft_prints(0, 7, "%s", state);
+                        }
+                      }};
     double rot_correct_to_right{}, rot_correct_to_left{};
     while (rot_correct_to_right == 0. || rot_correct_to_left == 0.)
     {
-      dt = time.update();
-
+      input();
       if (rot_correct_to_right == 0.)
       {
         if (line_sensor_right.read())
@@ -342,81 +401,188 @@ namespace main
         }
         target_rot -= auto_robot_calibrate_angular_velocity * dt;
       }
+      output("calibrating");
+    }
 
-      CANMotorsControl<3> motors{motors_r};
-      auto const [v_l, v_r]{move_adrc.update(target_pos, target_rot, {motors[0].getVelocity(), motors[1].getVelocity()}, dt)};
-      update_motor_velocity(motors[0], motor_adrcs[0], v_l, dt);
-      update_motor_velocity(motors[1], motor_adrcs[1], v_r, dt);
-      update_motor_velocity(motors[2], motor_adrcs[2], 0., dt);
-
-      if (tft_update(tft_update_period))
+    // Movement
+    auto const track_line{[&](bool line_left, bool line_right)
+                          {
+                            if (line_left)
+                            {
+                              target_rot += rot_correct_to_left * dt / auto_robot_line_tracker_correction_time;
+                            }
+                            if (line_right)
+                            {
+                              target_rot += rot_correct_to_right * dt / auto_robot_line_tracker_correction_time;
+                            }
+                          }};
+    while (true)
+    {
+      input();
+      auto const line_left{line_sensor_left.read()}, line_right{line_sensor_right.read()};
+      if (line_left && line_right)
       {
-        tft_prints(0, 0, "pos: %.2f", move_adrc.m_position);
-        tft_prints(0, 1, "pos_t: %.2f", target_pos);
-        tft_prints(0, 2, "rot: %.2f", math::rotation_matrix2_angle(move_adrc.m_rotation));
-        tft_prints(0, 3, "rot_t: %.2f", target_rot);
-        tft_prints(0, 4, "v: %.2f, %.2f", motors[0].getVelocity(), motors[1].getVelocity());
-        tft_prints(0, 5, "v_t: %.2f, %.2f", v_l, v_r);
-        tft_prints(0, 6, "sensor: %d, %d", line_sensor_left.read(), line_sensor_right.read());
-        tft_prints(0, 7, "calibrating");
+        break;
+      }
+      track_line(line_left, line_right);
+      target_pos += auto_robot_translation_velocity * dt;
+      output("moving");
+    }
+
+    // Discovery
+    target_pos += auto_robot_discovery_initial_translation;
+    while (true)
+    {
+      input();
+      if (std::abs(target_pos - move_adrc.m_position) <= auto_robot_discovery_translation_tolerance)
+      {
+        target_pos = move_adrc.m_position;
+        break;
+      }
+      output("discovering");
+    }
+    target_rot += auto_robot_discovery_initial_rotation;
+    while (true)
+    {
+      input();
+      if (std::fmod(std::abs(target_rot - math::rotation_matrix2_angle(move_adrc.m_rotation)), math::tau) <= auto_robot_discovery_rotation_tolerance)
+      {
+        target_rot = math::rotation_matrix2_angle(move_adrc.m_rotation);
+        break;
+      }
+      output("discovering");
+    }
+    std::array<double, 6> lines{};
+    auto line_sensor_filter{[&, last_change{-1.}, last_state{false}](bool state) mutable
+                            {
+                              auto const cur_time{time.time()};
+                              if (last_state != state && cur_time - last_change >= auto_robot_discovery_line_sensor_filter_time)
+                              {
+                                last_state = state;
+                                last_change = cur_time;
+                                return true;
+                              }
+                              return false;
+                            }};
+    auto lines_iter{std::begin(lines)};
+    while (lines_iter != std::end(lines))
+    {
+      input();
+      target_rot -= auto_robot_discovery_angular_velocity * dt;
+      if (line_sensor_filter(line_sensor_right.read()))
+      {
+        *lines_iter++ = target_rot;
+      }
+      output("discovering");
+    }
+
+    auto const wiggle{[&](double max_wiggle, int wiggles)
+                      {
+                        auto const wiggle_diff{max_wiggle / wiggles};
+                        return [&, old_target_rot{target_rot}, step{0}, done{false}](bool line_left, bool line_right) mutable
+                        {
+                          if (done)
+                          {
+                            panic("wiggle");
+                            return false;
+                          }
+                          if (line_left || line_right)
+                          {
+                            return false;
+                          }
+                          if (std::fmod(std::abs(target_rot - math::rotation_matrix2_angle(move_adrc.m_rotation)), math::tau) <= auto_robot_discovery_rotation_tolerance)
+                          {
+                            ++step;
+                            if (step > wiggles + 1)
+                            {
+                              done = true;
+                              return false;
+                            }
+                            if (step > wiggles)
+                            {
+                              target_rot = old_target_rot;
+                              return true;
+                            }
+                            target_rot += (step % 2 ? 1 : -1) * wiggle_diff * step;
+                          }
+                          return true;
+                        };
+                      }};
+    auto wiggling{wiggle(auto_robot_discovery_final_wiggle, auto_robot_discovery_final_wiggle_steps)};
+    while (wiggling(line_sensor_left.read(), line_sensor_right.read()))
+    {
+      input();
+      output("discovering");
+    }
+    while (!box_targets)
+    {
+      input();
+      output("waiting");
+    }
+
+    // Navigation
+    long cur_line{};
+    for (auto const target : *box_targets)
+    {
+      target_rot += lines[target] - lines[cur_line];
+      cur_line = target;
+      while (true)
+      {
+        input();
+        if (std::fmod(std::abs(target_rot - math::rotation_matrix2_angle(move_adrc.m_rotation)), math::tau) <= auto_robot_navigation_rotation_tolerance)
+        {
+          break;
+        }
+        output("navigating");
+      }
+      auto wiggling2{wiggle(auto_robot_navigation_wiggle, auto_robot_navigation_wiggle_steps)};
+      while (wiggling2(line_sensor_left.read(), line_sensor_right.read()))
+      {
+        input();
+        output("navigating");
+      }
+      target_pos += auto_robot_navigation_approach_translation;
+      while (std::abs(target_pos - move_adrc.m_position) > auto_robot_navigation_translation_tolerance)
+      {
+        input();
+        track_line(line_sensor_left.read(), line_sensor_right.read());
+        output("navigating");
+      }
+      auto const last_time{time.time()};
+      while (time.time() - last_time <= 3.)
+      {
+        input();
+        output("throwing");
+      }
+      target_pos -= auto_robot_navigation_approach_translation;
+      while (std::abs(target_pos - move_adrc.m_position) > auto_robot_navigation_translation_tolerance)
+      {
+        input();
+        track_line(line_sensor_left.read(), line_sensor_right.read());
+        output("navigating");
+      }
+
+      auto wiggling3{wiggle(auto_robot_navigation_wiggle, auto_robot_navigation_wiggle_steps)};
+      while (wiggling3(line_sensor_left.read(), line_sensor_right.read()))
+      {
+        input();
+        output("navigating");
       }
     }
 
+    // Completion
     while (true)
     {
-      dt = time.update();
-
-      auto const [received_size, received]{receiver.update()};
-      commander.dispatch(received, received_size);
-
-      if (!active)
-      {
-        target_pos = move_adrc.m_position;
-        target_rot = math::rotation_matrix2_angle(move_adrc.m_rotation);
-      }
-      else
-      {
-        auto const line_left{line_sensor_left.read()}, line_right{line_sensor_right.read()};
-        if (line_left && line_right)
-        {
-          // active = false;
-        }
-        else if (line_left)
-        {
-          target_rot += rot_correct_to_left * dt / auto_robot_line_tracker_correction_time;
-        }
-        else if (line_right)
-        {
-          target_rot += rot_correct_to_right * dt / auto_robot_line_tracker_correction_time;
-        }
-        // target_pos += auto_robot_translation_velocity * dt;
-      }
-
-      CANMotorsControl<3> motors{motors_r};
-      auto const [v_l, v_r]{move_adrc.update(target_pos, target_rot, {motors[0].getVelocity(), motors[1].getVelocity()}, dt)};
-      update_motor_velocity(motors[0], motor_adrcs[0], active * v_l, dt);
-      update_motor_velocity(motors[1], motor_adrcs[1], active * v_r, dt);
-      auto const thrower_v{thrower_adrc.update(thrower_rot, motors[2].getVelocity(), dt)};
-      update_motor_velocity(motors[2], motor_adrcs[2], active * std::copysign(std::min(auto_robot_thrower_max_velocity / thrower_adrc.m_gain, std::abs(thrower_v)), thrower_v), dt);
-
-      if (tft_update(tft_update_period))
-      {
-        tft_prints(0, 0, "pos: %.2f", move_adrc.m_position);
-        tft_prints(0, 1, "pos_t: %.2f", target_pos);
-        tft_prints(0, 2, "rot: %.2f", math::rotation_matrix2_angle(move_adrc.m_rotation));
-        tft_prints(0, 3, "rot_t: %.2f", target_rot);
-        tft_prints(0, 4, "v: %.2f, %.2f", motors[0].getVelocity(), motors[1].getVelocity());
-        tft_prints(0, 5, "v_t: %.2f, %.2f", v_l, v_r);
-        tft_prints(0, 6, "sensor: %d, %d", line_sensor_left.read(), line_sensor_right.read());
-        tft_prints(0, 7, "v_m: %.2f", motors[2].getVelocity());
-      }
+      input();
+      active = false;
+      output("completion");
     }
   }
 
   namespace
   {
-    constexpr auto const task_robot_translation_velocity{1.8};    // todo: adjust
-    constexpr auto const task_robot_rotation_velocity{math::tau}; // todo: adjust
+    constexpr auto const task_robot_translation_velocity{1.8};
+    constexpr auto const task_robot_rotation_velocity{math::tau};
   }
 
   auto task_robot [[noreturn]] () -> void
