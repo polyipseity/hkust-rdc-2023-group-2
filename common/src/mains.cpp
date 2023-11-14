@@ -28,10 +28,14 @@ namespace
 
 namespace test
 {
-  auto find_motor_gain [[noreturn]] (Motor motor_handle) noexcept -> void
+  auto find_motor_gain [[noreturn]] (Motor motor_handle, int motor_count) noexcept -> void
   {
     constexpr static auto const input{1.}, duration{.5};
     CANMotors<1> motors{{motor_handle}};
+    for (decltype(motor_count) ii{1}; ii < motor_count; ++ii)
+    {
+      can_init();
+    }
     auto const start_tick{HAL_GetTick()};
     while ((HAL_GetTick() - start_tick) / 1000. <= duration)
     {

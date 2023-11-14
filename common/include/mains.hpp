@@ -23,8 +23,9 @@ namespace test
    * @brief Test a motor to find its gain
    *
    * @param motor_handle motor to test
+   * @param motor_count number of motors
    */
-  auto find_motor_gain [[noreturn]] (Motor motor_handle) noexcept -> void;
+  auto find_motor_gain [[noreturn]] (Motor motor_handle, int motor_count) noexcept -> void;
 
   /**
    * @brief Test setting a motor to a certain velocity.
