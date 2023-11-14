@@ -657,50 +657,43 @@ namespace main
 
     // move to NW direction
     commander.handle('q',
-                     [&dt, &target_rot](typename decltype(commander)::ParamType const &)
-                     {
+                     [&dt, &target_rot](typename decltype(commander)::ParamType const &) {
 
                      });
 
     // move to NE direction
     commander.handle('e',
-                     [&dt, &target_rot](typename decltype(commander)::ParamType const &)
-                     {
+                     [&dt, &target_rot](typename decltype(commander)::ParamType const &) {
 
                      });
 
     // move to SW direction
     commander.handle('z',
-                     [&dt, &target_rot](typename decltype(commander)::ParamType const &)
-                     {
+                     [&dt, &target_rot](typename decltype(commander)::ParamType const &) {
 
                      });
 
     // move to SE direction
     commander.handle('c',
-                     [&dt, &target_rot](typename decltype(commander)::ParamType const &)
-                     {
+                     [&dt, &target_rot](typename decltype(commander)::ParamType const &) {
 
                      });
-                  
+
     // brake
     commander.handle('b',
-                     [&dt, &target_rot](typename decltype(commander)::ParamType const &)
-                     {
+                     [&dt, &target_rot](typename decltype(commander)::ParamType const &) {
 
                      });
-    
+
     // grab 1 seedlings
     commander.handle('k',
-                     [&dt, &target_rot](typename decltype(commander)::ParamType const &)
-                     {
+                     [&dt, &target_rot](typename decltype(commander)::ParamType const &) {
 
                      });
 
     // grab 2 seedlings
     commander.handle('l',
-                     [&dt, &target_rot](typename decltype(commander)::ParamType const &)
-                     {
+                     [&dt, &target_rot](typename decltype(commander)::ParamType const &) {
 
                      });
     // auto g_command_capture{std::tie(target_pos, target_rot, receiver)};
