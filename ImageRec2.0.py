@@ -4,7 +4,6 @@ from serial import Serial as _Ser
 
 
 
-capture = cv2.VideoCapture(1)
 
 def OffSetColors(frame, blue, green, red):
     frame[:,:,0] = frame[:,:,0] + blue
@@ -13,9 +12,10 @@ def OffSetColors(frame, blue, green, red):
 
 
 start = 0
-webcam = cv2.VideoCapture(1) 
+webcam = cv2.VideoCapture(0) 
 serial = _Ser("COM8")
 serial.baudrate = 115200
+serial.timeout = 100
 
 while 1:
     regions = []
@@ -24,8 +24,8 @@ while 1:
     i = 0
    
     for i in range(4):
-        #_, frame = webcam.read() 
-        frame = cv2.imread('Test2.png')
+        _, frame = webcam.read() 
+        #frame = cv2.imread('Test2.png')
         OffSetColors(frame,0,-20,-50)
         height, width, _ = frame.shape
         region_width = width//4
@@ -60,9 +60,10 @@ while 1:
             data = data+str(j)
         j = j+1   
     b = bytes(data, 'utf-8')
+    print(data)
     serial.write(b)    
 
-    print(data)
+    
 
 
     cv2.imshow('frame', frame)
