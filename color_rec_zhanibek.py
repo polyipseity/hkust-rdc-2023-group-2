@@ -1,6 +1,7 @@
 # Python code for Multiple Color Detection 
 
 
+
 import numpy as np 
 import cv2 
 
@@ -13,6 +14,9 @@ Team = 1
 # Capturing video through webcam 
 webcam = cv2.VideoCapture(0) 
 
+
+
+
 # Start a while loop 
 while(1):
 	Red = []
@@ -22,6 +26,11 @@ while(1):
 	# Reading the video from the 
 	# webcam in image frames 
 	_, imageFrame = webcam.read() 
+
+	height, width, _ = imageFrame.shape
+	imageFrame = imageFrame[height//2:,:,:] 
+
+
 
 	# Convert the imageFrame in 
 	# BGR(RGB color space) to 
