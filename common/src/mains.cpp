@@ -284,6 +284,7 @@ namespace main
 {
   namespace
   {
+    constexpr auto const auto_robot_line_sensor_reversed{false};
     constexpr auto const auto_robot_initial_delay{2.};
     constexpr auto const auto_robot_translation_velocity{.8};
     constexpr auto const auto_robot_translation_backward_velocity{.8};
@@ -322,7 +323,7 @@ namespace main
     };
     AutoRobotADRC move_adrc{0., 0., {motors_r[0].getVelocity(), motors_r[1].getVelocity()}};
     PositionADRC thrower_adrc{0., motors_r[2].getVelocity(), .1 * 8.5 / 30.};
-    GPIO line_sensor_left{CAM_D1_GPIO_Port, CAM_D1_Pin, true}, line_sensor_right{CAM_D3_GPIO_Port, CAM_D3_Pin, true};
+    GPIO line_sensor_left{CAM_D1_GPIO_Port, CAM_D1_Pin, auto_robot_line_sensor_reversed}, line_sensor_right{CAM_D3_GPIO_Port, CAM_D3_Pin, auto_robot_line_sensor_reversed};
 
     auto dt{0.};
     auto active{true};
