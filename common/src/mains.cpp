@@ -594,8 +594,8 @@ namespace main
 
   namespace
   {
-    constexpr auto const task_robot_translation_velocity{1.8};
-    constexpr auto const task_robot_rotation_velocity{math::tau};
+    constexpr auto const task_robot_translation_velocity{1.3};
+    constexpr auto const task_robot_rotation_velocity{math::tau / 3};
   }
 
   auto task_robot [[noreturn]] () -> void
