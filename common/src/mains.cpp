@@ -37,15 +37,15 @@ namespace test
     {
       CANMotorsControl<1> motors_ctrl{motors};
       auto &motor{motors_ctrl[0]};
-      CANMotor_set_input(&motor, input);
+      motor.setInput(input);
     }
     auto velocity{0.};
     while (velocity == 0.)
     {
       CANMotorsControl<1> motors_ctrl{motors};
       auto &motor{motors_ctrl[0]};
-      CANMotor_set_input(&motor, 0);
-      velocity = CANMotor_get_velocity(&motor);
+      motor.setInput(0);
+      velocity = motor.getVelocity();
     }
     while (true)
     {
@@ -77,10 +77,10 @@ namespace test
 
       if (tft_update(tft_update_period))
       {
-        tft_prints(0, 0, "in: %.6f", CANMotor_get_input(&motor));
-        tft_prints(0, 1, "v: %.6f", CANMotor_get_velocity(&motor));
+        tft_prints(0, 0, "in: %.6f", motor.getInput());
+        tft_prints(0, 1, "v: %.6f", motor.getVelocity());
         tft_prints(0, 2, "v_t: %.6f", velocity);
-        tft_prints(0, 3, "v_d: %.6f", velocity - CANMotor_get_velocity(&motor));
+        tft_prints(0, 3, "v_d: %.6f", velocity - motor.getVelocity());
       }
     }
   }
@@ -110,12 +110,12 @@ namespace test
         target_position += motor_test_velocity * dt;
       }
 
-      update_motor_velocity(motor, motor_adrcs[0], pos_adrc.update(target_position, CANMotor_get_velocity(&motor), dt), dt);
+      update_motor_velocity(motor, motor_adrcs[0], pos_adrc.update(target_position, motor.getVelocity(), dt), dt);
       if (tft_update(tft_update_period))
       {
         tft_prints(0, 0, "tick: %u", (unsigned int){HAL_GetTick()});
-        tft_prints(0, 1, "input: %.3f", CANMotor_get_input(&motor));
-        tft_prints(0, 2, "vel: %.3f", CANMotor_get_velocity(&motor));
+        tft_prints(0, 1, "input: %.3f", motor.getInput());
+        tft_prints(0, 2, "vel: %.3f", motor.getVelocity());
         tft_prints(0, 3, "pos: %.3f", pos_adrc.m_position);
         tft_prints(0, 4, "t pos: %.3f", target_position);
         tft_prints(0, 5, "diff: %.3f", pos_adrc.m_position - target_position);
@@ -151,7 +151,7 @@ namespace test
         new_motor_ADRC_auto(motors_r[0]),
         new_motor_ADRC_auto(motors_r[1]),
     };
-    AutoRobotADRC move_adrc{0., 0., {CANMotor_get_velocity(&motors_r[0]), CANMotor_get_velocity(&motors_r[1])}};
+    AutoRobotADRC move_adrc{0., 0., {motors_r[0].getVelocity(), motors_r[1].getVelocity()}};
 
     auto dt{0.};
     auto active{true};
@@ -230,7 +230,7 @@ namespace test
       }
 
       CANMotorsControl<2> motors{motors_r};
-      auto const [v_l, v_r]{move_adrc.update(target_pos, target_rot, {CANMotor_get_velocity(&motors[0]), CANMotor_get_velocity(&motors[1])}, dt)};
+      auto const [v_l, v_r]{move_adrc.update(target_pos, target_rot, {motors[0].getVelocity(), motors[1].getVelocity()}, dt)};
       update_motor_velocity(motors[0], motor_adrcs[0], active * v_l, dt);
       update_motor_velocity(motors[1], motor_adrcs[1], active * v_r, dt);
 
@@ -240,7 +240,7 @@ namespace test
         tft_prints(0, 1, "pos_t: %.2f", target_pos);
         tft_prints(0, 2, "rot: %.2f", math::rotation_matrix2_angle(move_adrc.m_rotation));
         tft_prints(0, 3, "rot_t: %.2f", target_rot);
-        tft_prints(0, 4, "v: %.2f, %.2f", CANMotor_get_velocity(&motors[0]), CANMotor_get_velocity(&motors[1]));
+        tft_prints(0, 4, "v: %.2f, %.2f", motors[0].getVelocity(), motors[1].getVelocity());
         tft_prints(0, 5, "v_t: %.2f, %.2f", v_l, v_r);
       }
     }
@@ -273,7 +273,7 @@ namespace test
       {
         for (std::size_t ii{}; ii < MAX_NUM_OF_MOTORS; ++ii)
         {
-          tft_prints(CHAR_MAX_X_VERTICAL / 2 * (ii % 2), ii / 2, "%.3f", CANMotor_get_velocity(&motors[ii]));
+          tft_prints(CHAR_MAX_X_VERTICAL / 2 * (ii % 2), ii / 2, "%.3f", motors[ii].getVelocity());
         }
       }
     }
@@ -320,8 +320,8 @@ namespace main
         new_motor_ADRC_auto(motors_r[1]),
         new_motor_ADRC_auto(motors_r[2], .5, 8.5),
     };
-    AutoRobotADRC move_adrc{0., 0., {CANMotor_get_velocity(&motors_r[0]), CANMotor_get_velocity(&motors_r[1])}};
-    PositionADRC thrower_adrc{0., CANMotor_get_velocity(&motors_r[2]), .1 * 8.5 / 30.};
+    AutoRobotADRC move_adrc{0., 0., {motors_r[0].getVelocity(), motors_r[1].getVelocity()}};
+    PositionADRC thrower_adrc{0., motors_r[2].getVelocity(), .1 * 8.5 / 30.};
     GPIO line_sensor_left{CAM_D1_GPIO_Port, CAM_D1_Pin, true}, line_sensor_right{CAM_D3_GPIO_Port, CAM_D3_Pin, true};
 
     auto dt{0.};
@@ -375,10 +375,10 @@ namespace main
                           target_rot = math::rotation_matrix2_angle(move_adrc.m_rotation);
                         }
                         CANMotorsControl<3> motors{motors_r};
-                        auto const [v_l, v_r]{move_adrc.update(target_pos, target_rot, {CANMotor_get_velocity(&motors[0]), CANMotor_get_velocity(&motors[1])}, dt)};
+                        auto const [v_l, v_r]{move_adrc.update(target_pos, target_rot, {motors[0].getVelocity(), motors[1].getVelocity()}, dt)};
                         update_motor_velocity(motors[0], motor_adrcs[0], active * v_l, dt);
                         update_motor_velocity(motors[1], motor_adrcs[1], active * v_r, dt);
-                        auto const thrower_v{thrower_adrc.update(thrower_rot, CANMotor_get_velocity(&motors[2]), dt)};
+                        auto const thrower_v{thrower_adrc.update(thrower_rot, motors[2].getVelocity(), dt)};
                         update_motor_velocity(motors[2], motor_adrcs[2], active * std::copysign(std::min(auto_robot_thrower_max_velocity / thrower_adrc.m_gain, std::abs(thrower_v)), thrower_v), dt);
 
                         if (tft_update(tft_update_period))
@@ -387,7 +387,7 @@ namespace main
                           tft_prints(0, 1, "pos_t: %.2f", target_pos);
                           tft_prints(0, 2, "rot: %.2f", math::rotation_matrix2_angle(move_adrc.m_rotation));
                           tft_prints(0, 3, "rot_t: %.2f", target_rot);
-                          tft_prints(0, 4, "v: %.2f, %.2f", CANMotor_get_velocity(&motors[0]), CANMotor_get_velocity(&motors[1]));
+                          tft_prints(0, 4, "v: %.2f, %.2f", motors[0].getVelocity(), motors[1].getVelocity());
                           tft_prints(0, 5, "v_t: %.2f, %.2f", v_l, v_r);
                           tft_prints(0, 6, "sensor: %d, %d", line_sensor_left.read(), line_sensor_right.read());
                           tft_prints(0, 7, "%s", state);
@@ -607,7 +607,7 @@ namespace main
         new_motor_ADRC_task(motors_r[2]),
         new_motor_ADRC_task(motors_r[3]),
     };
-    TaskRobotADRC move_adrc{{0., 0.}, 0., {CANMotor_get_velocity(&motors_r[0]), CANMotor_get_velocity(&motors_r[1]), CANMotor_get_velocity(&motors_r[2]), CANMotor_get_velocity(&motors_r[3])}};
+    TaskRobotADRC move_adrc{{0., 0.}, 0., {motors_r[0].getVelocity(), motors_r[1].getVelocity(), motors_r[2].getVelocity(), motors_r[3].getVelocity()}};
 
     auto dt{0.};
     auto active{true};
@@ -779,7 +779,7 @@ namespace main
       }
 
       CANMotorsControl<4> motors{motors_r};
-      auto const [v_fl, v_fr, v_rl, v_rr]{(active * move_adrc.update(target_pos, target_rot, {CANMotor_get_velocity(&motors[0]), CANMotor_get_velocity(&motors[1]), CANMotor_get_velocity(&motors[2]), CANMotor_get_velocity(&motors[3])}, dt)).transpose()[0]};
+      auto const [v_fl, v_fr, v_rl, v_rr]{(active * move_adrc.update(target_pos, target_rot, {motors[0].getVelocity(), motors[1].getVelocity(), motors[2].getVelocity(), motors[3].getVelocity()}, dt)).transpose()[0]};
       update_motor_velocity(motors[0], motor_adrcs[0], v_fl, dt);
       update_motor_velocity(motors[1], motor_adrcs[1], v_fr, dt);
       update_motor_velocity(motors[2], motor_adrcs[2], v_rl, dt);
@@ -791,8 +791,8 @@ namespace main
         tft_prints(0, 1, "pos_t: %.2f, %.2f", target_pos(0), target_pos(1));
         tft_prints(0, 2, "rot: %.2f", math::rotation_matrix2_angle(move_adrc.m_rotation));
         tft_prints(0, 3, "rot_t: %.2f", target_rot);
-        tft_prints(0, 4, "v: %.2f, %.2f", CANMotor_get_velocity(&motors[0]), CANMotor_get_velocity(&motors[1]));
-        tft_prints(0, 5, "   %.2f, %.2f", CANMotor_get_velocity(&motors[2]), CANMotor_get_velocity(&motors[3]));
+        tft_prints(0, 4, "v: %.2f, %.2f", motors[0].getVelocity(), motors[1].getVelocity());
+        tft_prints(0, 5, "   %.2f, %.2f", motors[2].getVelocity(), motors[3].getVelocity());
         tft_prints(0, 6, "v_t: %.2f, %.2f", v_fl, v_fr);
         tft_prints(0, 7, "     %.2f, %.2f", v_rl, v_rr);
       }
