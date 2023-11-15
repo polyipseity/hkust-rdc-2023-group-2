@@ -273,7 +273,7 @@ namespace test
       {
         for (std::size_t ii{}; ii < MAX_NUM_OF_MOTORS; ++ii)
         {
-          tft_prints(CHAR_MAX_X / 2 * (ii % 2), ii / 2, "%.3f", CANMotor_get_velocity(&motors[ii]));
+          tft_prints(CHAR_MAX_X_VERTICAL / 2 * (ii % 2), ii / 2, "%.3f", CANMotor_get_velocity(&motors[ii]));
         }
       }
     }
