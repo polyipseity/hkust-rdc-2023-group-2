@@ -56,9 +56,9 @@ namespace test
   auto test_auto_robot_movement [[noreturn]] () noexcept -> void;
 
   /**
-   * @brief Read motor velocities of the auto robot
+   * @brief Read motor velocities
    */
-  auto read_auto_robot_motor_velocities [[noreturn]] () noexcept -> void;
+  auto read_motor_velocities [[noreturn]] () noexcept -> void;
 }
 
 namespace main

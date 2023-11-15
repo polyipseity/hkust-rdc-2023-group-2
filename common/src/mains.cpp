@@ -246,23 +246,35 @@ namespace test
     }
   }
 
-  auto read_auto_robot_motor_velocities [[noreturn]] () noexcept -> void
+  auto read_motor_velocities [[noreturn]] () noexcept -> void
   {
-    CANMotors<3> motors_r{{CAN1_MOTOR1, CAN1_MOTOR0, CAN2_MOTOR2},
-                          {false, true}};
-    // can_init();
+    CANMotors<MAX_NUM_OF_MOTORS> motors_r{{
+        CAN1_MOTOR0,
+        CAN1_MOTOR1,
+        CAN1_MOTOR2,
+        CAN1_MOTOR3,
+        CAN1_MOTOR4,
+        CAN1_MOTOR5,
+        CAN1_MOTOR6,
+        CAN1_MOTOR7,
+        CAN2_MOTOR0,
+        CAN2_MOTOR1,
+        CAN2_MOTOR2,
+        CAN2_MOTOR3,
+        CAN2_MOTOR4,
+        CAN2_MOTOR5,
+        CAN2_MOTOR6,
+        CAN2_MOTOR7,
+    }};
     while (true)
     {
-      CANMotorsControl<3> motors{motors_r};
-      // can_ctrl_loop();
+      CANMotorsControl<MAX_NUM_OF_MOTORS> motors{motors_r};
       if (tft_update(tft_update_period))
       {
-        tft_prints(0, 0, "left: %.3f", CANMotor_get_velocity(&motors[0]));
-        tft_prints(0, 1, "right: %.3f", CANMotor_get_velocity(&motors[1]));
-        tft_prints(0, 2, "spin: %.3f", CANMotor_get_velocity(&motors[2]));
-        // tft_prints(0, 3, "left_n: %d", get_motor_feedback(CAN1_MOTOR1).vel_rpm);
-        // tft_prints(0, 4, "right_n: %d", get_motor_feedback(CAN1_MOTOR0).vel_rpm);
-        // tft_prints(0, 5, "spin_n: %d", get_motor_feedback(CAN2_MOTOR2).vel_rpm);
+        for (std::size_t ii{}; ii < MAX_NUM_OF_MOTORS; ++ii)
+        {
+          tft_prints(CHAR_MAX_X / 2 * (ii % 2), ii / 2, "%.3f", CANMotor_get_velocity(&motors[ii]));
+        }
       }
     }
   }
@@ -310,7 +322,7 @@ namespace main
     };
     AutoRobotADRC move_adrc{0., 0., {CANMotor_get_velocity(&motors_r[0]), CANMotor_get_velocity(&motors_r[1])}};
     PositionADRC thrower_adrc{0., CANMotor_get_velocity(&motors_r[2]), .1 * 8.5 / 30.};
-    GPIO line_sensor_left{CAM_D1_GPIO_Port, CAM_D1_Pin}, line_sensor_right{CAM_D3_GPIO_Port, CAM_D3_Pin};
+    GPIO line_sensor_left{CAM_D1_GPIO_Port, CAM_D1_Pin, true}, line_sensor_right{CAM_D3_GPIO_Port, CAM_D3_Pin, true};
 
     auto dt{0.};
     auto active{true};
