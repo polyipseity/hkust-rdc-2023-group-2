@@ -116,7 +116,7 @@ auto AutoRobotADRC::update(decltype(m_position) target, double target_rot, declt
         target_rot += math::tau;
     }
 
-    auto const forward_unit{m_rotation * math::Vector<double, 2>{0., 1.}};
+    auto const forward_unit{m_rotation * math::Vector<double, 2>{1., 0.}};
     auto ang_diff{target_rot - std::atan2(forward_unit(1), forward_unit(0))};
     if (ang_diff > math::pi)
     {
@@ -153,18 +153,18 @@ auto AutoRobotTestADRC::update(decltype(m_position) const &target, std::optional
     auto [lin_v, ang_v, rad]{calc_auto_robot_velocities(left_v, right_v)};
     if (std::isnan(rad))
     {
-        m_position += m_rotation * decltype(m_position){0., lin_v * dt};
+        m_position += m_rotation * decltype(m_position){lin_v * dt, 0.};
     }
     else
     {
         auto const rot_mat{math::rotation_matrix2(ang_v * dt)};
-        m_position += (rot_mat - math::identity<double, 2>)*m_rotation * decltype(m_position){rad, 0.};
+        m_position += (rot_mat - math::identity<double, 2>)*m_rotation * decltype(m_position){0., -rad};
         m_rotation = math::orthogonalize_rotation_matrix2(rot_mat * m_rotation);
     }
 
     m_velocities = velocities;
 
-    auto const forward_unit{m_rotation * decltype(m_position){0., 1.}};
+    auto const forward_unit{m_rotation * decltype(m_position){1., 0.}};
     auto const pos_diff{target - m_position};
     auto const cur_ang{std::atan2(forward_unit(1), forward_unit(0))};
     auto ang_diff{std::atan2(pos_diff(1), pos_diff(0)) - cur_ang};
@@ -215,7 +215,7 @@ auto TaskRobotADRC::update(decltype(m_position) const &target, double target_rot
     auto const [v_fl, v_fr, v_rl, v_rr]{(m_gain * velocities).transpose()[0]};
     auto const [v_lin_x, v_lin_y, v_ang]{calc_task_robot_velocities(v_fl, v_fr, v_rl, v_rr).transpose()[0]};
     auto const rot_mat{math::rotation_matrix2(v_ang * dt)};
-    m_position += m_rotation * decltype(m_position){v_lin_x, v_lin_y} * dt;
+    m_position += m_rotation * decltype(m_position){v_lin_y, -v_lin_x} * dt;
     m_rotation = math::orthogonalize_rotation_matrix2(rot_mat * m_rotation);
 
     m_velocities = velocities;
@@ -225,7 +225,7 @@ auto TaskRobotADRC::update(decltype(m_position) const &target, double target_rot
     {
         target_rot += math::tau;
     }
-    auto const forward_unit{m_rotation * decltype(m_position){0., 1.}};
+    auto const forward_unit{m_rotation * decltype(m_position){1., 0.}};
     auto const pos_diff{target - m_position};
     auto const pos_diff_unit{math::unit_vector(pos_diff)};
     auto ang_diff{target_rot - std::atan2(forward_unit(1), forward_unit(0))};
@@ -238,7 +238,7 @@ auto TaskRobotADRC::update(decltype(m_position) const &target, double target_rot
         ang_diff += math::tau;
     }
 
-    auto const new_v_lin{m_rotation.transpose() * pos_diff_unit * m_position_control.update(0., math::dot_product(pos_diff_unit, m_rotation * math::Vector<double, 2>{v_lin_x, v_lin_y}), -math::magnitude(pos_diff), dt)};
+    auto const new_v_lin{m_rotation.transpose() * pos_diff_unit * m_position_control.update(0., math::dot_product(pos_diff_unit, m_rotation * math::Vector<double, 2>{v_lin_y, -v_lin_x}), -math::magnitude(pos_diff), dt)};
     auto const new_v_ang{m_rotation_control.update(0., v_ang, -ang_diff, dt)};
 
     return calc_task_robot_motor_velocities(new_v_lin(0), new_v_lin(1), new_v_ang) / m_gain;
