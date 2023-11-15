@@ -581,8 +581,8 @@ namespace main
 
   namespace
   {
-    constexpr auto const task_robot_translation_velocity{1.8};
-    constexpr auto const task_robot_rotation_velocity{math::tau};
+    constexpr auto const task_robot_translation_velocity{1.3};
+    constexpr auto const task_robot_rotation_velocity{math::tau / 3};
   }
 
   auto task_robot [[noreturn]] () -> void
@@ -617,25 +617,25 @@ namespace main
                      [&wasd_command_capture](typename decltype(commander)::ParamType const &)
                      {
                        auto &[dt, target_pos, target_rot]{wasd_command_capture};
-                       target_pos += math::rotation_matrix2(target_rot) * std::remove_reference_t<decltype(target_pos)>{0., task_robot_translation_velocity * dt};
+                       target_pos += math::rotation_matrix2(target_rot) * std::remove_reference_t<decltype(target_pos)>{task_robot_translation_velocity * dt, 0.};
                      });
     commander.handle('a',
                      [&wasd_command_capture](typename decltype(commander)::ParamType const &)
                      {
                        auto &[dt, target_pos, target_rot]{wasd_command_capture};
-                       target_pos += math::rotation_matrix2(target_rot) * std::remove_reference_t<decltype(target_pos)>{-task_robot_translation_velocity * dt, 0.};
+                       target_pos += math::rotation_matrix2(target_rot) * std::remove_reference_t<decltype(target_pos)>{0., task_robot_translation_velocity * dt};
                      });
     commander.handle('s',
                      [&wasd_command_capture](typename decltype(commander)::ParamType const &)
                      {
                        auto &[dt, target_pos, target_rot]{wasd_command_capture};
-                       target_pos += math::rotation_matrix2(target_rot) * std::remove_reference_t<decltype(target_pos)>{0., -task_robot_translation_velocity * dt};
+                       target_pos += math::rotation_matrix2(target_rot) * std::remove_reference_t<decltype(target_pos)>{-task_robot_translation_velocity * dt, 0.};
                      });
     commander.handle('d',
                      [&wasd_command_capture](typename decltype(commander)::ParamType const &)
                      {
                        auto &[dt, target_pos, target_rot]{wasd_command_capture};
-                       target_pos += math::rotation_matrix2(target_rot) * std::remove_reference_t<decltype(target_pos)>{task_robot_translation_velocity * dt, 0.};
+                       target_pos += math::rotation_matrix2(target_rot) * std::remove_reference_t<decltype(target_pos)>{0., -task_robot_translation_velocity * dt};
                      });
 
     // rotate anticlockwise
@@ -659,7 +659,7 @@ namespace main
                      [&qezc_command_capture](typename decltype(commander)::ParamType const &)
                      {
                        auto &[dt, target_pos, target_rot]{qezc_command_capture};
-                       target_pos += math::rotation_matrix2(target_rot) * std::remove_reference_t<decltype(target_pos)>{-task_robot_translation_velocity * dt, task_robot_translation_velocity * dt};
+                       target_pos += math::rotation_matrix2(target_rot) * std::remove_reference_t<decltype(target_pos)>{task_robot_translation_velocity * dt, task_robot_translation_velocity * dt};
                      });
 
     // move to NE direction
@@ -667,7 +667,7 @@ namespace main
                      [&qezc_command_capture](typename decltype(commander)::ParamType const &)
                      {
                        auto &[dt, target_pos, target_rot]{qezc_command_capture};
-                       target_pos += math::rotation_matrix2(target_rot) * std::remove_reference_t<decltype(target_pos)>{task_robot_translation_velocity * dt, task_robot_translation_velocity * dt};
+                       target_pos += math::rotation_matrix2(target_rot) * std::remove_reference_t<decltype(target_pos)>{task_robot_translation_velocity * dt, -task_robot_translation_velocity * dt};
                      });
 
     // move to SW direction
@@ -675,7 +675,7 @@ namespace main
                      [&qezc_command_capture](typename decltype(commander)::ParamType const &)
                      {
                        auto &[dt, target_pos, target_rot]{qezc_command_capture};
-                       target_pos += math::rotation_matrix2(target_rot) * std::remove_reference_t<decltype(target_pos)>{-task_robot_translation_velocity * dt, -task_robot_translation_velocity * dt};
+                       target_pos += math::rotation_matrix2(target_rot) * std::remove_reference_t<decltype(target_pos)>{-task_robot_translation_velocity * dt, task_robot_translation_velocity * dt};
                      });
 
     // move to SE direction
@@ -683,7 +683,7 @@ namespace main
                      [&qezc_command_capture](typename decltype(commander)::ParamType const &)
                      {
                        auto &[dt, target_pos, target_rot]{qezc_command_capture};
-                       target_pos += math::rotation_matrix2(target_rot) * std::remove_reference_t<decltype(target_pos)>{task_robot_translation_velocity * dt, -task_robot_translation_velocity * dt};
+                       target_pos += math::rotation_matrix2(target_rot) * std::remove_reference_t<decltype(target_pos)>{-task_robot_translation_velocity * dt, -task_robot_translation_velocity * dt};
                      });
 
     // brake
