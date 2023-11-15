@@ -38,8 +38,8 @@ namespace math
                   std::size_t rows,
                   std::size_t size,
                   std::size_t cols>
-        constexpr friend auto operator* [[nodiscard]] (Matrix<Scalar, rows, size> const &left,
-                                                       Matrix<Scalar, size, cols> const &right) noexcept;
+        constexpr friend auto operator*(Matrix<Scalar, rows, size> const &left,
+                                        Matrix<Scalar, size, cols> const &right) noexcept;
 
         /**
          * @brief Matrix data
