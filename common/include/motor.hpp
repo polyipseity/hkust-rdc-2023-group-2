@@ -38,35 +38,35 @@ public:
      *
      * @param input desired current
      */
-    auto setInput(double input) noexcept -> void;
+    auto set_input(double input) noexcept -> void;
 
     /**
      * @brief Get the actual current to the motor
      *
      * @return actual current
      */
-    auto getInput [[nodiscard]] () const noexcept -> double;
+    auto get_input [[nodiscard]] () const noexcept -> double;
 
     /**
      * @brief Get the bearing position of the motor
      *
      * @return bearing position in the range [0, 1]
      */
-    auto getPosition [[nodiscard]] () const noexcept -> double;
+    auto get_position [[nodiscard]] () const noexcept -> double;
 
     /**
      * @brief Get the rotation velocity of the motor bearing
      *
      * @return rotation velocity in revolutions per second
      */
-    auto getVelocity [[nodiscard]] () const noexcept -> double;
+    auto get_velocity [[nodiscard]] () const noexcept -> double;
 
     /**
      * @brief Get the temperature of the motor
      *
      * @return temperature
      */
-    auto getTemperature [[nodiscard]] () const noexcept -> decltype(MotorStats::temperature);
+    auto get_temperature [[nodiscard]] () const noexcept -> decltype(MotorStats::temperature);
 
     constexpr CANMotor(CANMotor const &) noexcept = delete;
 
@@ -285,6 +285,6 @@ constexpr auto update_motor_velocity(CANMotor &motor, Controller &controller, do
     velocity = std::abs(velocity) >= motor_velocity_threshold
                    ? std::copysign(std::max(minimum_motor_velocity, std::abs(velocity)), velocity)
                    : 0.;
-    auto const input{controller.update(velocity, motor.getInput(), motor.getVelocity(), dt)};
-    motor.setInput(input);
+    auto const input{controller.update(velocity, motor.get_input(), motor.get_velocity(), dt)};
+    motor.set_input(input);
 }
