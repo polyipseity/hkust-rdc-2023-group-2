@@ -11,7 +11,6 @@ static double const input_noise_threshold = .25;
 CANMotor CANMotor_new(Motor handle, bool reversed)
 {
   CANMotor ret = {.m_handle = handle, .m_factor = reversed ? -1 : 1};
-  can_init();
   return ret;
 }
 

@@ -108,6 +108,7 @@ int main(void)
     led_off(LED4);
     tft_init(PIN_ON_TOP, BLACK, WHITE, YELLOW, DARK_GREEN);
     HAL_GPIO_WritePin(GPIOC, GPIO_PIN_3, GPIO_PIN_SET);
+    can_init();
 
     /* USER CODE END 2 */
 
