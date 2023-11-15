@@ -125,19 +125,16 @@ namespace test
 
   auto test_uart [[noreturn]] (UART_HandleTypeDef &uart_handle) noexcept -> void
   {
-    Receiver<1> receiver{uart_handle};
+    Receiver<CHAR_MAX_X_VERTICAL * CHAR_MAX_Y_VERTICAL, false> receiver{uart_handle};
     while (true)
     {
       auto const update_tft{tft_update(tft_update_period)};
-
-      auto const received{receiver.update()};
-      if (received)
+      auto const [receive_size, received]{receiver.update()};
+      if (update_tft)
       {
-        auto const &received2{*received};
-        HAL_UART_Transmit(&uart_handle, std::data(received2), std::size(received2), HAL_MAX_DELAY);
-        if (update_tft)
+        for (std::size_t ii{}; ii < receive_size; ++ii)
         {
-          tft_prints(0, 0, "received: %u", received2[0]);
+          tft_prints(ii % CHAR_MAX_X_VERTICAL, ii / CHAR_MAX_X_VERTICAL, "%c", received[ii]);
         }
       }
     }
