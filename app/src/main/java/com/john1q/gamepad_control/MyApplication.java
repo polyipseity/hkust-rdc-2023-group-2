@@ -1,4 +1,4 @@
-package com.sarmale.arduinobtexampleledcontrol;
+package com.john1q.gamepad_control;
 
 import android.app.Application;
 

@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools"
-    package="com.sarmale.arduinobtexampleledcontrol">
+    package="com.john1q.gamepad_control">
 
     <uses-permission android:name="android.permission.BLUETOOTH_CONNECT" />
     <!-- Request legacy Bluetooth permissions on older devices. -->
@@ -18,14 +18,14 @@
         android:roundIcon="@mipmap/ic_launcher_round"
         android:supportsRtl="true"
         android:theme="@style/Theme.ArduinoBTExampleLEDControl"
-        android:name=".MyApplication"
+        android:name="com.john1q.gamepad_control.MyApplication"
         tools:targetApi="31">
         <activity
-            android:name=".ConfigureLed"
+            android:name="com.john1q.gamepad_control.ConfigureLed"
             android:exported="false" />
 
         <activity
-            android:name=".MainActivity"
+            android:name="com.john1q.gamepad_control.MainActivity"
             android:exported="true">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />

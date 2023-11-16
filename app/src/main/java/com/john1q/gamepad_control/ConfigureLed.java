@@ -1,31 +1,17 @@
-package com.sarmale.arduinobtexampleledcontrol;
+package com.john1q.gamepad_control;
 
 import androidx.appcompat.app.AppCompatActivity;
 
-import android.graphics.Color;
 import android.os.Bundle;
-import android.util.Log;
 import android.view.InputDevice;
 import android.view.KeyEvent;
 import android.view.MotionEvent;
-import android.widget.ImageView;
 import android.widget.SeekBar;
 import android.widget.TextView;
-import java.lang.Thread;
-import androidx.appcompat.app.AppCompatActivity;
-import android.os.Bundle;
 import android.os.Handler;
-import android.widget.Toast;
 
-import androidx.appcompat.app.AppCompatActivity;
-import android.os.Bundle;
-
-import android.app.Activity;
-import android.os.Bundle;
-import android.view.InputDevice;
-import android.view.KeyEvent;
-import android.view.MotionEvent;
-import android.widget.TextView;
+//import com.sarmale.arduinobtexampleledcontrol.R;
+import com.john1q.gamepad_control.R;
 
 public class ConfigureLed extends AppCompatActivity {
 

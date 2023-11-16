@@ -1,4 +1,4 @@
-package com.sarmale.arduinobtexampleledcontrol;
+package com.john1q.gamepad_control;
 
 import androidx.annotation.RequiresApi;
 import androidx.appcompat.app.AppCompatActivity;
@@ -20,6 +20,10 @@ import android.view.View;
 import android.widget.Button;
 import android.widget.TextView;
 import android.widget.Toast;
+
+//import com.sarmale.arduinobtexampleledcontrol.R;
+//import com.john1q.gamepad_control.R;
+
 import io.reactivex.Observable;
 import io.reactivex.android.schedulers.AndroidSchedulers;
 import io.reactivex.schedulers.Schedulers;
@@ -153,8 +157,8 @@ public class MainActivity extends AppCompatActivity {
 
 
                                                         // CHANGE HERE BLUETOOTH NAME
-                            if (deviceName.equals("HC-05 (RDC 2023 Group 2) 1")) {
-                            //if (deviceName.equals("Zhanibek’s MacBook Air")) {
+                            //if (deviceName.equals("HC-05 (RDC 2023 Group 2) 1")) {
+                            if (deviceName.equals("Zhanibek’s MacBook Air")) {
                                                         // HERE
                                                         // HERE
                                                         // HERE
