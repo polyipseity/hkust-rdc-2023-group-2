@@ -115,7 +115,7 @@ namespace
                      [&grab1, &receiver](typename decltype(commander)::ParamType const &)
                      {
                         receiver.invalidate();
-                       grab1.toggle();
+                        grab1.toggle();
                      });
 
     // grab 2 seedlings
@@ -123,7 +123,7 @@ namespace
                      [&grab2, &receiver](typename decltype(commander)::ParamType const &)
                      {
                         receiver.invalidate();
-                       grab2.toggle();
+                        grab2.toggle();
                      });
 
     // Controling the stand of holding grabs
@@ -131,7 +131,7 @@ namespace
                      [&stand, &receiver](typename decltype(commander)::ParamType const &)
                      {
                         receiver.invalidate();
-                       stand.toggle();
+                        stand.toggle();
                      });
 
         Time time{};
