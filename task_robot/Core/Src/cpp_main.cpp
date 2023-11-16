@@ -1,6 +1,8 @@
 #include "cpp_main.h"
 
+#include <algorithm>
 #include <array>
+#include <cstdio>
 #include <cstdlib>
 #include <tuple>
 
@@ -47,6 +49,8 @@ namespace
 
         Commander<8> commander{};
         Receiver<27, false> receiver{huart1, .025};
+        Receiver<38, false> tof_receiver2{huart2, .05};
+        Receiver<38, false> tof_receiver3{huart3, .05};
 
         std::array<bool, 4> ctrl_btns{};
         auto controller_capture{std::tie(active, automode, ctrl_btns, dt, move_adrc, target_pos, target_rot)};
@@ -133,6 +137,28 @@ namespace
 
             auto const [received_size, received]{receiver.update()};
             commander.dispatch(received, received_size);
+            auto const [tof2_valid, tof2_distance_mm]{[&]() {
+                auto const [received_size, received]{tof_receiver2.update()};
+                std::array<char, 38> received2{};
+                std::copy(std::cbegin(received), std::cend(received), std::begin(received2));
+                int state{-1}, distance{};
+                return std::tuple{std::sscanf(&received2[0], "State;%d , Range %*5c   \r\n"
+                                                             "d: %d mm",
+                                              &state, &distance) == 2 &&
+                                      state == 0,
+                                  distance};
+            }()};
+            auto const [tof3_valid, tof3_distance_mm]{[&]() {
+                auto const [received_size, received]{tof_receiver3.update()};
+                std::array<char, 38> received2{};
+                std::copy(std::cbegin(received), std::cend(received), std::begin(received2));
+                int state{-1}, distance{};
+                return std::tuple{std::sscanf(&received2[0], "State;%d , Range %*5c   \r\n"
+                                                             "d: %d mm",
+                                              &state, &distance) == 2 &&
+                                      state == 0,
+                                  distance};
+            }()};
 
             if (!active) {
                 target_pos = move_adrc.m_position;
@@ -190,6 +216,8 @@ namespace
                 tft_prints(0, 5, "   %.2f, %.2f", motors[2].get_velocity(), motors[3].get_velocity());
                 tft_prints(0, 6, "v_t: %.2f, %.2f", v_fl, v_fr);
                 tft_prints(0, 7, "     %.2f, %.2f", v_rl, v_rr);
+                tft_prints(0, 8, "tof: %d, %d", tof2_valid, tof2_distance_mm);
+                tft_prints(0, 9, "     %d, %d", tof3_valid, tof3_distance_mm);
             }
         }
     }

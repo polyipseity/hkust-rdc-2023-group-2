@@ -10,7 +10,7 @@
 
 namespace
 {
-    constexpr auto const receiver_callback_size{2};
+    constexpr auto const receiver_callback_size{4};
     std::array<std::tuple<UART_HandleTypeDef *, RxEventCallbackF>, receiver_callback_size> receiver_callbacks{};
 
     auto receiver_rx_event_callback(UART_HandleTypeDef *handle, std::uint16_t size) noexcept -> void
