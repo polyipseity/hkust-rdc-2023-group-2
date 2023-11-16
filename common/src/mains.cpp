@@ -284,25 +284,14 @@ namespace main
     constexpr auto const auto_robot_line_sensor_reversed{false};
     constexpr auto const auto_robot_initial_delay{2.};
     constexpr auto const auto_robot_translation_velocity{.3};
-    constexpr auto const auto_robot_translation_backward_velocity{.3};
     constexpr auto const auto_robot_rotation_velocity{math::tau};
 
     constexpr auto const auto_robot_calibrate_angular_velocity{math::tau / 32.};
-    constexpr auto const auto_robot_line_tracker_correction_time{.1};
+    constexpr auto const auto_robot_line_tracker_correction_time{.25};
 
-    constexpr auto const auto_robot_discovery_initial_translation{.15};
-    constexpr auto const auto_robot_discovery_initial_rotation{math::tau / 6.};
-    constexpr auto const auto_robot_discovery_translation_tolerance{.01};
-    constexpr auto const auto_robot_discovery_rotation_tolerance{math::tau / 64.};
-    constexpr auto const auto_robot_discovery_angular_velocity{math::tau / 16.};
-    constexpr auto const auto_robot_discovery_line_sensor_filter_time{2.};
-    constexpr auto const auto_robot_discovery_final_wiggle{math::tau / 16.};
-    constexpr auto const auto_robot_discovery_final_wiggle_steps{4.};
-
+    constexpr auto const auto_robot_navigation_initial_translation{.15};
     constexpr auto const auto_robot_navigation_translation_tolerance{.01};
     constexpr auto const auto_robot_navigation_rotation_tolerance{math::tau / 64.};
-    constexpr auto const auto_robot_navigation_wiggle{math::tau / 16.};
-    constexpr auto const auto_robot_navigation_wiggle_steps{4.};
     constexpr auto const auto_robot_navigation_approach_translation{.2};
 
     constexpr auto const auto_robot_thrower_velocity{1.};
@@ -452,107 +441,27 @@ namespace main
       target_pos += auto_robot_translation_velocity * dt;
       output("moving");
     }
+    while (!box_targets)
+    {
+      input();
+      output("waiting");
+    }
 
-    // Discovery
-    constexpr auto const deg_diff{math::tau / 36. * 2.};
-    std::array<double, 5> lines{0, deg_diff * 1.5, deg_diff * .5, -deg_diff * .5, -deg_diff * 1.5};
-    auto const wiggle{[&](double max_wiggle, int wiggles)
-                      {
-                        auto const wiggle_diff{max_wiggle / wiggles};
-                        return [&, old_target_rot{target_rot}, step{0}, done{false}](bool line_left, bool line_right) mutable
-                        {
-                          if (done)
-                          {
-                            panic("wiggle");
-                            return false;
-                          }
-                          if (line_left || line_right)
-                          {
-                            return false;
-                          }
-                          if (std::fmod(std::abs(target_rot - math::rotation_matrix2_angle(move_adrc.m_rotation)), math::tau) <= auto_robot_discovery_rotation_tolerance)
-                          {
-                            ++step;
-                            if (step > wiggles + 1)
-                            {
-                              done = true;
-                              return false;
-                            }
-                            if (step > wiggles)
-                            {
-                              target_rot = old_target_rot;
-                              return true;
-                            }
-                            target_rot += (step % 2 ? 1 : -1) * wiggle_diff * step;
-                          }
-                          return true;
-                        };
-                      }};
-
-    target_pos += auto_robot_discovery_initial_translation;
+    // Navigation
+    constexpr static auto const deg_diff{math::tau / 18.};
+    constexpr static std::array<double, 5> const lines{0, deg_diff * 1.5, deg_diff * .5, -deg_diff * .5, -deg_diff * 1.5};
+    target_pos += auto_robot_navigation_initial_translation;
     while (true)
     {
       input();
-      if (std::abs(target_pos - move_adrc.m_position) <= auto_robot_discovery_translation_tolerance)
+      if (std::abs(target_pos - move_adrc.m_position) <= auto_robot_navigation_translation_tolerance)
       {
-        target_pos = move_adrc.m_position;
         break;
       }
       output("discovering");
     }
-    /*
-      target_rot += auto_robot_discovery_initial_rotation;
-      while (true)
-      {
-        input();
-        if (std::fmod(std::abs(target_rot - math::rotation_matrix2_angle(move_adrc.m_rotation)), math::tau) <= auto_robot_discovery_rotation_tolerance)
-        {
-          target_rot = math::rotation_matrix2_angle(move_adrc.m_rotation);
-          break;
-        }
-        output("discovering");
-      }
-      auto line_sensor_filter{[&, last_change{-1.}, last_state{false}](bool state) mutable
-                              {
-                                auto const cur_time{time.time()};
-                                if (last_state != state && cur_time - last_change >= auto_robot_discovery_line_sensor_filter_time)
-                                {
-                                  last_state = state;
-                                  last_change = cur_time;
-                                  return true;
-                                }
-                                return false;
-                              }};
-      auto lines_iter{std::begin(lines)};
-      while (lines_iter != std::end(lines))
-      {
-        input();
-        target_rot -= auto_robot_discovery_angular_velocity * dt;
-        if (line_sensor_filter(line_sensor_right.read()))
-        {
-          *lines_iter++ = target_rot;
-        }
-        output("discovering");
-      }
-
-      auto wiggling{wiggle(auto_robot_discovery_final_wiggle, auto_robot_discovery_final_wiggle_steps)};
-      while (wiggling(line_sensor_left.read(), line_sensor_right.read()))
-      {
-        input();
-        output("discovering");
-      }
-      */
-    /*
-   while (!box_targets)
-   {
-     input();
-     output("waiting");
-   }
-   */
-
-    // Navigation
     long cur_line{};
-    for (auto const target : {1, 4})
+    for (auto const target : *box_targets)
     {
       target_rot += lines[target] - lines[cur_line];
       cur_line = target;
@@ -565,14 +474,6 @@ namespace main
         }
         output("navigating");
       }
-      /*
-      auto wiggling2{wiggle(auto_robot_navigation_wiggle, auto_robot_navigation_wiggle_steps)};
-      while (wiggling2(line_sensor_left.read(), line_sensor_right.read()))
-      {
-        input();
-        output("navigating");
-      }
-      */
       target_pos += auto_robot_navigation_approach_translation;
       while (std::abs(target_pos - move_adrc.m_position) > auto_robot_navigation_translation_tolerance)
       {
@@ -593,14 +494,6 @@ namespace main
         // track_line(line_sensor_left.read(), line_sensor_right.read());
         output("navigating");
       }
-      /*
-      auto wiggling3{wiggle(auto_robot_navigation_wiggle, auto_robot_navigation_wiggle_steps)};
-      while (wiggling3(line_sensor_left.read(), line_sensor_right.read()))
-      {
-        input();
-        output("navigating");
-      }
-      */
     }
 
     // Completion
