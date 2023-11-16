@@ -291,7 +291,7 @@ namespace main
 
     constexpr auto const auto_robot_navigation_initial_translation{.15};
     constexpr auto const auto_robot_navigation_translation_tolerance{.01};
-    constexpr auto const auto_robot_navigation_rotation_tolerance{math::tau / 64.};
+    constexpr auto const auto_robot_navigation_rotation_tolerance{math::tau / 128.};
     constexpr auto const auto_robot_navigation_approach_translation{.2};
 
     constexpr auto const auto_robot_thrower_velocity{1.};
