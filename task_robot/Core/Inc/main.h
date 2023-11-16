@@ -122,8 +122,8 @@ void Error_Handler(void);
 #define LED2_GPIO_Port      GPIOB
 #define LED1_Pin            GPIO_PIN_7
 #define LED1_GPIO_Port      GPIOB
-#define VALVE1_Pin          GPIO_PIN_8
-#define VALVE1_GPIO_Port    GPIOB
+#define VALVE1_Pin          GPIO_PIN_15
+#define VALVE1_GPIO_Port    GPIOC
 #define VALVE2_Pin          GPIO_PIN_9
 #define VALVE2_GPIO_Port    GPIOB
 

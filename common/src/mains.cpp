@@ -575,7 +575,7 @@ namespace main
         new_motor_ADRC_task(motors_r[2]),
         new_motor_ADRC_task(motors_r[3]),
     };
-    TaskRobotADRC move_adrc{{0., 0.}, math::tau / 4., {motors_r[0].get_velocity(), motors_r[1].get_velocity(), motors_r[2].get_velocity(), motors_r[3].get_velocity()}};
+    TaskRobotADRC mo~ve_adrc{{0., 0.}, math::tau / 4., {motors_r[0].get_velocity(), motors_r[1].get_velocity(), motors_r[2].get_velocity(), motors_r[3].get_velocity()}};
     GPIO stand{VALVE1_GPIO_Port, VALVE1_Pin, task_robot_valve_reversed}, grab1{VALVE2_GPIO_Port, VALVE2_Pin, task_robot_valve_reversed}, grab2{VALVE3_GPIO_Port, VALVE3_Pin, task_robot_valve_reversed};
 
     auto dt{0.};
@@ -739,20 +739,7 @@ namespace main
         // change the value of target_pos to move in N direction
       }
 
-      if (stand_mode)
-        stand.write(true);
-      else 
-        stand.write(false);
 
-      if (grab1_mode)
-        grab1.write(true);
-      else
-        grab1.write(false);
-
-      if (grab2_mode)
-        grab2.write(true);
-      else
-        grab2.write(false);
 
       CANMotorsControl<4> motors{motors_r};
       auto const [v_fl, v_fr, v_rl, v_rr]{(active * move_adrc.update(target_pos, target_rot, {motors[0].get_velocity(), motors[1].get_velocity(), motors[2].get_velocity(), motors[3].get_velocity()}, dt)).transpose()[0]};
