@@ -227,7 +227,7 @@ namespace test
       }
 
       CANMotorsControl<2> motors{motors_r};
-      auto const [v_l, v_r]{move_adrc.update(target_pos, target_rot, {motors[0].get_velocity(), motors[1].get_velocity()}, dt)};
+      auto const [v_l, v_r]{move_adrc.update(target_pos, target_rot, {motors[0].get_velocity(), motors[1].get_velocity()}, dt, {test_auto_robot_translation_velocity, test_auto_robot_rotation_velocity})};
       update_motor_velocity(motors[0], motor_adrcs[0], active * v_l, dt);
       update_motor_velocity(motors[1], motor_adrcs[1], active * v_r, dt);
 
@@ -283,8 +283,8 @@ namespace main
   {
     constexpr auto const auto_robot_line_sensor_reversed{false};
     constexpr auto const auto_robot_initial_delay{2.};
-    constexpr auto const auto_robot_translation_velocity{.3};
-    constexpr auto const auto_robot_rotation_velocity{math::tau};
+    constexpr auto const auto_robot_translation_velocity{.2};
+    constexpr auto const auto_robot_rotation_velocity{math::tau / 16.};
 
     constexpr auto const auto_robot_calibrate_angular_velocity{math::tau / 32.};
     constexpr auto const auto_robot_line_tracker_correction_time{.25};
@@ -362,7 +362,7 @@ namespace main
                           target_rot = math::rotation_matrix2_angle(move_adrc.m_rotation);
                         }
                         CANMotorsControl<3> motors{motors_r};
-                        auto const [v_l, v_r]{move_adrc.update(target_pos, target_rot, {motors[0].get_velocity(), motors[1].get_velocity()}, dt)};
+                        auto const [v_l, v_r]{move_adrc.update(target_pos, target_rot, {motors[0].get_velocity(), motors[1].get_velocity()}, dt, {auto_robot_translation_velocity, auto_robot_rotation_velocity})};
                         update_motor_velocity(motors[0], motor_adrcs[0], active * v_l, dt);
                         update_motor_velocity(motors[1], motor_adrcs[1], active * v_r, dt);
                         auto const thrower_v{thrower_adrc.update(thrower_rot, motors[2].get_velocity(), dt)};

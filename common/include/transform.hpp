@@ -116,9 +116,10 @@ public:
      * @param target_rot desired rotation
      * @param velocities current velocities reported by the two motors
      * @param dt time since last update
+     * @param max_velocities max linear and angular velocity
      * @return recommended motor velocities for the two motors
      */
-    auto update(decltype(m_position) target, double target_rot, decltype(m_velocities) const &velocities, double dt) noexcept -> decltype(m_velocities);
+    auto update(decltype(m_position) target, double target_rot, decltype(m_velocities) const &velocities, double dt, std::tuple<double, double> const &max_velocities) noexcept -> decltype(m_velocities);
 };
 
 /**
@@ -177,9 +178,10 @@ public:
      * @param target_rot desired rotation
      * @param velocities current velocities reported by the two motors
      * @param dt time since last update
+     * @param max_velocities max linear and angular velocity
      * @return recommended motor velocities for the two motors
      */
-    auto update(decltype(m_position) const &target, std::optional<double> target_rot, decltype(m_velocities) const &velocities, double dt) noexcept -> decltype(m_velocities);
+    auto update(decltype(m_position) const &target, std::optional<double> target_rot, decltype(m_velocities) const &velocities, double dt, std::tuple<double, double> const &max_velocities) noexcept -> decltype(m_velocities);
 };
 
 /**

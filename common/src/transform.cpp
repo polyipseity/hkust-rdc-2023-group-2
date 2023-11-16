@@ -34,11 +34,14 @@ namespace
         }
         return {vv, vv / rad_to_left, rad_to_left};
     }
-    constexpr auto calc_auto_robot_motor_velocities [[nodiscard]] (double target_lin_v, double target_ang_v) noexcept -> std::tuple<double, double>
+    constexpr auto calc_auto_robot_motor_velocities [[nodiscard]] (double target_lin_v, double target_ang_v, std::tuple<double, double> const &max_velocities) noexcept -> std::tuple<double, double>
     {
-        target_ang_v = std::clamp(target_ang_v, -auto_robot_max_angular_velocity, auto_robot_max_angular_velocity);
+        auto [max_velocity, max_angular_velocity]{max_velocities};
+        max_velocity = std::min(max_velocity, auto_robot_max_velocity);
+        max_angular_velocity = std::min(max_angular_velocity, auto_robot_max_angular_velocity);
+        target_ang_v = std::clamp(target_ang_v, -max_angular_velocity, max_angular_velocity);
         auto const extra_v{target_ang_v * auto_robot_axle_radius};
-        target_lin_v = std::clamp(target_lin_v, -auto_robot_backward_max_velocity + extra_v, auto_robot_max_velocity - extra_v);
+        target_lin_v = std::clamp(target_lin_v, -max_velocity + extra_v, max_velocity - extra_v);
         return {target_lin_v - extra_v, target_lin_v + extra_v};
     }
 
@@ -94,7 +97,7 @@ AutoRobotADRC::AutoRobotADRC(decltype(m_position) position, double rotation, dec
 {
 }
 
-auto AutoRobotADRC::update(decltype(m_position) target, double target_rot, decltype(m_velocities) const &velocities, double dt) noexcept -> decltype(m_velocities)
+auto AutoRobotADRC::update(decltype(m_position) target, double target_rot, decltype(m_velocities) const &velocities, double dt, std::tuple<double, double> const &max_velocities) noexcept -> decltype(m_velocities)
 {
     auto [left_v, right_v]{m_velocities};
     left_v *= m_gain;
@@ -130,7 +133,7 @@ auto AutoRobotADRC::update(decltype(m_position) target, double target_rot, declt
     lin_v = m_position_control.update(0., lin_v, m_position - target, dt);
     ang_v = m_rotation_control.update(0., ang_v, -ang_diff, dt);
 
-    std::tie(left_v, right_v) = calc_auto_robot_motor_velocities(lin_v, ang_v);
+    std::tie(left_v, right_v) = calc_auto_robot_motor_velocities(lin_v, ang_v, max_velocities);
     return {left_v / m_gain, right_v / m_gain};
 }
 
@@ -144,7 +147,7 @@ AutoRobotTestADRC::AutoRobotTestADRC(decltype(m_position) position, double rotat
 {
 }
 
-auto AutoRobotTestADRC::update(decltype(m_position) const &target, std::optional<double> target_rot, decltype(m_velocities) const &velocities, double dt) noexcept -> decltype(m_velocities)
+auto AutoRobotTestADRC::update(decltype(m_position) const &target, std::optional<double> target_rot, decltype(m_velocities) const &velocities, double dt, std::tuple<double, double> const &max_velocities) noexcept -> decltype(m_velocities)
 {
     auto [left_v, right_v]{m_velocities};
     left_v *= m_gain;
@@ -196,7 +199,7 @@ auto AutoRobotTestADRC::update(decltype(m_position) const &target, std::optional
     lin_v = m_position_control.update(0., lin_v, -math::dot_product(forward_unit, pos_diff), dt);
     ang_v = m_rotation_control.update(0., ang_v, -ang_diff, dt);
 
-    std::tie(left_v, right_v) = calc_auto_robot_motor_velocities(lin_v, ang_v);
+    std::tie(left_v, right_v) = calc_auto_robot_motor_velocities(lin_v, ang_v, max_velocities);
     return {left_v / m_gain, right_v / m_gain};
 }
 
