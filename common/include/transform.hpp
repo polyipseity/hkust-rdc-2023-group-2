@@ -208,7 +208,7 @@ public:
     /**
      * @brief Meters per bearing turn
      */
-    double m_gain;
+    math::SquareMatrix<double, 4> m_gain;
 
 private:
     /**
@@ -231,7 +231,16 @@ public:
      * @param gain meters per bearing turn
      * @param convergence control sensitivity
      */
-    TaskRobotADRC(decltype(m_position) position, double rotation, decltype(m_velocities) velocities, decltype(m_gain) gain = .15 * math::pi * 16.5 / 30. / 10., double convergence = 1.) noexcept;
+    TaskRobotADRC(decltype(m_position) position,
+                  double rotation,
+                  decltype(m_velocities) velocities,
+                  math::Vector<double, 4> gain = {
+                      .15 * math::pi * 22. / 30. / 10.,
+                      .15 * math::pi * 22. / 30. / 10. / 19. * 14.,
+                      .15 * math::pi * 22. / 30. / 10. / 19. * 14.,
+                      .15 * math::pi * 22. / 30. / 10.,
+                  },
+                  double convergence = 1.) noexcept;
 
     /**
      * @brief Update the current state and recommend velocities for the four motors

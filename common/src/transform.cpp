@@ -203,11 +203,19 @@ auto AutoRobotTestADRC::update(decltype(m_position) const &target, std::optional
     return {left_v / m_gain, right_v / m_gain};
 }
 
-TaskRobotADRC::TaskRobotADRC(decltype(m_position) position, double rotation, decltype(m_velocities) velocities, decltype(m_gain) gain, double convergence) noexcept
+TaskRobotADRC::TaskRobotADRC(
+    decltype(m_position) position,
+    double rotation,
+    decltype(m_velocities) velocities,
+    math::Vector<double, 4> gain,
+    double convergence) noexcept
     : m_position{std::move(position)},
       m_rotation{math::rotation_matrix2(rotation)},
       m_velocities{std::move(velocities)},
-      m_gain{gain},
+      m_gain{gain(0), 0., 0., 0.,
+             0., gain(1), 0., 0.,
+             0., 0., gain(2), 0.,
+             0., 0., 0., gain(3)},
       m_position_control{1., convergence, {0.}},
       m_rotation_control{1., adrc_rotation_convergence_factor * convergence, {0.}}
 {
@@ -244,5 +252,10 @@ auto TaskRobotADRC::update(decltype(m_position) const &target, double target_rot
     auto const new_v_lin{m_rotation.transpose() * pos_diff_unit * m_position_control.update(0., math::dot_product(pos_diff_unit, m_rotation * math::Vector<double, 2>{v_lin_y, -v_lin_x}), -math::magnitude(pos_diff), dt)};
     auto const new_v_ang{m_rotation_control.update(0., v_ang, -ang_diff, dt)};
 
-    return calc_task_robot_motor_velocities(new_v_lin(0), new_v_lin(1), new_v_ang) / m_gain;
+    return decltype(m_gain){
+               1. / m_gain(0, 0), 0., 0., 0.,
+               0., 1. / m_gain(1, 1), 0., 0.,
+               0., 0., 1. / m_gain(2, 2), 0.,
+               0., 0., 0., 1. / m_gain(3, 3)} *
+           calc_task_robot_motor_velocities(-new_v_lin(1), new_v_lin(0), new_v_ang);
 }
