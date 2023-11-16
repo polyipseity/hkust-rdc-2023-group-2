@@ -85,10 +85,6 @@ void Error_Handler(void);
 #define CAM_WEN_GPIO_Port   GPIOB
 #define Boot1_Pin           GPIO_PIN_2
 #define Boot1_GPIO_Port     GPIOB
-#define CAM_SCL_Pin         GPIO_PIN_10
-#define CAM_SCL_GPIO_Port   GPIOB
-#define CAM_SDA_Pin         GPIO_PIN_11
-#define CAM_SDA_GPIO_Port   GPIOB
 #define CAM_VSYNC_Pin       GPIO_PIN_14
 #define CAM_VSYNC_GPIO_Port GPIOB
 #define CAM_VSYNC_EXTI_IRQn EXTI15_10_IRQn
