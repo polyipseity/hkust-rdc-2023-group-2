@@ -125,7 +125,7 @@ namespace test
 
   auto test_uart [[noreturn]] (UART_HandleTypeDef &uart_handle) noexcept -> void
   {
-    Receiver<CHAR_MAX_X_VERTICAL * CHAR_MAX_Y_VERTICAL, false> receiver{uart_handle};
+    Receiver<CHAR_MAX_X_VERTICAL * CHAR_MAX_Y_VERTICAL, false> receiver{uart_handle, .025};
     while (true)
     {
       auto const update_tft{tft_update(tft_update_period)};
