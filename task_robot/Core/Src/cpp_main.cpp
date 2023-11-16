@@ -39,9 +39,6 @@ namespace
         auto dt{0.};
         auto active{true};
         auto automode{false};
-        auto stand_mode{false};
-        auto grab1_mode{false};
-        auto grab2_mode{false};
         math::Vector<double, 2> target_pos{};
         double target_rot{math::tau / 4.};
 
@@ -109,23 +106,29 @@ namespace
                              ctrl_btns = {x_btn != 0, circle_btn != 0, square_btn != 0, triangle_btn != 0};
                          });
 
-        // grab 1 seedlings
-        commander.handle('k',
-                         [&grab1_mode](typename decltype(commander)::ParamType const &) {
-                             grab1_mode = !grab1_mode;
-                         });
+    // grab 1 seedlings
+    commander.handle('k',
+                     [&grab1, &receiver](typename decltype(commander)::ParamType const &)
+                     {
+                        receiver.invalidate();
+                       grab1.toggle();
+                     });
 
-        // grab 2 seedlings
-        commander.handle('l',
-                         [&grab2_mode](typename decltype(commander)::ParamType const &) {
-                             grab2_mode = !grab2_mode;
-                         });
+    // grab 2 seedlings
+    commander.handle('l',
+                     [&grab2, &receiver](typename decltype(commander)::ParamType const &)
+                     {
+                        receiver.invalidate();
+                       grab2.toggle();
+                     });
 
-        // Controling the stand of holding grabs
-        commander.handle('y',
-                         [&stand_mode](typename decltype(commander)::ParamType const &) {
-                             stand_mode = !stand_mode;
-                         });
+    // Controling the stand of holding grabs
+    commander.handle('y',
+                     [&stand, &receiver](typename decltype(commander)::ParamType const &)
+                     {
+                        receiver.invalidate();
+                       stand.toggle();
+                     });
 
         Time time{};
         while (true) {
@@ -158,21 +161,6 @@ namespace
                 // front == back
                 // change the value of target_pos to move in N direction
             }
-
-            if (stand_mode)
-                stand.write(true);
-            else
-                stand.write(false);
-
-            if (grab1_mode)
-                grab1.write(true);
-            else
-                grab1.write(false);
-
-            if (grab2_mode)
-                grab2.write(true);
-            else
-                grab2.write(false);
 
             CANMotorsControl<4> motors{motors_r};
             auto const [v_fl, v_fr, v_rl, v_rr]{(active * move_adrc.update(target_pos, target_rot, {motors[0].get_velocity(), motors[1].get_velocity(), motors[2].get_velocity(), motors[3].get_velocity()}, dt)).transpose()[0]};

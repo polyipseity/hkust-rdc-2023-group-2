@@ -11,3 +11,8 @@ auto GPIO::write(bool state) noexcept -> void
 {
   HAL_GPIO_WritePin(m_type, m_pin, state == m_reversed ? GPIO_PIN_RESET : GPIO_PIN_SET);
 }
+
+auto GPIO::toggle() noexcept -> void
+{
+  HAL_GPIO_TogglePin(m_type, m_pin);
+}
