@@ -34,7 +34,7 @@ namespace
     constexpr auto const auto_robot_navigation_approach_translation{.2};
     constexpr auto const auto_robot_line_sensor_filter_time{.1};
 
-    constexpr auto const auto_robot_thrower_velocity{.25}; // For safety, do not remove.
+    constexpr auto const auto_robot_thrower_velocity{math::tau}; // For safety, do not remove.
     constexpr std::array<double, 2> const auto_robot_thrower_offsets{math::tau / 3., math::tau * 5. / 24.};
 
     /**
@@ -47,10 +47,10 @@ namespace
         std::array<control::ADRC2d, 3> motor_adrcs{
             new_motor_ADRC_auto(motors_r[0]),
             new_motor_ADRC_auto(motors_r[1]),
-            new_motor_ADRC_auto(motors_r[2], .5, 8.5),
+            new_motor_ADRC_auto(motors_r[2], .5, 8.),
         };
         AutoRobotADRC move_adrc{0., math::tau / 4., {motors_r[0].get_velocity(), motors_r[1].get_velocity()}};
-        PositionADRC thrower_adrc{0., motors_r[2].get_velocity(), .1 * 8.5 / 30.};
+        PositionADRC thrower_adrc{0., motors_r[2].get_velocity(), math::tau * .1 * 8.5 / 30.};
         GPIO line_sensor_left{CAM_D1_GPIO_Port, CAM_D1_Pin, auto_robot_line_sensor_reversed},
             line_sensor_right{CAM_D3_GPIO_Port, CAM_D3_Pin, auto_robot_line_sensor_reversed},
             line_sensor_mid{CAM_D5_GPIO_Port, CAM_D5_Pin, auto_robot_line_sensor_reversed};
