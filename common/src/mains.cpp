@@ -558,7 +558,7 @@ namespace main
         new_motor_ADRC_task(motors_r[3]),
     };
     TaskRobotADRC move_adrc{{0., 0.}, math::tau / 4., {motors_r[0].get_velocity(), motors_r[1].get_velocity(), motors_r[2].get_velocity(), motors_r[3].get_velocity()}};
-    GPIO stand{GPIOB, GPIO_PIN_8, task_robot_valve_reversed}, grab1{GPIOB, GPIO_PIN_9, task_robot_valve_reversed}, grab2{GPIOC, GPIO_PIN_14, task_robot_valve_reversed};
+    GPIO stand{VALVE1_GPIO_Port, VALVE1_Pin, task_robot_valve_reversed}, grab1{VALVE2_GPIO_Port, VALVE2_Pin, task_robot_valve_reversed}, grab2{VALVE3_GPIO_Port, VALVE3_Pin, task_robot_valve_reversed};
 
     auto dt{0.};
     auto active{true};
