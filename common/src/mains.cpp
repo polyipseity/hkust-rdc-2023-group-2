@@ -284,18 +284,21 @@ namespace main
     constexpr auto const auto_robot_line_sensor_reversed{false};
     constexpr auto const auto_robot_initial_delay{2.};
     constexpr auto const auto_robot_translation_velocity{.2};
+    constexpr auto const auto_robot_translation_tolerance{.01};
     constexpr auto const auto_robot_rotation_velocity{math::tau / 16.};
+    constexpr auto const auto_robot_rotation_tolerance{math::tau / 128.};
 
+    constexpr auto const auto_robot_calibration_initial_translation{.1};
     constexpr auto const auto_robot_calibrate_angular_velocity{math::tau / 32.};
     constexpr auto const auto_robot_line_tracker_correction_time{.25};
 
     constexpr auto const auto_robot_navigation_initial_translation{.15};
-    constexpr auto const auto_robot_navigation_translation_tolerance{.01};
-    constexpr auto const auto_robot_navigation_rotation_tolerance{math::tau / 128.};
     constexpr auto const auto_robot_navigation_approach_translation{.2};
 
-    constexpr auto const auto_robot_thrower_velocity{1.};
+    constexpr auto const auto_robot_return_translation{1.5};
+
     constexpr auto const auto_robot_thrower_max_velocity{1.}; // For safety, do not remove
+    constexpr auto const auto_robot_thrower_velocity{1.};
   }
 
   auto auto_robot [[noreturn]] () -> void
@@ -380,6 +383,16 @@ namespace main
                           tft_prints(0, 7, "%s", state);
                         }
                       }};
+    target_pos += auto_robot_calibration_initial_translation;
+    while (true)
+    {
+      input();
+      if (std::abs(target_pos - move_adrc.m_position) <= auto_robot_translation_tolerance)
+      {
+        break;
+      }
+      output("discovering");
+    }
     double rot_correct_to_right{}, rot_correct_to_left{};
     while (rot_correct_to_right == 0. || rot_correct_to_left == 0.)
     {
@@ -454,7 +467,7 @@ namespace main
     while (true)
     {
       input();
-      if (std::abs(target_pos - move_adrc.m_position) <= auto_robot_navigation_translation_tolerance)
+      if (std::abs(target_pos - move_adrc.m_position) <= auto_robot_translation_tolerance)
       {
         break;
       }
@@ -468,14 +481,14 @@ namespace main
       while (true)
       {
         input();
-        if (std::fmod(std::abs(target_rot - math::rotation_matrix2_angle(move_adrc.m_rotation)), math::tau) <= auto_robot_navigation_rotation_tolerance)
+        if (std::fmod(std::abs(target_rot - math::rotation_matrix2_angle(move_adrc.m_rotation)), math::tau) <= auto_robot_rotation_tolerance)
         {
           break;
         }
         output("navigating");
       }
       target_pos += auto_robot_navigation_approach_translation;
-      while (std::abs(target_pos - move_adrc.m_position) > auto_robot_navigation_translation_tolerance)
+      while (std::abs(target_pos - move_adrc.m_position) > auto_robot_translation_tolerance)
       {
         input();
         // track_line(line_sensor_left.read(), line_sensor_right.read());
@@ -488,12 +501,35 @@ namespace main
         output("throwing");
       }
       target_pos -= auto_robot_navigation_approach_translation;
-      while (std::abs(target_pos - move_adrc.m_position) > auto_robot_navigation_translation_tolerance)
+      while (std::abs(target_pos - move_adrc.m_position) > auto_robot_translation_tolerance)
       {
         input();
         // track_line(line_sensor_left.read(), line_sensor_right.read());
         output("navigating");
       }
+    }
+
+    // Returning
+    target_rot += lines[0] - lines[cur_line];
+    while (true)
+    {
+      input();
+      if (std::fmod(std::abs(target_rot - math::rotation_matrix2_angle(move_adrc.m_rotation)), math::tau) <= auto_robot_rotation_tolerance)
+      {
+        break;
+      }
+      output("returning");
+    }
+    target_pos -= auto_robot_return_translation;
+    while (true)
+    {
+      input();
+      if (std::abs(target_pos - move_adrc.m_position) <= auto_robot_translation_tolerance)
+      {
+        break;
+      }
+      track_line(line_sensor_left.read(), line_sensor_right.read());
+      output("returning");
     }
 
     // Completion
@@ -660,19 +696,19 @@ namespace main
         // receive the distance of two tof sensors
         // compare two distances
         // Method 1 (receive the distance constantly and keep the robot to face to N direction)
-          // front > back (face to NE direction)
-            // change the value of target_rot to make the robot face to N direction
-          // back > front (face to NW direction)
-            // change the value of target_rot to make the robot face to N direction
-          // front == back (face to N direction)
-            // change the value of target_pos to move in N direction
+        // front > back (face to NE direction)
+        // change the value of target_rot to make the robot face to N direction
+        // back > front (face to NW direction)
+        // change the value of target_rot to make the robot face to N direction
+        // front == back (face to N direction)
+        // change the value of target_pos to move in N direction
         // Method 2 (receive the distance constantly and make the robot to move to N direction without rotation)
-          // front > back
-            // change the value of target_pos to make the robot move in N direction and it doesnt rotate
-          // front < back
-            // change the value of target_pos to make the robot move in N direction and it doesnt rotate
-          // front == back
-            // change the value of target_pos to move in N direction
+        // front > back
+        // change the value of target_pos to make the robot move in N direction and it doesnt rotate
+        // front < back
+        // change the value of target_pos to make the robot move in N direction and it doesnt rotate
+        // front == back
+        // change the value of target_pos to move in N direction
       }
 
       CANMotorsControl<4> motors{motors_r};
