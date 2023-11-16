@@ -34,8 +34,8 @@ namespace
     constexpr auto const auto_robot_navigation_approach_translation{.2};
     constexpr auto const auto_robot_line_sensor_filter_time{.1};
 
-    constexpr auto const auto_robot_thrower_max_velocity{1.}; // For safety, do not remove
-    constexpr auto const auto_robot_thrower_velocity{1.};
+    constexpr auto const auto_robot_thrower_velocity{.25}; // For safety, do not remove.
+    constexpr std::array<double, 2> const auto_robot_thrower_offsets{math::tau / 3., math::tau * 5. / 24.};
 
     /**
      * @brief Code for auto robot
@@ -99,7 +99,7 @@ namespace
             update_motor_velocity(motors[0], motor_adrcs[0], active * v_l, dt);
             update_motor_velocity(motors[1], motor_adrcs[1], active * v_r, dt);
             auto const thrower_v{thrower_adrc.update(thrower_rot, motors[2].get_velocity(), dt)};
-            update_motor_velocity(motors[2], motor_adrcs[2], active * std::copysign(std::min(auto_robot_thrower_max_velocity / thrower_adrc.m_gain, std::abs(thrower_v)), thrower_v), dt);
+            update_motor_velocity(motors[2], motor_adrcs[2], active * std::copysign(std::min(auto_robot_thrower_velocity / thrower_adrc.m_gain, std::abs(thrower_v)), thrower_v), dt);
 
             if (tft_update(tft_update_period)) {
                 tft_prints(0, 0, "pos: %.2f", move_adrc.m_position);
@@ -202,6 +202,7 @@ namespace
             }
             return false;
         }};
+        auto auto_robot_thrower_offset_iter{std::cbegin(auto_robot_thrower_offsets)};
         for (auto const target : *box_targets) {
             while (cur_line != target) {
                 input();
@@ -218,8 +219,8 @@ namespace
                 track_line(line_sensor_left.read(), line_sensor_right.read());
                 output("navigating");
             }
-            auto const last_time{time.time()};
-            while (time.time() - last_time <= 3.) {
+            thrower_rot += *auto_robot_thrower_offset_iter++;
+            while (std::abs(thrower_rot - thrower_adrc.m_position) > auto_robot_rotation_tolerance) {
                 input();
                 output("throwing");
             }
