@@ -1,5 +1,7 @@
 package com.john1q.gamepad_control;
 
+import static androidx.core.view.MotionEventCompat.getAxisValue;
+
 import androidx.appcompat.app.AppCompatActivity;
 
 import android.os.Bundle;
@@ -23,12 +25,13 @@ public class ConfigureLed extends AppCompatActivity {
     Runnable runnable;
     int delay = 25;
 
-    int stick_x, stick_y, btnx, btny, btnb, btna = 0;
+    int stick_x, stick_y, btnx, btny, btnb, btna, r2, l2 = 0;
 
     int joystick_connected;
 
-    String message = String.valueOf(stick_x) + "." + String.valueOf(stick_y) + "." + String.valueOf(btna) + "." +
-            String.valueOf(btnb) + "." + String.valueOf(btnx) + "." + String.valueOf(btny);
+    String message = String.valueOf(stick_x) + "." + String.valueOf(stick_y) + "." + String.valueOf(r2) + "." +
+            String.valueOf(l2) + "." +String.valueOf(btna) + "." + String.valueOf(btnb) + "." +
+            String.valueOf(btnx) + "." + String.valueOf(btny);
 
     ConnectedThread connectedThread;
 
@@ -55,12 +58,9 @@ public class ConfigureLed extends AppCompatActivity {
                 handler.postDelayed(runnable, delay);
                 // send a text: 'a'
                 connectedThread.write(message + "\r\n");
-                btna = 0;
-                btnx = 0;
-                btnb = 0;
-                btny = 0;
-                message = String.valueOf(stick_x) + "." + String.valueOf(stick_y) + "." + String.valueOf(btna) + "." +
-                        String.valueOf(btnb) + "." + String.valueOf(btnx) + "." + String.valueOf(btny);
+                message = String.valueOf(stick_x) + "." + String.valueOf(stick_y) + "." + String.valueOf(r2) + "." +
+                        String.valueOf(l2) + "." +String.valueOf(btna) + "." + String.valueOf(btnb) + "." +
+                        String.valueOf(btnx) + "." + String.valueOf(btny);
 
             }
         }, delay);
@@ -81,14 +81,22 @@ public class ConfigureLed extends AppCompatActivity {
             // Get X and Y axis values of the joystick
             float xValue = getCenteredAxis(event, MotionEvent.AXIS_X);
             float yValue = getCenteredAxis(event, MotionEvent.AXIS_Y);
+
+            float r2_val = event.getAxisValue(MotionEvent.AXIS_RTRIGGER);
+            float l2_val = event.getAxisValue(MotionEvent.AXIS_LTRIGGER);
+
             stick_x = (int) (xValue * 100);
             stick_y = (int) (yValue * 100);
 
-            // Use the X and Y values as needed (here, just displaying in TextView)
-            textView2.setText("Joystick X: " + stick_x + "\nJoystick Y: " + stick_y);
+            r2 = (int) (r2_val * 100);
+            l2 = (int) (l2_val * 100);
 
-            message = String.valueOf(stick_x) + "." + String.valueOf(stick_y) + "." + String.valueOf(btna) + "." +
-                    String.valueOf(btnb) + "." + String.valueOf(btnx) + "." + String.valueOf(btny);
+            // Use the X and Y values as needed (here, just displaying in TextView)
+            textView2.setText("Joystick X: " + stick_x + "\nJoystick Y: " + stick_y + "\nL2: " + l2 + "\nR2: " + r2);
+
+            message = String.valueOf(stick_x) + "." + String.valueOf(stick_y) + "." + String.valueOf(r2) + "." +
+                    String.valueOf(l2) + "." +String.valueOf(btna) + "." + String.valueOf(btnb) + "." +
+                    String.valueOf(btnx) + "." + String.valueOf(btny);
 
             textView3.setText(message);
 
@@ -125,12 +133,15 @@ public class ConfigureLed extends AppCompatActivity {
             textView.setText("Button X Pressed!");
             btnx = 1;
 
-            message = String.valueOf(stick_x) + "." + String.valueOf(stick_y) + "." + String.valueOf(btna) + "." +
-                    String.valueOf(btnb) + "." + String.valueOf(btnx) + "." + String.valueOf(btny);
+            message = String.valueOf(stick_x) + "." + String.valueOf(stick_y) + "." + String.valueOf(r2) + "." +
+                    String.valueOf(l2) + "." +String.valueOf(btna) + "." + String.valueOf(btnb) + "." +
+                    String.valueOf(btnx) + "." + String.valueOf(btny);
 
             textView3.setText(message);
             // SHOUD HERE BE THE b \r\n??
             return true; // To consume the event
+        } else {
+            btnx = 0;
         }
 
         if (event.getAction() == KeyEvent.ACTION_DOWN && keyCode == KeyEvent.KEYCODE_BUTTON_Y) {
@@ -138,11 +149,14 @@ public class ConfigureLed extends AppCompatActivity {
             textView.setText("Button Y Pressed!");
             btny = 1;
 
-            message = String.valueOf(stick_x) + "." + String.valueOf(stick_y) + "." + String.valueOf(btna) + "." +
-                    String.valueOf(btnb) + "." + String.valueOf(btnx) + "." + String.valueOf(btny);
+            message = String.valueOf(stick_x) + "." + String.valueOf(stick_y) + "." + String.valueOf(r2) + "." +
+                    String.valueOf(l2) + "." +String.valueOf(btna) + "." + String.valueOf(btnb) + "." +
+                    String.valueOf(btnx) + "." + String.valueOf(btny);
 
             textView3.setText(message);
             return true; // To consume the event
+        } else {
+            btny = 0;
         }
 
         if (event.getAction() == KeyEvent.ACTION_DOWN && keyCode == KeyEvent.KEYCODE_BUTTON_B) {
@@ -150,11 +164,14 @@ public class ConfigureLed extends AppCompatActivity {
             textView.setText("Button B Pressed!");
             btnb = 1;
 
-            message = String.valueOf(stick_x) + "." + String.valueOf(stick_y) + "." + String.valueOf(btna) + "." +
-                    String.valueOf(btnb) + "." + String.valueOf(btnx) + "." + String.valueOf(btny);
+            message = String.valueOf(stick_x) + "." + String.valueOf(stick_y) + "." + String.valueOf(r2) + "." +
+                    String.valueOf(l2) + "." +String.valueOf(btna) + "." + String.valueOf(btnb) + "." +
+                    String.valueOf(btnx) + "." + String.valueOf(btny);
 
             textView3.setText(message);
             return true; // To consume the event
+        } else {
+            btnb = 0;
         }
 
         if (event.getAction() == KeyEvent.ACTION_DOWN && keyCode == KeyEvent.KEYCODE_BUTTON_A) {
@@ -162,10 +179,14 @@ public class ConfigureLed extends AppCompatActivity {
             textView.setText("Button A Pressed!");
             btna = 1;
 
-            message = String.valueOf(stick_x) + "." + String.valueOf(stick_y) + "." + String.valueOf(btna) + "." +
-                    String.valueOf(btnb) + "." + String.valueOf(btnx) + "." + String.valueOf(btny);
+            message = String.valueOf(stick_x) + "." + String.valueOf(stick_y) + "." + String.valueOf(r2) + "." +
+                    String.valueOf(l2) + "." +String.valueOf(btna) + "." + String.valueOf(btnb) + "." +
+                    String.valueOf(btnx) + "." + String.valueOf(btny);
+
             textView3.setText(message);
             return true; // To consume the event
+        } else {
+            btna = 0;
         }
 
 
