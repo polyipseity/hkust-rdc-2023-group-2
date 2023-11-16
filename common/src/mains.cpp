@@ -295,9 +295,9 @@ namespace main
     constexpr auto const auto_robot_line_tracker_delay_time{.1};
 
     constexpr auto const auto_robot_navigation_initial_translation{.15};
-    constexpr auto const auto_robot_navigation_angular_velocity{math::tau / 32.};
+    constexpr auto const auto_robot_navigation_angular_velocity{math::tau / 64.};
     constexpr auto const auto_robot_navigation_approach_translation{.2};
-    constexpr auto const auto_robot_line_sensor_filter_time{.01};
+    constexpr auto const auto_robot_line_sensor_filter_time{.1};
 
     constexpr auto const auto_robot_thrower_max_velocity{1.}; // For safety, do not remove
     constexpr auto const auto_robot_thrower_velocity{1.};
