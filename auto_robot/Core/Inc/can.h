@@ -109,6 +109,7 @@ typedef struct {
 #define CAN1_RX_ID_START 0x201
 #define MOTOR_ID         2
 /* USER CODE END Private defines */
+
 void MX_CAN1_Init(void);
 void MX_CAN2_Init(void);
 

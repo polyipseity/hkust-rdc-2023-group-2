@@ -60,16 +60,3 @@ namespace test
    */
   auto read_motor_velocities [[noreturn]] () noexcept -> void;
 }
-
-namespace main
-{
-  /**
-   * @brief Code for auto robot
-   */
-  auto auto_robot [[noreturn]] () noexcept -> void;
-
-  /**
-   * @brief Code for task robot
-   */
-  auto task_robot [[noreturn]] () noexcept -> void;
-}
