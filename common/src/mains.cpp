@@ -639,40 +639,6 @@ namespace main
                      {
                        automode = !automode;
                      });
-    // auto g_command_capture{std::tie(target_pos, target_rot, receiver)};
-    // commander.handle('g',
-    //                  [&g_command_capture](typename decltype(commander)::ParamType const &param)
-    //                  {
-    //                    auto &[target_pos, target_rot, receiver]{g_command_capture};
-    //                    receiver.invalidate();
-    //                    auto const &[p_x, p_y, p_r]{param};
-    //                    if (std::get<0>(p_x) == 0 || std::get<0>(p_y) == 0)
-    //                    {
-    //                      return;
-    //                    }
-    //                    char *end{};
-    //                    auto const xx{std::strtod(std::get<1>(p_x), &end)};
-    //                    if (std::get<1>(p_x) == end)
-    //                    {
-    //                      return;
-    //                    }
-    //                    auto const yy{std::strtod(std::get<1>(p_y), &end)};
-    //                    if (std::get<1>(p_y) == end)
-    //                    {
-    //                      return;
-    //                    }
-    //                    target_pos = {xx, yy};
-    //                    if (std::get<0>(p_r) == 0)
-    //                    {
-    //                      return;
-    //                    }
-    //                    auto const rot{std::strtod(std::get<1>(p_r), &end)};
-    //                    if (std::get<1>(p_r) == end)
-    //                    {
-    //                      return;
-    //                    }
-    //                    target_rot = rot;
-    //                  });
 
     Time time{};
     while (true)
