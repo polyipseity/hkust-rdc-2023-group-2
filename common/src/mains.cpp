@@ -299,9 +299,6 @@ namespace main
     constexpr auto const auto_robot_navigation_approach_translation{.2};
     constexpr auto const auto_robot_line_sensor_filter_time{.01};
 
-    constexpr auto const auto_robot_return_initial_translation{.2};
-    constexpr auto const auto_robot_return_translation{1.5};
-
     constexpr auto const auto_robot_thrower_max_velocity{1.}; // For safety, do not remove
     constexpr auto const auto_robot_thrower_velocity{1.};
   }
@@ -430,7 +427,7 @@ namespace main
     }
 
     // Movement
-    auto track_line{[&, last_line_left{false}, last_line_right{false}, last_change{time.time()}](bool line_left, bool line_right, bool reversed = false) mutable
+    auto track_line{[&, last_line_left{false}, last_line_right{false}, last_change{time.time()}](bool line_left, bool line_right) mutable
                     {
                       if (last_line_left != line_left)
                       {
@@ -448,11 +445,11 @@ namespace main
                       }
                       if (line_left)
                       {
-                        target_rot += (reversed ? -1. : 1.) * rot_correct_to_left * dt / auto_robot_line_tracker_correction_time;
+                        target_rot += rot_correct_to_left * dt / auto_robot_line_tracker_correction_time;
                       }
                       if (line_right)
                       {
-                        target_rot += (reversed ? -1. : 1.) * rot_correct_to_right * dt / auto_robot_line_tracker_correction_time;
+                        target_rot += rot_correct_to_right * dt / auto_robot_line_tracker_correction_time;
                       }
                     }};
     while (true)
@@ -532,49 +529,6 @@ namespace main
         // track_line(line_sensor_left.read(), line_sensor_right.read());
         output("navigating");
       }
-    }
-
-    // Returning
-    while (cur_line != 4)
-    {
-      input();
-      long direction{4 - cur_line};
-      if (detect_line_change(line_sensor_mid.read()))
-      {
-        cur_line += std::copysign(1, direction);
-      }
-      target_rot += std::copysign(auto_robot_navigation_angular_velocity * dt, -direction);
-      output("returning");
-    }
-    while (true)
-    {
-      input();
-      if (std::fmod(std::abs(target_rot - math::rotation_matrix2_angle(move_adrc.m_rotation)), math::tau) <= auto_robot_rotation_tolerance)
-      {
-        break;
-      }
-      output("returning");
-    }
-    target_pos -= auto_robot_return_initial_translation;
-    while (true)
-    {
-      input();
-      if (std::abs(target_pos - move_adrc.m_position) <= auto_robot_translation_tolerance)
-      {
-        break;
-      }
-      output("returning");
-    }
-    target_pos -= auto_robot_return_translation;
-    while (true)
-    {
-      input();
-      if (std::abs(target_pos - move_adrc.m_position) <= auto_robot_translation_tolerance)
-      {
-        break;
-      }
-      track_line(line_sensor_left.read(), line_sensor_right.read(), true);
-      output("returning");
     }
 
     // Completion
