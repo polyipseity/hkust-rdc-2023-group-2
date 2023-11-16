@@ -543,7 +543,7 @@ namespace main
   namespace
   {
     constexpr auto const task_robot_translation_velocity{1.3};
-    constexpr auto const task_robot_rotation_velocity{math::tau / 3};
+    constexpr auto const task_robot_rotation_velocity{math::tau / 2.};
     constexpr auto const task_robot_valve_reversed{false};
   }
 
@@ -569,96 +569,73 @@ namespace main
     math::Vector<double, 2> target_pos{};
     double target_rot{math::tau / 4.};
 
-    Commander<3> commander{};
-    Receiver<16, false> receiver{huart1, .05};
-    // Turn ON/OFF
-    commander.handle('x',
-                     [&active, &receiver](typename decltype(commander)::ParamType const &)
-                     {
-                       receiver.invalidate();
-                       active = !active;
-                     });
-    auto wasd_command_capture{std::tie(dt, target_pos, target_rot)};
-    commander.handle('w',
-                     [&wasd_command_capture](typename decltype(commander)::ParamType const &)
-                     {
-                       auto &[dt, target_pos, target_rot]{wasd_command_capture};
-                       target_pos += math::rotation_matrix2(target_rot - math::tau / 4.) * std::remove_reference_t<decltype(target_pos)>{0., task_robot_translation_velocity * dt};
-                     });
-    commander.handle('a',
-                     [&wasd_command_capture](typename decltype(commander)::ParamType const &)
-                     {
-                       auto &[dt, target_pos, target_rot]{wasd_command_capture};
-                       target_pos += math::rotation_matrix2(target_rot - math::tau / 4.) * std::remove_reference_t<decltype(target_pos)>{-task_robot_translation_velocity * dt, 0.};
-                     });
-    commander.handle('s',
-                     [&wasd_command_capture](typename decltype(commander)::ParamType const &)
-                     {
-                       auto &[dt, target_pos, target_rot]{wasd_command_capture};
-                       target_pos += math::rotation_matrix2(target_rot - math::tau / 4.) * std::remove_reference_t<decltype(target_pos)>{0., -task_robot_translation_velocity * dt};
-                     });
-    commander.handle('d',
-                     [&wasd_command_capture](typename decltype(commander)::ParamType const &)
-                     {
-                       auto &[dt, target_pos, target_rot]{wasd_command_capture};
-                       target_pos += math::rotation_matrix2(target_rot - math::tau / 4.) * std::remove_reference_t<decltype(target_pos)>{task_robot_translation_velocity * dt, 0.};
-                     });
+    Commander<8> commander{};
+    Receiver<27, false> receiver{huart1, .025};
 
-    // rotate anticlockwise
-    commander.handle('o',
-                     [&dt, &target_rot](typename decltype(commander)::ParamType const &)
-                     {
-                       target_rot += task_robot_rotation_velocity * dt;
-                     });
-
-    // rotote clockwise
-    commander.handle('p',
-                     [&dt, &target_rot](typename decltype(commander)::ParamType const &)
-                     {
-                       target_rot += -task_robot_rotation_velocity * dt;
-                     });
-
-    auto qezc_command_capture{std::tie(dt, target_pos, target_rot)};
-
-    // move to NW direction
-    commander.handle('q',
-                     [&qezc_command_capture](typename decltype(commander)::ParamType const &)
-                     {
-                       auto &[dt, target_pos, target_rot]{qezc_command_capture};
-                       target_pos += math::rotation_matrix2(target_rot - math::tau / 4.) * std::remove_reference_t<decltype(target_pos)>{-task_robot_translation_velocity * dt, task_robot_translation_velocity * dt};
-                     });
-
-    // move to NE direction
-    commander.handle('e',
-                     [&qezc_command_capture](typename decltype(commander)::ParamType const &)
-                     {
-                       auto &[dt, target_pos, target_rot]{qezc_command_capture};
-                       target_pos += math::rotation_matrix2(target_rot - math::tau / 4.) * std::remove_reference_t<decltype(target_pos)>{task_robot_translation_velocity * dt, task_robot_translation_velocity * dt};
-                     });
-
-    // move to SW direction
-    commander.handle('z',
-                     [&qezc_command_capture](typename decltype(commander)::ParamType const &)
-                     {
-                       auto &[dt, target_pos, target_rot]{qezc_command_capture};
-                       target_pos += math::rotation_matrix2(target_rot - math::tau / 4.) * std::remove_reference_t<decltype(target_pos)>{-task_robot_translation_velocity * dt, -task_robot_translation_velocity * dt};
-                     });
-
-    // move to SE direction
+    std::array<bool, 4> ctrl_btns{};
+    auto controller_capture{std::tie(active, automode, ctrl_btns, dt, move_adrc, target_pos, target_rot)};
     commander.handle('c',
-                     [&qezc_command_capture](typename decltype(commander)::ParamType const &)
+                     [&controller_capture](typename decltype(commander)::ParamType const &params)
                      {
-                       auto &[dt, target_pos, target_rot]{qezc_command_capture};
-                       target_pos += math::rotation_matrix2(target_rot - math::tau / 4.) * std::remove_reference_t<decltype(target_pos)>{task_robot_translation_velocity * dt, -task_robot_translation_velocity * dt};
-                     });
+                       auto &[active, automode, ctrl_btns, dt, move_adrc, target_pos, target_rot]{controller_capture};
+                       /*
+                       controller
+                       - left joystick: movement
+                       - L2: rotate left
+                       - R2: rotate right
+                       - X button: toggle the active status
+                       - triangle button: toggle auto shortcut mode
 
-    // brake
-    commander.handle('b',
-                     [&qezc_command_capture](typename decltype(commander)::ParamType const &)
-                     {
-                       auto &[dt, target_pos, target_rot]{qezc_command_capture};
-                       // todo: does not work as intended
-                       target_pos += math::rotation_matrix2(target_rot - math::tau / 4.) * std::remove_reference_t<decltype(target_pos)>{0., 0.};
+                       message
+                       c(num0),(num1),(num2),(num3),(num4),(num5),(num6),(num7)\n
+                       - length: 1 + (4 + 1) * 2 + (3 + 1) * 2 + (1 + 1) * 4 - 1 + 1
+                       - num0: left joystick X (right is positive), [-100, 100]
+                       - num1: left joystick Y (down is positive), [-100, 100]
+                       - num2: R2, [0, 100]
+                       - num3: L2, [0, 100]
+                       - num4: X button, [0, 1]
+                       - num5: circle button, [0, 1]
+                       - num6: square button, [0, 1]
+                       - num7: triangle button, [0, 1]
+                       */
+                       auto &&[num0, num1, num2, num3, num4, num5, num6, num7]{params};
+                       std::array<char *, 8> ends{};
+                       long l_js_x{std::strtol(std::get<1>(num0), &ends[0], 10)},
+                           l_js_y{std::strtol(std::get<1>(num1), &ends[1], 10)},
+                           r2{std::strtol(std::get<1>(num2), &ends[2], 10)},
+                           l2{std::strtol(std::get<1>(num3), &ends[3], 10)},
+                           x_btn{std::strtol(std::get<1>(num4), &ends[4], 10)},
+                           circle_btn{std::strtol(std::get<1>(num5), &ends[5], 10)},
+                           square_btn{std::strtol(std::get<1>(num6), &ends[6], 10)},
+                           triangle_btn{std::strtol(std::get<1>(num7), &ends[7], 10)};
+                       for (std::size_t ii{}; ii < 8; ++ii)
+                       {
+                         if (std::get<1>(params[ii]) == ends[ii])
+                         {
+                           return;
+                         }
+                       }
+                       // movement
+                       target_pos += move_adrc.m_rotation * math::rotation_matrix2(-math::tau / 4.) *
+                                     std::remove_reference_t<decltype(target_pos)>{
+                                         l_js_x / 100. * task_robot_translation_velocity * dt,  // x
+                                         -l_js_y / 100. * task_robot_translation_velocity * dt, // y
+                                     };
+                       // rotate anticlockwise
+                       target_rot += l2 / 100. * task_robot_rotation_velocity * dt;
+                       // rotate clockwise
+                       target_rot -= r2 / 100. * task_robot_rotation_velocity * dt;
+                       if (!ctrl_btns[0] && x_btn)
+                       {
+                         // on/off
+                         active = !active;
+                       }
+                       if (!ctrl_btns[3] && triangle_btn)
+                       {
+                         // auto shortcut mode
+                         automode = !automode;
+                       }
+                       ctrl_btns = {x_btn != 0, circle_btn != 0, square_btn != 0, triangle_btn != 0};
                      });
 
     // grab 1 seedlings
@@ -680,13 +657,6 @@ namespace main
                      [&stand_mode](typename decltype(commander)::ParamType const &)
                      {
                        stand_mode = !stand_mode;
-                     });
-
-    // Auto Shortcut
-    commander.handle('n',
-                     [&automode](typename decltype(commander)::ParamType const &)
-                     {
-                       automode = !automode;
                      });
 
     Time time{};
