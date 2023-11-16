@@ -59,4 +59,9 @@ namespace test
    * @brief Read motor velocities
    */
   auto read_motor_velocities [[noreturn]] () noexcept -> void;
+
+  /**
+   * @brief Test auto robot thrower
+   */
+  auto test_auto_robot_thrower [[noreturn]] (Motor motor_handle) noexcept -> void;
 }

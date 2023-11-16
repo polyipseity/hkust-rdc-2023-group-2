@@ -276,4 +276,30 @@ namespace test
       }
     }
   }
+
+  auto test_auto_robot_thrower [[noreturn]] (Motor motor_handle) noexcept -> void
+  {
+    CANMotors<1> motors_r{{motor_handle}};
+    std::array<control::ADRC2d, 1> motor_adrcs{
+        new_motor_ADRC_auto(motors_r[0], .5, 8.),
+    };
+    PositionADRC thrower_adrc{0., motors_r[0].get_velocity(), math::tau * .1 * 8.5 / 30.};
+
+    Time time{};
+    double thrower_rot{math::tau / 2.};
+    while (true)
+    {
+      auto const dt{time.update()};
+      CANMotorsControl<1> motors{motors_r};
+
+      auto const thrower_v{thrower_adrc.update(thrower_rot, motors[0].get_velocity(), dt)};
+      update_motor_velocity(motors[0], motor_adrcs[0], std::copysign(std::min(math::tau / thrower_adrc.m_gain, std::abs(thrower_v)), thrower_v), dt);
+
+      if (tft_update(tft_update_period))
+      {
+        tft_prints(0, 0, "pos: %.3f", thrower_adrc.m_position);
+        tft_prints(0, 1, "vel: %.3f", thrower_adrc.m_velocity / thrower_adrc.m_gain);
+      }
+    }
+  }
 }
