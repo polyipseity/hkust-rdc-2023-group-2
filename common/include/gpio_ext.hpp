@@ -38,4 +38,10 @@ struct GPIO
    * @param state set if true or reset if false
    */
   auto write(bool state) noexcept -> void;
+
+  /**
+   * @brief Toggle the Pin
+   */
+  auto toggle() noexcept -> void;
+
 };
