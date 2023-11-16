@@ -20,8 +20,6 @@
 /* Includes ------------------------------------------------------------------*/
 #include "can.h"
 
-#include "main.h"
-
 /* USER CODE BEGIN 0 */
 
 int16_t rm_ctrl_cmd[MAX_CAN_RM * NUM_OF_CAN]  = {0};
@@ -35,6 +33,7 @@ CAN_HandleTypeDef hcan2;
 /* CAN1 init function */
 void MX_CAN1_Init(void)
 {
+
     /* USER CODE BEGIN CAN1_Init 0 */
 
     /* USER CODE END CAN1_Init 0 */
@@ -64,6 +63,7 @@ void MX_CAN1_Init(void)
 /* CAN2 init function */
 void MX_CAN2_Init(void)
 {
+
     /* USER CODE BEGIN CAN2_Init 0 */
 
     /* USER CODE END CAN2_Init 0 */
@@ -96,6 +96,7 @@ static uint32_t HAL_RCC_CAN2_CLK_ENABLED = 0;
 
 void HAL_CAN_MspInit(CAN_HandleTypeDef *canHandle)
 {
+
     GPIO_InitTypeDef GPIO_InitStruct = {0};
     if (canHandle->Instance == CAN1) {
         /* USER CODE BEGIN CAN1_MspInit 0 */
@@ -152,6 +153,7 @@ void HAL_CAN_MspInit(CAN_HandleTypeDef *canHandle)
 
 void HAL_CAN_MspDeInit(CAN_HandleTypeDef *canHandle)
 {
+
     if (canHandle->Instance == CAN1) {
         /* USER CODE BEGIN CAN1_MspDeInit 0 */
 
