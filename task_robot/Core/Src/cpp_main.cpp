@@ -110,29 +110,26 @@ namespace
                              ctrl_btns = {x_btn != 0, circle_btn != 0, square_btn != 0, triangle_btn != 0};
                          });
 
-    // grab 1 seedlings
-    commander.handle('k',
-                     [&grab1, &receiver](typename decltype(commander)::ParamType const &)
-                     {
-                        receiver.invalidate();
-                        grab1.toggle();
-                     });
+        // grab 1 seedlings
+        commander.handle('k',
+                         [&grab1, &receiver](typename decltype(commander)::ParamType const &) {
+                             receiver.invalidate();
+                             grab1.toggle();
+                         });
 
-    // grab 2 seedlings
-    commander.handle('l',
-                     [&grab2, &receiver](typename decltype(commander)::ParamType const &)
-                     {
-                        receiver.invalidate();
-                        grab2.toggle();
-                     });
+        // grab 2 seedlings
+        commander.handle('l',
+                         [&grab2, &receiver](typename decltype(commander)::ParamType const &) {
+                             receiver.invalidate();
+                             grab2.toggle();
+                         });
 
-    // Controling the stand of holding grabs
-    commander.handle('y',
-                     [&stand, &receiver](typename decltype(commander)::ParamType const &)
-                     {
-                        receiver.invalidate();
-                        stand.toggle();
-                     });
+        // Controling the stand of holding grabs
+        commander.handle('y',
+                         [&stand, &receiver](typename decltype(commander)::ParamType const &) {
+                             receiver.invalidate();
+                             stand.toggle();
+                         });
 
         Time time{};
         while (true) {
