@@ -52,13 +52,13 @@ void MX_GPIO_Init(void)
     __HAL_RCC_GPIOD_CLK_ENABLE();
 
     /*Configure GPIO pin Output Level */
+    HAL_GPIO_WritePin(GPIOC, VALVE3_Pin | TFT_DC_Pin | TFT_CS_Pin, GPIO_PIN_RESET);
+
+    /*Configure GPIO pin Output Level */
     HAL_GPIO_WritePin(GPIOA, CAM_WRST_Pin | TFT_RES_Pin | CAM_OE_Pin, GPIO_PIN_RESET);
 
     /*Configure GPIO pin Output Level */
-    HAL_GPIO_WritePin(GPIOC, TFT_DC_Pin | TFT_CS_Pin, GPIO_PIN_RESET);
-
-    /*Configure GPIO pin Output Level */
-    HAL_GPIO_WritePin(GPIOB, TFT_BL_Pin | CAM_WEN_Pin | CAM_RCLK_Pin | LED4_Pin | LED3_Pin | LED2_Pin | LED1_Pin, GPIO_PIN_RESET);
+    HAL_GPIO_WritePin(GPIOB, TFT_BL_Pin | CAM_WEN_Pin | CAM_RCLK_Pin | LED4_Pin | LED3_Pin | LED2_Pin | LED1_Pin | VALVE1_Pin | VALVE2_Pin, GPIO_PIN_RESET);
 
     /*Configure GPIO pins : PCPin PCPin PCPin PCPin
                              PCPin PCPin PCPin PCPin */
@@ -66,6 +66,13 @@ void MX_GPIO_Init(void)
     GPIO_InitStruct.Mode = GPIO_MODE_INPUT;
     GPIO_InitStruct.Pull = GPIO_NOPULL;
     HAL_GPIO_Init(GPIOC, &GPIO_InitStruct);
+
+    /*Configure GPIO pin : PtPin */
+    GPIO_InitStruct.Pin   = VALVE3_Pin;
+    GPIO_InitStruct.Mode  = GPIO_MODE_OUTPUT_PP;
+    GPIO_InitStruct.Pull  = GPIO_PULLUP;
+    GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
+    HAL_GPIO_Init(VALVE3_GPIO_Port, &GPIO_InitStruct);
 
     /*Configure GPIO pins : PAPin PAPin */
     GPIO_InitStruct.Pin  = CAM_HREF_Pin | CAM_RRST_Pin;
@@ -118,6 +125,13 @@ void MX_GPIO_Init(void)
     GPIO_InitStruct.Mode = GPIO_MODE_INPUT;
     GPIO_InitStruct.Pull = GPIO_PULLUP;
     HAL_GPIO_Init(BTN1_GPIO_Port, &GPIO_InitStruct);
+
+    /*Configure GPIO pins : PBPin PBPin */
+    GPIO_InitStruct.Pin   = VALVE1_Pin | VALVE2_Pin;
+    GPIO_InitStruct.Mode  = GPIO_MODE_OUTPUT_PP;
+    GPIO_InitStruct.Pull  = GPIO_PULLUP;
+    GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
+    HAL_GPIO_Init(GPIOB, &GPIO_InitStruct);
 
     /* EXTI interrupt init*/
     HAL_NVIC_SetPriority(EXTI15_10_IRQn, 0, 0);
