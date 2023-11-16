@@ -29,9 +29,9 @@ public class ConfigureLed extends AppCompatActivity {
 
     int joystick_connected;
 
-    String message = String.valueOf(stick_x) + "." + String.valueOf(stick_y) + "." + String.valueOf(r2) + "." +
-            String.valueOf(l2) + "." +String.valueOf(btna) + "." + String.valueOf(btnb) + "." +
-            String.valueOf(btnx) + "." + String.valueOf(btny);
+    String message = "c" + String.valueOf(stick_x) + "," + String.valueOf(stick_y) + "," + String.valueOf(r2) + "," +
+            String.valueOf(l2) + "," +String.valueOf(btna) + "," + String.valueOf(btnb) + "," +
+            String.valueOf(btnx) + "," + String.valueOf(btny) + "\n";
 
     ConnectedThread connectedThread;
 
@@ -58,9 +58,9 @@ public class ConfigureLed extends AppCompatActivity {
                 handler.postDelayed(runnable, delay);
                 // send a text: 'a'
                 connectedThread.write(message + "\r\n");
-                message = String.valueOf(stick_x) + "." + String.valueOf(stick_y) + "." + String.valueOf(r2) + "." +
-                        String.valueOf(l2) + "." +String.valueOf(btna) + "." + String.valueOf(btnb) + "." +
-                        String.valueOf(btnx) + "." + String.valueOf(btny);
+                message = "c" + String.valueOf(stick_x) + "," + String.valueOf(stick_y) + "," + String.valueOf(r2) + "," +
+                        String.valueOf(l2) + "," +String.valueOf(btna) + "," + String.valueOf(btnb) + "," +
+                        String.valueOf(btnx) + "," + String.valueOf(btny) + "\n";
 
             }
         }, delay);
@@ -94,9 +94,9 @@ public class ConfigureLed extends AppCompatActivity {
             // Use the X and Y values as needed (here, just displaying in TextView)
             textView2.setText("Joystick X: " + stick_x + "\nJoystick Y: " + stick_y + "\nL2: " + l2 + "\nR2: " + r2);
 
-            message = String.valueOf(stick_x) + "." + String.valueOf(stick_y) + "." + String.valueOf(r2) + "." +
-                    String.valueOf(l2) + "." +String.valueOf(btna) + "." + String.valueOf(btnb) + "." +
-                    String.valueOf(btnx) + "." + String.valueOf(btny);
+            message = "c" + String.valueOf(stick_x) + "," + String.valueOf(stick_y) + "," + String.valueOf(r2) + "," +
+                    String.valueOf(l2) + "," +String.valueOf(btna) + "," + String.valueOf(btnb) + "," +
+                    String.valueOf(btnx) + "," + String.valueOf(btny) + "\n";
 
             textView3.setText(message);
 
@@ -133,9 +133,9 @@ public class ConfigureLed extends AppCompatActivity {
             textView.setText("Button X Pressed!");
             btnx = 1;
 
-            message = String.valueOf(stick_x) + "." + String.valueOf(stick_y) + "." + String.valueOf(r2) + "." +
-                    String.valueOf(l2) + "." +String.valueOf(btna) + "." + String.valueOf(btnb) + "." +
-                    String.valueOf(btnx) + "." + String.valueOf(btny);
+            message = "c" + String.valueOf(stick_x) + "," + String.valueOf(stick_y) + "," + String.valueOf(r2) + "," +
+                    String.valueOf(l2) + "," +String.valueOf(btna) + "," + String.valueOf(btnb) + "," +
+                    String.valueOf(btnx) + "," + String.valueOf(btny) + "\n";
 
             textView3.setText(message);
             // SHOUD HERE BE THE b \r\n??
@@ -149,9 +149,9 @@ public class ConfigureLed extends AppCompatActivity {
             textView.setText("Button Y Pressed!");
             btny = 1;
 
-            message = String.valueOf(stick_x) + "." + String.valueOf(stick_y) + "." + String.valueOf(r2) + "." +
-                    String.valueOf(l2) + "." +String.valueOf(btna) + "." + String.valueOf(btnb) + "." +
-                    String.valueOf(btnx) + "." + String.valueOf(btny);
+            message = "c" + String.valueOf(stick_x) + "," + String.valueOf(stick_y) + "," + String.valueOf(r2) + "," +
+                    String.valueOf(l2) + "," +String.valueOf(btna) + "," + String.valueOf(btnb) + "," +
+                    String.valueOf(btnx) + "," + String.valueOf(btny) + "\n";
 
             textView3.setText(message);
             return true; // To consume the event
@@ -164,9 +164,9 @@ public class ConfigureLed extends AppCompatActivity {
             textView.setText("Button B Pressed!");
             btnb = 1;
 
-            message = String.valueOf(stick_x) + "." + String.valueOf(stick_y) + "." + String.valueOf(r2) + "." +
-                    String.valueOf(l2) + "." +String.valueOf(btna) + "." + String.valueOf(btnb) + "." +
-                    String.valueOf(btnx) + "." + String.valueOf(btny);
+            message = "c" + String.valueOf(stick_x) + "," + String.valueOf(stick_y) + "," + String.valueOf(r2) + "," +
+                    String.valueOf(l2) + "," +String.valueOf(btna) + "," + String.valueOf(btnb) + "," +
+                    String.valueOf(btnx) + "," + String.valueOf(btny) + "\n";
 
             textView3.setText(message);
             return true; // To consume the event
@@ -179,9 +179,9 @@ public class ConfigureLed extends AppCompatActivity {
             textView.setText("Button A Pressed!");
             btna = 1;
 
-            message = String.valueOf(stick_x) + "." + String.valueOf(stick_y) + "." + String.valueOf(r2) + "." +
-                    String.valueOf(l2) + "." +String.valueOf(btna) + "." + String.valueOf(btnb) + "." +
-                    String.valueOf(btnx) + "." + String.valueOf(btny);
+            message = "c" + String.valueOf(stick_x) + "," + String.valueOf(stick_y) + "," + String.valueOf(r2) + "," +
+                    String.valueOf(l2) + "," +String.valueOf(btna) + "," + String.valueOf(btnb) + "," +
+                    String.valueOf(btnx) + "," + String.valueOf(btny) + "\n";
 
             textView3.setText(message);
             return true; // To consume the event
