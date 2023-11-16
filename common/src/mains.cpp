@@ -295,6 +295,7 @@ namespace main
     constexpr auto const auto_robot_navigation_initial_translation{.15};
     constexpr auto const auto_robot_navigation_approach_translation{.2};
 
+    constexpr auto const auto_robot_return_initial_translation{.2};
     constexpr auto const auto_robot_return_translation{1.5};
 
     constexpr auto const auto_robot_thrower_max_velocity{1.}; // For safety, do not remove
@@ -423,7 +424,7 @@ namespace main
     }
 
     // Movement
-    auto track_line{[&, last_line_left{false}, last_line_right{false}, last_change{time.time()}](bool line_left, bool line_right) mutable
+    auto track_line{[&, last_line_left{false}, last_line_right{false}, last_change{time.time()}](bool line_left, bool line_right, bool reversed = false) mutable
                     {
                       if (last_line_left != line_left)
                       {
@@ -441,11 +442,11 @@ namespace main
                       }
                       if (line_left)
                       {
-                        target_rot += rot_correct_to_left * dt / auto_robot_line_tracker_correction_time;
+                        target_rot += (reversed ? -1. : 1.) * rot_correct_to_left * dt / auto_robot_line_tracker_correction_time;
                       }
                       if (line_right)
                       {
-                        target_rot += rot_correct_to_right * dt / auto_robot_line_tracker_correction_time;
+                        target_rot += (reversed ? -1. : 1.) * rot_correct_to_right * dt / auto_robot_line_tracker_correction_time;
                       }
                     }};
     while (true)
@@ -526,6 +527,16 @@ namespace main
       }
       output("returning");
     }
+    target_pos -= auto_robot_return_initial_translation;
+    while (true)
+    {
+      input();
+      if (std::abs(target_pos - move_adrc.m_position) <= auto_robot_translation_tolerance)
+      {
+        break;
+      }
+      output("returning");
+    }
     target_pos -= auto_robot_return_translation;
     while (true)
     {
@@ -534,7 +545,7 @@ namespace main
       {
         break;
       }
-      track_line(line_sensor_left.read(), line_sensor_right.read());
+      track_line(line_sensor_left.read(), line_sensor_right.read(), true);
       output("returning");
     }
 
