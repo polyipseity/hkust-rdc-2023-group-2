@@ -5,6 +5,7 @@
 #include <cstdlib>
 #include <tuple>
 #include <type_traits>
+#include <utility>
 
 #include "can.h"
 #include "communication.hpp"
@@ -291,9 +292,12 @@ namespace main
     constexpr auto const auto_robot_calibration_initial_translation{.1};
     constexpr auto const auto_robot_calibrate_angular_velocity{math::tau / 32.};
     constexpr auto const auto_robot_line_tracker_correction_time{.25};
+    constexpr auto const auto_robot_line_tracker_delay_time{.1};
 
     constexpr auto const auto_robot_navigation_initial_translation{.15};
+    constexpr auto const auto_robot_navigation_angular_velocity{math::tau / 32.};
     constexpr auto const auto_robot_navigation_approach_translation{.2};
+    constexpr auto const auto_robot_line_sensor_filter_time{.01};
 
     constexpr auto const auto_robot_return_initial_translation{.2};
     constexpr auto const auto_robot_return_translation{1.5};
@@ -313,7 +317,9 @@ namespace main
     };
     AutoRobotADRC move_adrc{0., math::tau / 4., {motors_r[0].get_velocity(), motors_r[1].get_velocity()}};
     PositionADRC thrower_adrc{0., motors_r[2].get_velocity(), .1 * 8.5 / 30.};
-    GPIO line_sensor_left{CAM_D1_GPIO_Port, CAM_D1_Pin, auto_robot_line_sensor_reversed}, line_sensor_right{CAM_D3_GPIO_Port, CAM_D3_Pin, auto_robot_line_sensor_reversed};
+    GPIO line_sensor_left{CAM_D1_GPIO_Port, CAM_D1_Pin, auto_robot_line_sensor_reversed},
+        line_sensor_right{CAM_D3_GPIO_Port, CAM_D3_Pin, auto_robot_line_sensor_reversed},
+        line_sensor_mid{CAM_D5_GPIO_Port, CAM_D5_Pin, auto_robot_line_sensor_reversed};
 
     auto dt{0.};
     auto active{true};
@@ -376,7 +382,7 @@ namespace main
                           tft_prints(0, 3, "rot_t: %.2f", target_rot);
                           tft_prints(0, 4, "v: %.2f, %.2f", motors[0].get_velocity(), motors[1].get_velocity());
                           tft_prints(0, 5, "v_t: %.2f, %.2f", v_l, v_r);
-                          tft_prints(0, 6, "sensor: %d, %d", line_sensor_left.read(), line_sensor_right.read());
+                          tft_prints(0, 6, "sensor: %d, %d, %d", line_sensor_left.read(), line_sensor_mid.read(), line_sensor_right.read());
                           tft_prints(0, 7, "%s", state);
                         }
                       }};
@@ -436,7 +442,7 @@ namespace main
                         last_line_right = line_right;
                         last_change = time.time();
                       }
-                      if (time.time() - last_change <= 0.1)
+                      if (time.time() - last_change <= auto_robot_line_tracker_delay_time)
                       {
                         return;
                       }
@@ -461,15 +467,8 @@ namespace main
       target_pos += auto_robot_translation_velocity * dt;
       output("moving");
     }
-    while (!box_targets)
-    {
-      input();
-      output("waiting");
-    }
 
     // Navigation
-    constexpr static auto const deg_diff{math::tau / 18.};
-    constexpr static std::array<double, 5> const lines{0, deg_diff * 1.5, deg_diff * .5, -deg_diff * .5, -deg_diff * 1.5};
     target_pos += auto_robot_navigation_initial_translation;
     while (true)
     {
@@ -478,20 +477,39 @@ namespace main
       {
         break;
       }
-      output("discovering");
+      output("navigating");
     }
-    long cur_line{};
+    while (!box_targets)
+    {
+      input();
+      output("waiting");
+    }
+    long cur_line{4}; // 0, line, 2, line, 4, line, 6, line, 8
+    auto detect_line_change{[&, last_change{time.time()}, last_line{line_sensor_mid.read()}, last_confirmed_line{line_sensor_mid.read()}](bool line) mutable
+                            {
+                              if (last_line != line)
+                              {
+                                last_line = line;
+                                last_change = time.time();
+                              }
+                              if (last_confirmed_line != last_line && time.time() - last_change >= auto_robot_line_sensor_filter_time)
+                              {
+                                last_confirmed_line = last_line;
+                                return true;
+                              }
+                              return false;
+                            }};
     for (auto const target : *box_targets)
     {
-      target_rot += lines[target] - lines[cur_line];
-      cur_line = target;
-      while (true)
+      while (cur_line != target)
       {
         input();
-        if (std::fmod(std::abs(target_rot - math::rotation_matrix2_angle(move_adrc.m_rotation)), math::tau) <= auto_robot_rotation_tolerance)
+        long direction{target - cur_line};
+        if (detect_line_change(line_sensor_mid.read()))
         {
-          break;
+          cur_line += std::copysign(1, direction);
         }
+        target_rot += std::copysign(auto_robot_navigation_angular_velocity * dt, -direction);
         output("navigating");
       }
       target_pos += auto_robot_navigation_approach_translation;
@@ -517,7 +535,17 @@ namespace main
     }
 
     // Returning
-    target_rot += lines[0] - lines[cur_line];
+    while (cur_line != 4)
+    {
+      input();
+      long direction{4 - cur_line};
+      if (detect_line_change(line_sensor_mid.read()))
+      {
+        cur_line += std::copysign(1, direction);
+      }
+      target_rot += std::copysign(auto_robot_navigation_angular_velocity * dt, -direction);
+      output("returning");
+    }
     while (true)
     {
       input();
@@ -681,20 +709,23 @@ namespace main
 
     // grab 1 seedlings
     commander.handle('k',
-                     [&grab1_mode](typename decltype(commander)::ParamType const &) {
-                        grab1_mode = !grab1_mode;
+                     [&grab1_mode](typename decltype(commander)::ParamType const &)
+                     {
+                       grab1_mode = !grab1_mode;
                      });
 
     // grab 2 seedlings
     commander.handle('l',
-                     [&grab2_mode](typename decltype(commander)::ParamType const &) {
-                        grab2_mode = !grab2_mode;
+                     [&grab2_mode](typename decltype(commander)::ParamType const &)
+                     {
+                       grab2_mode = !grab2_mode;
                      });
 
     // Controling the stand of holding grabs
     commander.handle('y',
-                     [&stand_mode](typename decltype(commander)::ParamType const &) {
-                        stand_mode = !stand_mode;
+                     [&stand_mode](typename decltype(commander)::ParamType const &)
+                     {
+                       stand_mode = !stand_mode;
                      });
 
     // Auto Shortcut
@@ -717,7 +748,7 @@ namespace main
         target_pos = move_adrc.m_position;
         target_rot = math::rotation_matrix2_angle(move_adrc.m_rotation);
       }
-      
+
       // auto shortcut
       if (automode)
       {
@@ -741,7 +772,7 @@ namespace main
 
       if (stand_mode)
         stand.write(true);
-      else 
+      else
         stand.write(false);
 
       if (grab1_mode)
