@@ -346,11 +346,7 @@ namespace main
                        box_targets = {tar0, tar1}; // 1, 2, 3, 4
                      });
 
-    HAL_Delay(auto_robot_initial_delay * 1000.);
-
-    // Calibration
     Time time{};
-
     auto const input{[&]()
                      {
                        dt = time.update();
@@ -383,6 +379,16 @@ namespace main
                           tft_prints(0, 7, "%s", state);
                         }
                       }};
+
+    // Initialization
+    auto const initial_time{time.time()};
+    while (time.time() - initial_time <= auto_robot_initial_delay)
+    {
+      input();
+      output("initializing");
+    }
+
+    // Calibration
     target_pos += auto_robot_calibration_initial_translation;
     while (true)
     {
