@@ -23,8 +23,10 @@ namespace
     constexpr auto const task_robot_valve_reversed{false};
     constexpr auto const task_robot_auto_translation_velocity{1.1};         // todo: need to adjust
     constexpr auto const task_robot_auto_rotation_velocity{math::tau / 4.}; // todo: need to adjust
-    constexpr auto const task_robot_auto_tof_ranage{60};
+    constexpr auto const task_robot_auto_tof_ranage{50};
     constexpr auto const task_robot_auto_tof_reading_to_mm{140};
+    constexpr auto const task_robot_auto_max_distance_tof2_wall{380}; 
+    constexpr auto const task_robot_auto_min_distance_tof2_wall{250}; 
     /**
      * @brief Code for task robot
      */
@@ -148,8 +150,8 @@ namespace
                 return std::tuple{std::sscanf(&received2[0], "State;%d , Range %*5c   \r\n"
                                                              "d: %d mm",
                                               &state, &distance) == 2 &&
-                                      state == 0,
-                                  distance};
+                                      state == 0 && distance >= task_robot_auto_min_distance_tof2_wall,
+                                  (distance >= task_robot_auto_min_distance_tof2_wall ? distance : 0)};
             }()};
             auto const [tof3_valid, tof3_distance_mm]{[&]() {
                 auto const [received_size, received]{tof_receiver3.update()};
@@ -159,8 +161,8 @@ namespace
                 return std::tuple{std::sscanf(&received2[0], "State;%d , Range %*5c   \r\n"
                                                              "d: %d mm",
                                               &state, &distance) == 2 &&
-                                      state == 0,
-                                  distance};
+                                      state == 0 && distance <= task_robot_auto_max_distance_tof2_wall,
+                                  (distance <= task_robot_auto_max_distance_tof2_wall ? distance : 0)};
             }()};
 
             if (!active) {
@@ -168,8 +170,10 @@ namespace
                 target_rot = math::rotation_matrix2_angle(move_adrc.m_rotation);
             } else if (automode) { // auto shortcut
                 // wall on left hand side
-                if (!tof2_valid || !tof3_valid) { // too close to the wall 
+                if (!tof2_valid && tof2_distance_mm == 0) { // too close to the wall 
                     target_pos += math::rotation_matrix2(target_rot) * std::remove_reference_t<decltype(target_pos)>{task_robot_auto_translation_velocity * dt, 0.};
+                } else if (!tof3_valid && tof3_distance_mm == 0) { // too far away from the wall
+                    target_pos += math::rotation_matrix2(target_rot) * std::remove_reference_t<decltype(target_pos)>{-task_robot_auto_translation_velocity * dt, 0.};
                 } else {
                     // Method 1 (receive the distance constantly and keep the robot to face to N direction)
                         // front > back (face to NE direction)
@@ -182,11 +186,14 @@ namespace
                         target_rot += task_robot_auto_rotation_velocity * dt;
                     else if (tof3_distance_mm-tof2_distance_mm > task_robot_auto_tof_ranage) // face to NW
                         target_rot -= task_robot_auto_rotation_velocity * dt;
-                    else 
+                    else {
                         target_pos += math::rotation_matrix2(target_rot) * std::remove_reference_t<decltype(target_pos)>{0. , task_robot_auto_translation_velocity * dt};
+                    }
                 }
                 // wall on right hand side
-                // if (!tof2_valid || !tof3_valid) { // too close to the wall 
+                // if (!tof2_valid && tof2_distance_mm == 0) { // too close to the wall 
+                //     target_pos += math::rotation_matrix2(target_rot) * std::remove_reference_t<decltype(target_pos)>{-task_robot_auto_translation_velocity * dt, 0.};
+                // } else if (!tof3_valid && tof3_distance_mm == 0) { // too far away from the wall
                 //     target_pos += math::rotation_matrix2(target_rot) * std::remove_reference_t<decltype(target_pos)>{task_robot_auto_translation_velocity * dt, 0.};
                 // } else {
                 //     // Method 1 (receive the distance constantly and keep the robot to face to N direction)
@@ -222,7 +229,7 @@ namespace
                 tft_prints(0, 6, "v_t: %.2f, %.2f", v_fl, v_fr);
                 tft_prints(0, 7, "     %.2f, %.2f", v_rl, v_rr);
                 tft_prints(0, 8, "tof: %d, %d, %s", tof2_valid, tof2_distance_mm, (tof2_distance_mm-tof3_distance_mm > task_robot_auto_tof_ranage)? "f>b" : "f=b");
-                tft_prints(0, 9, "     %d, %d, %s", tof3_valid, tof3_distance_mm, (tof2_distance_mm-tof2_distance_mm > task_robot_auto_tof_ranage)? "f<b" : "f=b");
+                tft_prints(0, 9, "     %d, %d, %s", tof3_valid, tof3_distance_mm, (tof3_distance_mm-tof2_distance_mm > task_robot_auto_tof_ranage)? "f<b" : "f=b");
             }
         }
     }
