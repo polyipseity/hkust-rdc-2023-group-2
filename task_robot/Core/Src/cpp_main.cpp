@@ -170,19 +170,19 @@ namespace
                 // receive the distance of two tof sensors
                 // compare two distances
                 // Method 1 (receive the distance constantly and keep the robot to face to N direction)
-                // front > back (face to NE direction)
-                // change the value of target_rot to make the robot face to N direction
-                // back > front (face to NW direction)
-                // change the value of target_rot to make the robot face to N direction
-                // front == back (face to N direction)
-                // change the value of target_pos to move in N direction
+                    // front > back (face to NE direction)
+                        // change the value of target_rot to make the robot face to N direction
+                    // back > front (face to NW direction)
+                        // change the value of target_rot to make the robot face to N direction
+                    // front == back (face to N direction)
+                        // change the value of target_pos to move in N direction
                 // Method 2 (receive the distance constantly and make the robot to move to N direction without rotation)
-                // front > back
-                // change the value of target_pos to make the robot move in N direction and it doesnt rotate
-                // front < back
-                // change the value of target_pos to make the robot move in N direction and it doesnt rotate
-                // front == back
-                // change the value of target_pos to move in N direction
+                    // front > back
+                        // change the value of target_pos to make the robot move in N direction and it doesnt rotate
+                    // front < back
+                        // change the value of target_pos to make the robot move in N direction and it doesnt rotate
+                    // front == back
+                        // change the value of target_pos to move in N direction
             }
 
             CANMotorsControl<4> motors{motors_r};
