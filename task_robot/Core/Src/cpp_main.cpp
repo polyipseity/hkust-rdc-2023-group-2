@@ -21,6 +21,8 @@ namespace
     constexpr auto const task_robot_translation_velocity{1.3};
     constexpr auto const task_robot_rotation_velocity{math::tau / 2.};
     constexpr auto const task_robot_valve_reversed{false};
+    constexpr auto const task_robot_auto_translation_velocity{1.1};         // todo: need to adjust
+    constexpr auto const task_robot_auto_rotation_velocity{math::tau / 3.}; // todo: need to adjust
 
     /**
      * @brief Code for task robot
@@ -163,12 +165,9 @@ namespace
             if (!active) {
                 target_pos = move_adrc.m_position;
                 target_rot = math::rotation_matrix2_angle(move_adrc.m_rotation);
-            }
-
-            // auto shortcut
-            if (automode) {
+            } else if (automode) { // auto shortcut 
                 if (!tof2_valid || !tof3_valid) {
-                    target_pos += math::rotation_matrix2(target_rot) * std::remove_reference_t<decltype(target_pos)>{task_robot_translation_velocity * dt, 0.};
+                    target_pos += math::rotation_matrix2(target_rot) * std::remove_reference_t<decltype(target_pos)>{task_robot_auto_translation_velocity * dt, 0.};
                 } else {
                     // Method 1 (receive the distance constantly and keep the robot to face to N direction)
                         // front > back (face to NE direction)
@@ -178,14 +177,14 @@ namespace
                         // front == back (face to N direction)
                             // change the value of target_pos to move in N direction
                     if (tof2_distance_mm > tof3_distance_mm) // face to NE
-                        target_rot += task_robot_rotation_velocity * dt;
+                        target_rot += task_robot_auto_rotation_velocity * dt;
                     else if (tof2_distance_mm < tof3_distance_mm) // face to NW
-                        target_rot -= task_robot_rotation_velocity * dt;
+                        target_rot -= task_robot_auto_rotation_velocity * dt;
                     else 
-                        target_pos += math::rotation_matrix2(target_rot) * std::remove_reference_t<decltype(target_pos)>{0. , task_robot_translation_velocity * dt};
+                        target_pos += math::rotation_matrix2(target_rot) * std::remove_reference_t<decltype(target_pos)>{0. , task_robot_auto_translation_velocity * dt};
                 }
             }
-
+            
             CANMotorsControl<4> motors{motors_r};
             auto const [v_fl, v_fr, v_rl, v_rr]{(active * move_adrc.update(target_pos, target_rot, {motors[0].get_velocity(), motors[1].get_velocity(), motors[2].get_velocity(), motors[3].get_velocity()}, dt)).transpose()[0]};
             update_motor_velocity(motors[0], motor_adrcs[0], v_fl, dt);
