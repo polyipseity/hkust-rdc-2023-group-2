@@ -22,8 +22,9 @@ namespace
     constexpr auto const task_robot_rotation_velocity{math::tau / 2.};
     constexpr auto const task_robot_valve_reversed{false};
     constexpr auto const task_robot_auto_translation_velocity{1.1};         // todo: need to adjust
-    constexpr auto const task_robot_auto_rotation_velocity{math::tau / 3.}; // todo: need to adjust
-
+    constexpr auto const task_robot_auto_rotation_velocity{math::tau / 4.}; // todo: need to adjust
+    constexpr auto const task_robot_auto_tof_ranage{60};
+    constexpr auto const task_robot_auto_tof_reading_to_mm{140};
     /**
      * @brief Code for task robot
      */
@@ -48,8 +49,8 @@ namespace
 
         Commander<8> commander{};
         Receiver<27, false> receiver{huart1, .025};
-        Receiver<38, false> tof_receiver2{huart2, .05};
-        Receiver<38, false> tof_receiver3{huart3, .05};
+        Receiver<38, false> tof_receiver2{huart2, .05}; // front
+        Receiver<38, false> tof_receiver3{huart3, .05}; // back
 
         std::array<bool, 4> ctrl_btns{};
         auto controller_capture{std::tie(active, automode, ctrl_btns, dt, move_adrc, target_pos, target_rot)};
@@ -165,8 +166,9 @@ namespace
             if (!active) {
                 target_pos = move_adrc.m_position;
                 target_rot = math::rotation_matrix2_angle(move_adrc.m_rotation);
-            } else if (automode) { // auto shortcut 
-                if (!tof2_valid || !tof3_valid) {
+            } else if (automode) { // auto shortcut
+                // wall on left hand side
+                if (!tof2_valid || !tof3_valid) { // too close to the wall 
                     target_pos += math::rotation_matrix2(target_rot) * std::remove_reference_t<decltype(target_pos)>{task_robot_auto_translation_velocity * dt, 0.};
                 } else {
                     // Method 1 (receive the distance constantly and keep the robot to face to N direction)
@@ -176,13 +178,31 @@ namespace
                             // change the value of target_rot to make the robot face to N direction
                         // front == back (face to N direction)
                             // change the value of target_pos to move in N direction
-                    if (tof2_distance_mm > tof3_distance_mm) // face to NE
+                    if (tof2_distance_mm-tof3_distance_mm > task_robot_auto_tof_ranage) // face to NE
                         target_rot += task_robot_auto_rotation_velocity * dt;
-                    else if (tof2_distance_mm < tof3_distance_mm) // face to NW
+                    else if (tof3_distance_mm-tof2_distance_mm > task_robot_auto_tof_ranage) // face to NW
                         target_rot -= task_robot_auto_rotation_velocity * dt;
                     else 
                         target_pos += math::rotation_matrix2(target_rot) * std::remove_reference_t<decltype(target_pos)>{0. , task_robot_auto_translation_velocity * dt};
                 }
+                // wall on right hand side
+                // if (!tof2_valid || !tof3_valid) { // too close to the wall 
+                //     target_pos += math::rotation_matrix2(target_rot) * std::remove_reference_t<decltype(target_pos)>{task_robot_auto_translation_velocity * dt, 0.};
+                // } else {
+                //     // Method 1 (receive the distance constantly and keep the robot to face to N direction)
+                //         // front > back (face to NE direction)
+                //             // change the value of target_rot to make the robot face to N direction
+                //         // back > front (face to NW direction)
+                //             // change the value of target_rot to make the robot face to N direction
+                //         // front == back (face to N direction)
+                //             // change the value of target_pos to move in N direction
+                //     if (tof2_distance_mm-tof3_distance_mm > task_robot_auto_tof_ranage) // face to NW
+                //         target_rot -= task_robot_auto_rotation_velocity * dt;
+                //     else if (tof3_distance_mm-tof2_distance_mm > task_robot_auto_tof_ranage) // face to NE
+                //         target_rot += task_robot_auto_rotation_velocity * dt;
+                //     else 
+                //         target_pos += math::rotation_matrix2(target_rot) * std::remove_reference_t<decltype(target_pos)>{0. , task_robot_auto_translation_velocity * dt};
+                // }
             }
             
             CANMotorsControl<4> motors{motors_r};
@@ -201,8 +221,8 @@ namespace
                 tft_prints(0, 5, "   %.2f, %.2f", motors[2].get_velocity(), motors[3].get_velocity());
                 tft_prints(0, 6, "v_t: %.2f, %.2f", v_fl, v_fr);
                 tft_prints(0, 7, "     %.2f, %.2f", v_rl, v_rr);
-                tft_prints(0, 8, "tof: %d, %d", tof2_valid, tof2_distance_mm);
-                tft_prints(0, 9, "     %d, %d", tof3_valid, tof3_distance_mm);
+                tft_prints(0, 8, "tof: %d, %d, %s", tof2_valid, tof2_distance_mm, (tof2_distance_mm-tof3_distance_mm > task_robot_auto_tof_ranage)? "f>b" : "f=b");
+                tft_prints(0, 9, "     %d, %d, %s", tof3_valid, tof3_distance_mm, (tof2_distance_mm-tof2_distance_mm > task_robot_auto_tof_ranage)? "f<b" : "f=b");
             }
         }
     }
