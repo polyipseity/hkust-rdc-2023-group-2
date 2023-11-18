@@ -119,8 +119,7 @@ auto AutoRobotADRC::update(decltype(m_position) target, double target_rot, declt
         target_rot += math::tau;
     }
 
-    auto const forward_unit{m_rotation * math::Vector<double, 2>{1., 0.}};
-    auto ang_diff{target_rot - std::atan2(forward_unit(1), forward_unit(0))};
+    auto ang_diff{target_rot - math::rotation_matrix2_angle(m_rotation)};
     if (ang_diff > math::pi)
     {
         ang_diff -= math::tau;
@@ -236,10 +235,9 @@ auto TaskRobotADRC::update(decltype(m_position) const &target, double target_rot
     {
         target_rot += math::tau;
     }
-    auto const forward_unit{m_rotation * decltype(m_position){1., 0.}};
     auto const pos_diff{target - m_position};
     auto const pos_diff_unit{math::unit_vector(pos_diff)};
-    auto ang_diff{target_rot - std::atan2(forward_unit(1), forward_unit(0))};
+    auto ang_diff{target_rot - math::rotation_matrix2_angle(m_rotation)};
     if (ang_diff > math::pi)
     {
         ang_diff -= math::tau;
