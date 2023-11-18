@@ -157,9 +157,10 @@ public class MainActivity extends AppCompatActivity {
 
 
                                                         // CHANGE HERE BLUETOOTH NAME
-                            //if (deviceName.equals("HC-05 (RDC 2023 Group 2) 1")) {
-                            if (deviceName.equals("Zhanibek’s MacBook Air")) {
-                                                        // HERE
+                            //if (deviceName.equals("HC-05 (RDC 2023 Group 2) 3")) {
+                            //if (deviceName.equals("Zhanibek’s MacBook Air")) {
+                            if (deviceName.equals("HC-05 (RDC 2023 Group 2) 3")) {
+                                                                // HERE
                                                         // HERE
                                                         // HERE
                                                         // HERE
