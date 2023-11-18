@@ -26,6 +26,7 @@ namespace
 
     constexpr auto const auto_robot_calibration_initial_translation{.2};
     constexpr auto const auto_robot_calibrate_angular_velocity{math::tau / 32.};
+    constexpr auto const auto_robot_rotation_correction{math::tau / 32.};
     constexpr auto const auto_robot_line_tracker_correction_time{.25};
     constexpr auto const auto_robot_line_tracker_delay_time{.1};
 
@@ -129,7 +130,7 @@ namespace
             }
             output("discovering");
         }
-        double rot_correct_to_right{-math::tau / 16.}, rot_correct_to_left{math::tau / 16.};
+        double rot_correct_to_right{-auto_robot_rotation_correction}, rot_correct_to_left{auto_robot_rotation_correction};
         while (rot_correct_to_right == 0. || rot_correct_to_left == 0.) {
             input();
             if (rot_correct_to_right == 0.) {
@@ -157,7 +158,7 @@ namespace
                 last_change     = time.time();
             }
             if (time.time() - last_change <= auto_robot_line_tracker_delay_time) {
-                return;
+                return false;
             }
             if (line_left) {
                 target_rot += rot_correct_to_left * dt / auto_robot_line_tracker_correction_time;
@@ -165,14 +166,14 @@ namespace
             if (line_right) {
                 target_rot += rot_correct_to_right * dt / auto_robot_line_tracker_correction_time;
             }
+            return line_left && line_right;
         }};
         while (true) {
             input();
             auto const line_left{line_sensor_left.read()}, line_right{line_sensor_right.read()};
-            if (line_left && line_right) {
+            if (track_line(line_left, line_right)) {
                 break;
             }
-            track_line(line_left, line_right);
             target_pos += auto_robot_translation_velocity * dt;
             output("moving");
         }
