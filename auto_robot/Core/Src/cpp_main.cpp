@@ -22,10 +22,10 @@ namespace
     constexpr auto const auto_robot_translation_velocity{.2};
     constexpr auto const auto_robot_translation_tolerance{.01};
     constexpr auto const auto_robot_rotation_velocity{math::tau / 16.};
-    constexpr auto const auto_robot_rotation_tolerance{math::tau / 128.};
+    constexpr auto const auto_robot_rotation_tolerance{math::tau / 64.};
 
     constexpr auto const auto_robot_initial_translation{.2};
-    constexpr auto const auto_robot_line_tracker_correction{math::tau / 64.};
+    constexpr auto const auto_robot_line_tracker_correction{math::tau / 96.};
     constexpr auto const auto_robot_line_tracker_correction_time{.1};
     constexpr auto const auto_robot_line_tracker_delay_time{.1};
     constexpr auto const auto_robot_avg_forward_rotation_time{4.};
@@ -36,7 +36,7 @@ namespace
     constexpr auto const auto_robot_line_sensor_filter_time{.15};
 
     constexpr auto const auto_robot_thrower_velocity{math::tau}; // For safety, do not remove.
-    constexpr std::array<double, 2> const auto_robot_thrower_offsets{math::tau / 32. + math::tau / 8., math::tau / 4.};
+    constexpr std::array<double, 2> const auto_robot_thrower_offsets{math::tau / 16. + math::tau / 8., math::tau / 4.};
     constexpr auto const auto_robot_thrower_confirmation_time{1.};
 
     /**
@@ -204,6 +204,7 @@ namespace
             return false;
         }};
         auto auto_robot_thrower_offset_iter{std::cbegin(auto_robot_thrower_offsets)};
+        bool second{};
         for (auto const target : *box_targets) {
             while (cur_line != target) {
                 input();
@@ -214,8 +215,8 @@ namespace
                 target_rot += std::copysign(auto_robot_navigation_angular_velocity * dt, -direction);
                 output("navigating");
             }
-            if (target == 1 || target == 7) {
-                target_pos += auto_robot_navigation_side_translation;
+            if (target == 1 || target == 7 || second) {
+                target_pos += (second ? 2. : 1.) * auto_robot_navigation_side_translation;
                 while (std::abs(target_pos - move_adrc.m_position) > auto_robot_translation_tolerance) {
                     input();
                     track_line(line_sensor_left.read(), line_sensor_right.read());
@@ -245,6 +246,7 @@ namespace
                     output("navigating");
                 }
             }
+            second = true;
         }
 
         // Completion
