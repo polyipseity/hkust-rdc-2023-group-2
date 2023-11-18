@@ -25,15 +25,15 @@ namespace
     constexpr auto const task_robot_auto_rotation_velocity{math::tau / 4.}; // todo: need to adjust
     constexpr auto const task_robot_auto_tof_ranage{50};
     constexpr auto const task_robot_auto_tof_reading_to_mm{140};
-    constexpr auto const task_robot_auto_max_distance_tof2_wall{380}; 
-    constexpr auto const task_robot_auto_min_distance_tof2_wall{250}; 
-    constexpr auto const task_robot_btn1_reversed{false}; 
+    constexpr auto const task_robot_auto_max_distance_tof2_wall{380};
+    constexpr auto const task_robot_auto_min_distance_tof2_wall{250};
+    constexpr auto const task_robot_btn1_reversed{false};
     /**
      * @brief Code for task robot
      */
     auto task_robot [[noreturn]] () noexcept
     {
-        CANMotors<4> motors_r{{CAN1_MOTOR1, CAN1_MOTOR0, CAN2_MOTOR2, CAN2_MOTOR3},
+        CANMotors<4> motors_r{{CAN1_MOTOR1, CAN1_MOTOR0, CAN1_MOTOR2, CAN1_MOTOR3},
                               {false, true, false, true}};
         std::array<control::ADRC2d, 4> motor_adrcs{
             new_motor_ADRC_task(motors_r[0]),
@@ -173,44 +173,44 @@ namespace
                                       state == 0 && distance <= task_robot_auto_max_distance_tof2_wall,
                                   (distance <= task_robot_auto_max_distance_tof2_wall ? distance : 0)};
             }()};
-            
+
             if (pre_state == 0 && btn.read())
                 pre_state = 1;
             else if (pre_state == 1 && !btn.read()) {
-                pre_state = 0;
+                pre_state      = 0;
                 left_mode_auto = !left_mode_auto;
             }
 
             if (!active) {
                 target_pos = move_adrc.m_position;
                 target_rot = math::rotation_matrix2_angle(move_adrc.m_rotation);
-            } else if (automode) { // auto shortcut
-                if (left_mode_auto) { // wall on left hand side
-                    if (!tof2_valid && tof2_distance_mm == 0) { // too close to the wall 
+            } else if (automode) {                              // auto shortcut
+                if (left_mode_auto) {                           // wall on left hand side
+                    if (!tof2_valid && tof2_distance_mm == 0) { // too close to the wall
                         target_pos += math::rotation_matrix2(target_rot) * std::remove_reference_t<decltype(target_pos)>{task_robot_auto_translation_velocity * dt, 0.};
                     } else if (!tof3_valid && tof3_distance_mm == 0) { // too far away from the wall
                         target_pos += math::rotation_matrix2(target_rot) * std::remove_reference_t<decltype(target_pos)>{-task_robot_auto_translation_velocity * dt, 0.};
                     } else {
-                        if (tof2_distance_mm-tof3_distance_mm > task_robot_auto_tof_ranage) // face to NE
+                        if (tof2_distance_mm - tof3_distance_mm > task_robot_auto_tof_ranage) // face to NE
                             target_rot += task_robot_auto_rotation_velocity * dt;
-                        else if (tof3_distance_mm-tof2_distance_mm > task_robot_auto_tof_ranage) // face to NW
+                        else if (tof3_distance_mm - tof2_distance_mm > task_robot_auto_tof_ranage) // face to NW
                             target_rot -= task_robot_auto_rotation_velocity * dt;
                         else {
-                            target_pos += math::rotation_matrix2(target_rot) * std::remove_reference_t<decltype(target_pos)>{0. , task_robot_auto_translation_velocity * dt};
+                            target_pos += math::rotation_matrix2(target_rot) * std::remove_reference_t<decltype(target_pos)>{0., task_robot_auto_translation_velocity * dt};
                         }
                     }
-                } else { // wall on the right hand side
-                    if (!tof2_valid && tof2_distance_mm == 0) { // too close to the wall 
+                } else {                                        // wall on the right hand side
+                    if (!tof2_valid && tof2_distance_mm == 0) { // too close to the wall
                         target_pos += math::rotation_matrix2(target_rot) * std::remove_reference_t<decltype(target_pos)>{-task_robot_auto_translation_velocity * dt, 0.};
                     } else if (!tof3_valid && tof3_distance_mm == 0) { // too far away from the wall
                         target_pos += math::rotation_matrix2(target_rot) * std::remove_reference_t<decltype(target_pos)>{task_robot_auto_translation_velocity * dt, 0.};
                     } else {
-                        if (tof2_distance_mm-tof3_distance_mm > task_robot_auto_tof_ranage) // face to NW
+                        if (tof2_distance_mm - tof3_distance_mm > task_robot_auto_tof_ranage) // face to NW
                             target_rot -= task_robot_auto_rotation_velocity * dt;
-                        else if (tof3_distance_mm-tof2_distance_mm > task_robot_auto_tof_ranage) // face to NE
+                        else if (tof3_distance_mm - tof2_distance_mm > task_robot_auto_tof_ranage) // face to NE
                             target_rot += task_robot_auto_rotation_velocity * dt;
-                        else 
-                            target_pos += math::rotation_matrix2(target_rot) * std::remove_reference_t<decltype(target_pos)>{0. , task_robot_auto_translation_velocity * dt};
+                        else
+                            target_pos += math::rotation_matrix2(target_rot) * std::remove_reference_t<decltype(target_pos)>{0., task_robot_auto_translation_velocity * dt};
                     }
                 }
             }
