@@ -102,6 +102,19 @@ namespace
                                      return;
                                  }
                              }
+                             auto const old_ctrl_btns{ctrl_btns};
+                             ctrl_btns = {x_btn != 0, circle_btn != 0, square_btn != 0, triangle_btn != 0, r1 != 0, l1 != 0};
+                             if (!old_ctrl_btns[3] && triangle_btn) {
+                                 // on/off
+                                 active = !active;
+                             }
+                             if (!old_ctrl_btns[1] && circle_btn) {
+                                 // toggle auto-shortcut mode
+                                 automode = !automode;
+                             }
+                             if (automode) {
+                                 return;
+                             }
                              // movement
                              target_pos += move_adrc.m_rotation * math::rotation_matrix2(-math::tau / 4.) *
                                            std::remove_reference_t<decltype(target_pos)>{
@@ -112,30 +125,21 @@ namespace
                              target_rot += l2 / 100. * task_robot_rotation_velocity * dt;
                              // rotate clockwise
                              target_rot -= r2 / 100. * task_robot_rotation_velocity * dt;
-                             if (!ctrl_btns[0] && x_btn) {
+                             if (!old_ctrl_btns[0] && x_btn) {
                                  // control the stand of holding grabs
                                  stand.toggle();
                              }
-                             if (!ctrl_btns[1] && circle_btn) {
-                                 // toggle auto-shortcut mode
-                                 automode = !automode;
-                             }
-                             if (!ctrl_btns[2] && square_btn) {
+                             if (!old_ctrl_btns[2] && square_btn) {
                                  // nothing
                              }
-                             if (!ctrl_btns[3] && triangle_btn) {
-                                 // on/off
-                                 active = !active;
-                             }
-                             if (!ctrl_btns[4] && r1) {
+                             if (!old_ctrl_btns[4] && r1) {
                                  // grab 1 seedling
                                  grab1.toggle();
                              }
-                             if (!ctrl_btns[5] && l1) {
+                             if (!old_ctrl_btns[5] && l1) {
                                  // grab 2 seedlings
                                  grab2.toggle();
                              }
-                             ctrl_btns = {x_btn != 0, circle_btn != 0, square_btn != 0, triangle_btn != 0, r1 != 0, l1 != 0};
                          });
 
         Time time{};
