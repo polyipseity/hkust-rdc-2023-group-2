@@ -33,7 +33,7 @@ namespace
      */
     auto task_robot [[noreturn]] () noexcept
     {
-        CANMotors<4> motors_r{{CAN1_MOTOR1, CAN1_MOTOR0, CAN2_MOTOR0, CAN2_MOTOR1},
+        CANMotors<4> motors_r{{CAN1_MOTOR1, CAN1_MOTOR0, CAN2_MOTOR2, CAN2_MOTOR3},
                               {false, true, false, true}};
         std::array<control::ADRC2d, 4> motor_adrcs{
             new_motor_ADRC_task(motors_r[0]),
