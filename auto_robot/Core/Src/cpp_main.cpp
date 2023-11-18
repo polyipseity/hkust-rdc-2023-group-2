@@ -25,15 +25,16 @@ namespace
     constexpr auto const auto_robot_rotation_tolerance{math::tau / 64.};
 
     constexpr auto const auto_robot_initial_translation{.2};
-    constexpr auto const auto_robot_line_tracker_correction{math::tau / 96.};
+    constexpr auto const auto_robot_line_tracker_correction{math::tau / 64.};
     constexpr auto const auto_robot_line_tracker_correction_time{.1};
     constexpr auto const auto_robot_line_tracker_delay_time{.1};
     constexpr auto const auto_robot_avg_forward_rotation_time{4.};
 
-    constexpr auto const auto_robot_navigation_initial_translation{.33};
+    constexpr auto const auto_robot_navigation_initial_translation{.3};
     constexpr auto const auto_robot_navigation_side_translation{.05};
     constexpr auto const auto_robot_navigation_angular_velocity{math::tau / 32.};
     constexpr auto const auto_robot_line_sensor_filter_time{.15};
+    constexpr auto const auto_robot_navigation_rotation_inner_offset{math::tau / 32.};
 
     constexpr auto const auto_robot_thrower_velocity{math::tau}; // For safety, do not remove.
     constexpr std::array<double, 2> const auto_robot_thrower_offsets{math::tau / 16. + math::tau / 8., math::tau / 4.};
@@ -52,7 +53,7 @@ namespace
             new_motor_ADRC_auto(motors_r[2], .5, 24.),
         };
         AutoRobotADRC move_adrc{0., math::tau / 4., {motors_r[0].get_velocity(), motors_r[1].get_velocity()}};
-        PositionADRC thrower_adrc{0., motors_r[2].get_velocity(), math::tau * .1 * 8.5 / 30.};
+        PositionADRC thrower_adrc{0., motors_r[2].get_velocity(), math::tau * .1 * 8.5 / 30., 3.};
         GPIO line_sensor_left{CAM_D1_GPIO_Port, CAM_D1_Pin, auto_robot_line_sensor_reversed},
             line_sensor_right{CAM_D3_GPIO_Port, CAM_D3_Pin, auto_robot_line_sensor_reversed},
             line_sensor_mid{CAM_D5_GPIO_Port, CAM_D5_Pin, auto_robot_line_sensor_reversed};
@@ -204,7 +205,6 @@ namespace
             return false;
         }};
         auto auto_robot_thrower_offset_iter{std::cbegin(auto_robot_thrower_offsets)};
-        bool second{};
         for (auto const target : *box_targets) {
             while (cur_line != target) {
                 input();
@@ -215,8 +215,17 @@ namespace
                 target_rot += std::copysign(auto_robot_navigation_angular_velocity * dt, -direction);
                 output("navigating");
             }
-            if (target == 1 || target == 7 || second) {
-                target_pos += (second ? 2. : 1.) * auto_robot_navigation_side_translation;
+            auto const inner_direction{target <= 4 ? -1 : 1};
+            target_rot += inner_direction * auto_robot_navigation_rotation_inner_offset;
+            while (true) {
+                input();
+                if (std::fmod(std::abs(math::rotation_matrix2_angle(move_adrc.m_rotation) - target_rot), math::tau) <= auto_robot_rotation_tolerance) {
+                    break;
+                }
+                output("navigating");
+            }
+            if (target == 1 || target == 7) {
+                target_pos += auto_robot_navigation_side_translation;
                 while (std::abs(target_pos - move_adrc.m_position) > auto_robot_translation_tolerance) {
                     input();
                     track_line(line_sensor_left.read(), line_sensor_right.read());
@@ -246,7 +255,10 @@ namespace
                     output("navigating");
                 }
             }
-            second = true;
+            if (!line_sensor_mid.read()) {
+                detect_line_change(false);
+                cur_line += -inner_direction;
+            }
         }
 
         // Completion
