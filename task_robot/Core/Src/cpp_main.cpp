@@ -156,10 +156,10 @@ namespace
                                  grab2.toggle();
                              }
                              if (!old_ctrl_btns[7] && up) {
-                                 curr_velocities = std::max(0, curr_velocities - 1);
+                                 curr_velocities = std::min(2, curr_velocities + 1);
                              }
                              if (!old_ctrl_btns[9] && down) {
-                                 curr_velocities = std::min(2, curr_velocities + 1);
+                                 curr_velocities = std::max(0, curr_velocities - 1);
                              }
                          });
 
