@@ -239,7 +239,7 @@ namespace
             bool thrown{};
             auto last_match{-auto_robot_thrower_confirmation_time};
             while (!thrown) {
-                if (std::abs(thrower_rot - thrower_adrc.m_position) > auto_robot_rotation_tolerance) {
+                if (std::abs(thrower_rot - thrower_adrc.m_position) <= auto_robot_rotation_tolerance) {
                     if (last_match <= 0.) {
                         last_match = time.time();
                     }
