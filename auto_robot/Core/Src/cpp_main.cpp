@@ -24,17 +24,16 @@ namespace
     constexpr auto const auto_robot_rotation_velocity{math::tau / 16.};
     constexpr auto const auto_robot_rotation_tolerance{math::tau / 128.};
 
-    constexpr auto const auto_robot_calibration_initial_translation{.2};
-    constexpr auto const auto_robot_calibrate_angular_velocity{math::tau / 32.};
-    constexpr auto const auto_robot_rotation_correction{math::tau / 32.};
-    constexpr auto const auto_robot_line_tracker_correction_time{.25};
+    constexpr auto const auto_robot_initial_translation{.2};
+    constexpr auto const auto_robot_line_tracker_correction{math::tau / 64.};
+    constexpr auto const auto_robot_line_tracker_correction_time{.1};
     constexpr auto const auto_robot_line_tracker_delay_time{.1};
-    constexpr auto const auto_robot_avg_forward_rotation_time{2.};
+    constexpr auto const auto_robot_avg_forward_rotation_time{4.};
 
-    constexpr auto const auto_robot_navigation_initial_translation{.3};
+    constexpr auto const auto_robot_navigation_initial_translation{.33};
+    constexpr auto const auto_robot_navigation_side_translation{.05};
     constexpr auto const auto_robot_navigation_angular_velocity{math::tau / 32.};
-    constexpr auto const auto_robot_navigation_approach_translation{.15};
-    constexpr auto const auto_robot_line_sensor_filter_time{.1};
+    constexpr auto const auto_robot_line_sensor_filter_time{.15};
 
     constexpr auto const auto_robot_thrower_velocity{math::tau}; // For safety, do not remove.
     constexpr std::array<double, 2> const auto_robot_thrower_offsets{math::tau / 32. + math::tau / 8., math::tau / 4.};
@@ -123,33 +122,15 @@ namespace
             output("initializing");
         }
 
-        // Calibration
-        target_pos += auto_robot_calibration_initial_translation;
+        // Movement
+        target_pos += auto_robot_initial_translation;
         while (true) {
             input();
             if (std::abs(target_pos - move_adrc.m_position) <= auto_robot_translation_tolerance) {
                 break;
             }
-            output("discovering");
+            output("moving");
         }
-        double rot_correct_to_right{-auto_robot_rotation_correction}, rot_correct_to_left{auto_robot_rotation_correction};
-        while (rot_correct_to_right == 0. || rot_correct_to_left == 0.) {
-            input();
-            if (rot_correct_to_right == 0.) {
-                if (line_sensor_right.read()) {
-                    rot_correct_to_right = -target_rot + math::tau / 4.;
-                }
-                target_rot += auto_robot_calibrate_angular_velocity * dt;
-            } else {
-                if (line_sensor_left.read()) {
-                    rot_correct_to_left = -target_rot + math::tau / 4.;
-                }
-                target_rot -= auto_robot_calibrate_angular_velocity * dt;
-            }
-            output("calibrating");
-        }
-
-        // Movement
         auto track_line{[&, last_line_left{line_sensor_left.read()}, last_line_right{line_sensor_right.read()}, last_change{time.time()}](bool line_left, bool line_right) mutable {
             if (last_line_left != line_left) {
                 last_line_left = line_left;
@@ -163,14 +144,14 @@ namespace
                 return false;
             }
             if (line_left) {
-                target_rot += rot_correct_to_left * dt / auto_robot_line_tracker_correction_time;
+                target_rot += auto_robot_line_tracker_correction * dt / auto_robot_line_tracker_correction_time;
             }
             if (line_right) {
-                target_rot += rot_correct_to_right * dt / auto_robot_line_tracker_correction_time;
+                target_rot -= auto_robot_line_tracker_correction * dt / auto_robot_line_tracker_correction_time;
             }
             return line_left && line_right;
         }};
-        auto avg_forward_rotation{target_rot};
+        auto avg_forward_rotation{math::rotation_matrix2_angle(move_adrc.m_rotation)};
         while (true) {
             input();
             auto const line_left{line_sensor_left.read()}, line_right{line_sensor_right.read()};
@@ -178,7 +159,7 @@ namespace
                 target_rot = avg_forward_rotation;
                 break;
             }
-            avg_forward_rotation += (target_rot - avg_forward_rotation) * dt / auto_robot_avg_forward_rotation_time;
+            avg_forward_rotation += (math::rotation_matrix2_angle(move_adrc.m_rotation) - avg_forward_rotation) * dt / auto_robot_avg_forward_rotation_time;
             target_pos += auto_robot_translation_velocity * dt;
             output("moving");
         }
@@ -233,11 +214,13 @@ namespace
                 target_rot += std::copysign(auto_robot_navigation_angular_velocity * dt, -direction);
                 output("navigating");
             }
-            target_pos += auto_robot_navigation_approach_translation;
-            while (std::abs(target_pos - move_adrc.m_position) > auto_robot_translation_tolerance) {
-                input();
-                track_line(line_sensor_left.read(), line_sensor_right.read());
-                output("navigating");
+            if (target == 1 || target == 7) {
+                target_pos += auto_robot_navigation_side_translation;
+                while (std::abs(target_pos - move_adrc.m_position) > auto_robot_translation_tolerance) {
+                    input();
+                    track_line(line_sensor_left.read(), line_sensor_right.read());
+                    output("navigating");
+                }
             }
             thrower_rot += *auto_robot_thrower_offset_iter++;
             auto last_match{-auto_robot_thrower_confirmation_time};
@@ -255,10 +238,12 @@ namespace
                 }
                 output("throwing");
             }
-            target_pos -= auto_robot_navigation_approach_translation;
-            while (std::abs(target_pos - move_adrc.m_position) > auto_robot_translation_tolerance) {
-                input();
-                output("navigating");
+            if (target == 1 || target == 7) {
+                target_pos -= auto_robot_navigation_side_translation;
+                while (std::abs(target_pos - move_adrc.m_position) > auto_robot_translation_tolerance) {
+                    input();
+                    output("navigating");
+                }
             }
         }
 
