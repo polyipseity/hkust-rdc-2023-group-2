@@ -33,7 +33,7 @@ namespace
      */
     auto task_robot [[noreturn]] () noexcept
     {
-        CANMotors<4> motors_r{{CAN1_MOTOR3, CAN1_MOTOR0, CAN2_MOTOR0, CAN2_MOTOR1},
+        CANMotors<4> motors_r{{CAN1_MOTOR1, CAN1_MOTOR0, CAN2_MOTOR0, CAN2_MOTOR1},
                               {false, true, false, true}};
         std::array<control::ADRC2d, 4> motor_adrcs{
             new_motor_ADRC_task(motors_r[0]),
@@ -53,42 +53,43 @@ namespace
         math::Vector<double, 2> target_pos{};
         double target_rot{math::tau / 4.};
 
-        Commander<8> commander{};
-        Receiver<27, false> receiver{huart1, .025};
+        Commander<10> commander{};
+        Receiver<31, false> receiver{huart1, .025};
         Receiver<38, false> tof_receiver2{huart2, .05}; // front
         Receiver<38, false> tof_receiver3{huart3, .05}; // back
 
-        std::array<bool, 4> ctrl_btns{};
-        auto controller_capture{std::tie(active, automode, ctrl_btns, dt, move_adrc, target_pos, target_rot)};
+        std::array<bool, 6> ctrl_btns{};
+        auto controller_capture{std::tie(active, automode, ctrl_btns, dt, grab1, grab2, move_adrc, stand, target_pos, target_rot)};
         commander.handle('c',
                          [&controller_capture](typename decltype(commander)::ParamType const &params) {
-                             auto &[active, automode, ctrl_btns, dt, move_adrc, target_pos, target_rot]{controller_capture};
+                             auto &[active, automode, ctrl_btns, dt, grab1, grab2, move_adrc, stand, target_pos, target_rot]{controller_capture};
                              /*
                              controller
                              - left joystick: movement
                              - L2: rotate left
                              - R2: rotate right
-                             - X button: toggle the active status
-                             - circle button: toggle auto shortcut mode // todo
-                             - triangle button: grab 1 // todo
-                             - square button: grab 2 // todo
-                             - R1 button: stand // todo
+                             - X button: stand
+                             - circle button: toggle auto shortcut mode
+                             - triangle button: toggle the active status
+                             - R1: grab 1
+                             - L1: grab 2
 
                              message
-                             c(num0),(num1),(num2),(num3),(num4),(num5),(num6),(num7)\n
-                             - length: 1 + (4 + 1) * 2 + (3 + 1) * 2 + (1 + 1) * 4 - 1 + 1
+                             c(num0),(num1),(num2),(num3),(num4),(num5),(num6),(num7),(num8),(num9)\n
+                             - length: 1 + (4 + 1) * 2 + (3 + 1) * 2 + (1 + 1) * 6 - 1 + 1
                              - num0: left joystick X (right is positive), [-100, 100]
                              - num1: left joystick Y (down is positive), [-100, 100]
                              - num2: R2, [0, 100]
                              - num3: L2, [0, 100]
                              - num4: X button, [0, 1]
                              - num5: circle button, [0, 1]
-                             - num6: triangle button, [0, 1]
-                             - num7: square button, [0, 1]
+                             - num6: square button, [0, 1]
+                             - num7: triangle button, [0, 1]
                              - num8: R1, [0, 1]
+                             - num9: L1, [0, 1]
                              */
-                             auto &&[num0, num1, num2, num3, num4, num5, num6, num7]{params};
-                             std::array<char *, 8> ends{};
+                             auto &&[num0, num1, num2, num3, num4, num5, num6, num7, num8, num9]{params};
+                             std::array<char *, 10> ends{};
                              long l_js_x{std::strtol(std::get<1>(num0), &ends[0], 10)},
                                  l_js_y{std::strtol(std::get<1>(num1), &ends[1], 10)},
                                  r2{std::strtol(std::get<1>(num2), &ends[2], 10)},
@@ -96,11 +97,26 @@ namespace
                                  x_btn{std::strtol(std::get<1>(num4), &ends[4], 10)},
                                  circle_btn{std::strtol(std::get<1>(num5), &ends[5], 10)},
                                  square_btn{std::strtol(std::get<1>(num6), &ends[6], 10)},
-                                 triangle_btn{std::strtol(std::get<1>(num7), &ends[7], 10)};
-                             for (std::size_t ii{}; ii < 8; ++ii) {
+                                 triangle_btn{std::strtol(std::get<1>(num7), &ends[7], 10)},
+                                 r1{std::strtol(std::get<1>(num8), &ends[8], 10)},
+                                 l1{std::strtol(std::get<1>(num9), &ends[9], 10)};
+                             for (std::size_t ii{}; ii < ends.size(); ++ii) {
                                  if (std::get<1>(params[ii]) == ends[ii]) {
                                      return;
                                  }
+                             }
+                             auto const old_ctrl_btns{ctrl_btns};
+                             ctrl_btns = {x_btn != 0, circle_btn != 0, square_btn != 0, triangle_btn != 0, r1 != 0, l1 != 0};
+                             if (!old_ctrl_btns[3] && triangle_btn) {
+                                 // on/off
+                                 active = !active;
+                             }
+                             if (!old_ctrl_btns[1] && circle_btn) {
+                                 // toggle auto-shortcut mode
+                                 automode = !automode;
+                             }
+                             if (automode) {
+                                 return;
                              }
                              // movement
                              target_pos += move_adrc.m_rotation * math::rotation_matrix2(-math::tau / 4.) *
@@ -112,36 +128,21 @@ namespace
                              target_rot += l2 / 100. * task_robot_rotation_velocity * dt;
                              // rotate clockwise
                              target_rot -= r2 / 100. * task_robot_rotation_velocity * dt;
-                             if (!ctrl_btns[0] && x_btn) {
-                                 // on/off
-                                 active = !active;
+                             if (!old_ctrl_btns[0] && x_btn) {
+                                 // control the stand of holding grabs
+                                 stand.toggle();
                              }
-                             if (!ctrl_btns[3] && triangle_btn) {
-                                 // auto shortcut mode
-                                 automode = !automode;
+                             if (!old_ctrl_btns[2] && square_btn) {
+                                 // nothing
                              }
-                             ctrl_btns = {x_btn != 0, circle_btn != 0, square_btn != 0, triangle_btn != 0};
-                         });
-
-        // grab 1 seedlings
-        commander.handle('k',
-                         [&grab1, &receiver](typename decltype(commander)::ParamType const &) {
-                             receiver.invalidate();
-                             grab1.toggle();
-                         });
-
-        // grab 2 seedlings
-        commander.handle('l',
-                         [&grab2, &receiver](typename decltype(commander)::ParamType const &) {
-                             receiver.invalidate();
-                             grab2.toggle();
-                         });
-
-        // Controling the stand of holding grabs
-        commander.handle('y',
-                         [&stand, &receiver](typename decltype(commander)::ParamType const &) {
-                             receiver.invalidate();
-                             stand.toggle();
+                             if (!old_ctrl_btns[4] && r1) {
+                                 // grab 1 seedling
+                                 grab1.toggle();
+                             }
+                             if (!old_ctrl_btns[5] && l1) {
+                                 // grab 2 seedlings
+                                 grab2.toggle();
+                             }
                          });
 
         Time time{};
@@ -213,7 +214,7 @@ namespace
                     }
                 }
             }
-            
+
             CANMotorsControl<4> motors{motors_r};
             auto const [v_fl, v_fr, v_rl, v_rr]{(active * move_adrc.update(target_pos, target_rot, {motors[0].get_velocity(), motors[1].get_velocity(), motors[2].get_velocity(), motors[3].get_velocity()}, dt)).transpose()[0]};
             update_motor_velocity(motors[0], motor_adrcs[0], v_fl, dt);
@@ -225,13 +226,13 @@ namespace
                 tft_prints(0, 0, "pos: %.2f, %.2f", move_adrc.m_position(0), move_adrc.m_position(1));
                 tft_prints(0, 1, "pos_t: %.2f, %.2f", target_pos(0), target_pos(1));
                 tft_prints(0, 2, "rot: %.2f", math::rotation_matrix2_angle(move_adrc.m_rotation));
-                tft_prints(0, 3, "rot_t: %.2f", target_rot);
+                tft_prints(0, 3, "rot_t: %.2f, %c", target_rot, left_mode_auto ? 'C' : 'R');
                 tft_prints(0, 4, "v: %.2f, %.2f", motors[0].get_velocity(), motors[1].get_velocity());
                 tft_prints(0, 5, "   %.2f, %.2f", motors[2].get_velocity(), motors[3].get_velocity());
                 tft_prints(0, 6, "v_t: %.2f, %.2f", v_fl, v_fr);
                 tft_prints(0, 7, "     %.2f, %.2f", v_rl, v_rr);
-                tft_prints(0, 8, "tof: %d, %d, %s", tof2_valid, tof2_distance_mm, (tof2_distance_mm-tof3_distance_mm > task_robot_auto_tof_ranage)? "f>b" : "f=b");
-                tft_prints(0, 9, "     %d, %d, %s", tof3_valid, tof3_distance_mm, (tof3_distance_mm-tof2_distance_mm > task_robot_auto_tof_ranage)? "f<b" : "f=b");
+                tft_prints(0, 8, "tof: %d, %d, %s", tof2_valid, tof2_distance_mm, (tof2_distance_mm - tof3_distance_mm > task_robot_auto_tof_ranage) ? "f>b" : "f=b");
+                tft_prints(0, 9, "     %d, %d, %s", tof3_valid, tof3_distance_mm, (tof3_distance_mm - tof2_distance_mm > task_robot_auto_tof_ranage) ? "f<b" : "f=b");
             }
         }
     }

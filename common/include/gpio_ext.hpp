@@ -43,5 +43,4 @@ struct GPIO
    * @brief Toggle the Pin
    */
   auto toggle() noexcept -> void;
-
 };

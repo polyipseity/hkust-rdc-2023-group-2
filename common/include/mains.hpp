@@ -23,8 +23,10 @@ namespace test
    * @brief Test a motor to find its gain
    *
    * @param motor_handle motor to test
+   * @param input input current
+   * @param duration input duration
    */
-  auto find_motor_gain [[noreturn]] (Motor motor_handle) noexcept -> void;
+  auto find_motor_gain [[noreturn]] (Motor motor_handle, double input = 1., double duration = .5) noexcept -> void;
 
   /**
    * @brief Test setting a motor to a certain velocity.

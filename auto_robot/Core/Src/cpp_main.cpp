@@ -24,18 +24,18 @@ namespace
     constexpr auto const auto_robot_rotation_velocity{math::tau / 16.};
     constexpr auto const auto_robot_rotation_tolerance{math::tau / 128.};
 
-    constexpr auto const auto_robot_calibration_initial_translation{.1};
+    constexpr auto const auto_robot_calibration_initial_translation{.2};
     constexpr auto const auto_robot_calibrate_angular_velocity{math::tau / 32.};
     constexpr auto const auto_robot_line_tracker_correction_time{.25};
     constexpr auto const auto_robot_line_tracker_delay_time{.1};
 
-    constexpr auto const auto_robot_navigation_initial_translation{.15};
-    constexpr auto const auto_robot_navigation_angular_velocity{math::tau / 64.};
-    constexpr auto const auto_robot_navigation_approach_translation{.2};
-    constexpr auto const auto_robot_line_sensor_filter_time{.1};
+    constexpr auto const auto_robot_navigation_initial_translation{.25};
+    constexpr auto const auto_robot_navigation_angular_velocity{math::tau / 32.};
+    constexpr auto const auto_robot_navigation_approach_translation{.1};
+    constexpr auto const auto_robot_line_sensor_filter_time{.3};
 
     constexpr auto const auto_robot_thrower_velocity{math::tau}; // For safety, do not remove.
-    constexpr std::array<double, 2> const auto_robot_thrower_offsets{math::tau / 3., math::tau * 5. / 24.};
+    constexpr std::array<double, 2> const auto_robot_thrower_offsets{math::tau / 8., math::tau / 4.};
 
     /**
      * @brief Code for auto robot
@@ -47,7 +47,7 @@ namespace
         std::array<control::ADRC2d, 3> motor_adrcs{
             new_motor_ADRC_auto(motors_r[0]),
             new_motor_ADRC_auto(motors_r[1]),
-            new_motor_ADRC_auto(motors_r[2], .5, 8.),
+            new_motor_ADRC_auto(motors_r[2], .5, 24.),
         };
         AutoRobotADRC move_adrc{0., math::tau / 4., {motors_r[0].get_velocity(), motors_r[1].get_velocity()}};
         PositionADRC thrower_adrc{0., motors_r[2].get_velocity(), math::tau * .1 * 8.5 / 30.};
@@ -129,7 +129,7 @@ namespace
             }
             output("discovering");
         }
-        double rot_correct_to_right{}, rot_correct_to_left{};
+        double rot_correct_to_right{-math::tau / 16.}, rot_correct_to_left{math::tau / 16.};
         while (rot_correct_to_right == 0. || rot_correct_to_left == 0.) {
             input();
             if (rot_correct_to_right == 0.) {
@@ -191,6 +191,20 @@ namespace
             output("waiting");
         }
         long cur_line{4}; // 0, line, 2, line, 4, line, 6, line, 8
+        if (line_sensor_mid.read()) {
+            bool modified{};
+            if (line_sensor_left.read()) {
+                --cur_line;
+                modified = true;
+            }
+            if (line_sensor_right.read()) {
+                ++cur_line;
+                modified = true;
+            }
+            if (!modified) {
+                ++cur_line; // assume left bias
+            }
+        }
         auto detect_line_change{[&, last_change{time.time()}, last_line{line_sensor_mid.read()}, last_confirmed_line{line_sensor_mid.read()}](bool line) mutable {
             if (last_line != line) {
                 last_line   = line;
