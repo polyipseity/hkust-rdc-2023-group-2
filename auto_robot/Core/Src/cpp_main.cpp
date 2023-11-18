@@ -37,7 +37,7 @@ namespace
     constexpr auto const auto_robot_navigation_rotation_inner_offset{math::tau / 32.};
 
     constexpr auto const auto_robot_thrower_velocity{math::tau}; // For safety, do not remove.
-    constexpr std::array<double, 2> const auto_robot_thrower_offsets{math::tau / 6., math::tau / 2.};
+    constexpr std::array<double, 2> const auto_robot_thrower_offsets{math::tau / 6. - math::tau / 64., math::tau / 2. + math::tau / 64.};
     constexpr auto const auto_robot_thrower_confirmation_time{1.};
 
     /**
@@ -216,8 +216,8 @@ namespace
                 output("navigating");
             }
             auto const inner_direction{target == 1. ? -1. : target == 7 ? 1
-                                                        : target == 3   ? -.5
-                                                        : target == 5   ? .5
+                                                        : target == 3   ? -2. / 3.
+                                                        : target == 5   ? 2. / 3.
                                                                         : 0.};
             target_rot += inner_direction * auto_robot_navigation_rotation_inner_offset;
             while (true) {
@@ -230,7 +230,7 @@ namespace
             if (target == 1 || target == 7) {
                 target_pos += auto_robot_navigation_side_translation;
             } else if (target == 3 || target == 5) {
-                target_pos += auto_robot_navigation_side_translation / 1.5;
+                target_pos += auto_robot_navigation_side_translation / 1.4;
             }
             while (std::abs(target_pos - move_adrc.m_position) > auto_robot_translation_tolerance) {
                 input();
@@ -256,7 +256,7 @@ namespace
             if (target == 1 || target == 7) {
                 target_pos -= auto_robot_navigation_side_translation;
             } else if (target == 3 || target == 5) {
-                target_pos -= auto_robot_navigation_side_translation / 1.5;
+                target_pos -= auto_robot_navigation_side_translation / 1.4;
             }
             while (std::abs(target_pos - move_adrc.m_position) > auto_robot_translation_tolerance) {
                 input();
