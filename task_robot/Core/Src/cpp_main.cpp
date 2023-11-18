@@ -18,11 +18,12 @@
 
 namespace
 {
-    constexpr auto const task_robot_translation_velocity{1.3};
-    constexpr auto const task_robot_rotation_velocity{math::tau / 2.};
+    constexpr std::array<double, 3> const task_robot_translation_velocity{0.3, 0.8, 1.3};
+    constexpr std::array<double, 3> const task_robot_rotation_velocity{math::tau / 12, math::tau / 4, math::tau / 2.};
+    constexpr auto const task_robot_init_velocities{1};
     constexpr auto const task_robot_valve_reversed{false};
-    constexpr auto const task_robot_auto_translation_velocity{0.7};         // todo: need to adjust
-    constexpr auto const task_robot_auto_rotation_velocity{math::tau / 6.}; // todo: need to adjust
+    constexpr auto const task_robot_auto_translation_velocity{0.7};         
+    constexpr auto const task_robot_auto_rotation_velocity{math::tau / 6.}; 
     constexpr auto const task_robot_auto_tof_ranage{50};
     constexpr auto const task_robot_auto_tof_reading_to_mm{140};
     constexpr auto const task_robot_auto_max_distance_tof2_wall{380};
@@ -45,6 +46,7 @@ namespace
         GPIO stand{VALVE1_GPIO_Port, VALVE1_Pin, task_robot_valve_reversed}, grab1{VALVE2_GPIO_Port, VALVE2_Pin, task_robot_valve_reversed}, grab2{VALVE3_GPIO_Port, VALVE3_Pin, task_robot_valve_reversed};
         GPIO btn{BTN1_GPIO_Port, BTN1_Pin, task_robot_btn1_reversed}, btn2{BTN2_GPIO_Port, BTN2_Pin, task_robot_btn1_reversed};
 
+        auto curr_velocities{task_robot_init_velocities};
         auto pre_state{0};
         auto pre_state_2{0};
         auto left_mode_auto{true};
@@ -54,16 +56,16 @@ namespace
         math::Vector<double, 2> target_pos{};
         double target_rot{math::tau / 4.};
 
-        Commander<10> commander{};
-        Receiver<31, false> receiver{huart1, .025};
+        Commander<14> commander{};
+        Receiver<39, false> receiver{huart1, .025};
         Receiver<38, false> tof_receiver2{huart2, .05}; // front
         Receiver<38, false> tof_receiver3{huart3, .05}; // back
 
-        std::array<bool, 6> ctrl_btns{};
-        auto controller_capture{std::tie(active, automode, ctrl_btns, dt, grab1, grab2, move_adrc, stand, target_pos, target_rot)};
+        std::array<bool, 10> ctrl_btns{};
+        auto controller_capture{std::tie(active, automode, ctrl_btns, curr_velocities, dt, grab1, grab2, move_adrc, stand, target_pos, target_rot)};
         commander.handle('c',
                          [&controller_capture](typename decltype(commander)::ParamType const &params) {
-                             auto &[active, automode, ctrl_btns, dt, grab1, grab2, move_adrc, stand, target_pos, target_rot]{controller_capture};
+                             auto &[active, automode, ctrl_btns, curr_velocities, dt, grab1, grab2, move_adrc, stand, target_pos, target_rot]{controller_capture};
                              /*
                              controller
                              - left joystick: movement
@@ -74,10 +76,12 @@ namespace
                              - triangle button: toggle the active status
                              - R1: grab 1
                              - L1: grab 2
+                             - up botton: increase velocities
+                             - down botton: decrease velocities
 
                              message
                              c(num0),(num1),(num2),(num3),(num4),(num5),(num6),(num7),(num8),(num9)\n
-                             - length: 1 + (4 + 1) * 2 + (3 + 1) * 2 + (1 + 1) * 6 - 1 + 1
+                             - length: 1 + (4 + 1) * 2 + (3 + 1) * 2 + (1 + 1) * 10 - 1 + 1
                              - num0: left joystick X (right is positive), [-100, 100]
                              - num1: left joystick Y (down is positive), [-100, 100]
                              - num2: R2, [0, 100]
@@ -88,9 +92,13 @@ namespace
                              - num7: triangle button, [0, 1]
                              - num8: R1, [0, 1]
                              - num9: L1, [0, 1]
+                             - num10: left button, [0, 1]
+                             - num11: up button, [0, 1]
+                             - num12: right button, [0, 1]
+                             - num13: down button, [0, 1]
                              */
-                             auto &&[num0, num1, num2, num3, num4, num5, num6, num7, num8, num9]{params};
-                             std::array<char *, 10> ends{};
+                             auto &&[num0, num1, num2, num3, num4, num5, num6, num7, num8, num9, num10, num11, num12, num13]{params};
+                             std::array<char *, 14> ends{};
                              long l_js_x{std::strtol(std::get<1>(num0), &ends[0], 10)},
                                  l_js_y{std::strtol(std::get<1>(num1), &ends[1], 10)},
                                  r2{std::strtol(std::get<1>(num2), &ends[2], 10)},
@@ -100,14 +108,18 @@ namespace
                                  square_btn{std::strtol(std::get<1>(num6), &ends[6], 10)},
                                  triangle_btn{std::strtol(std::get<1>(num7), &ends[7], 10)},
                                  r1{std::strtol(std::get<1>(num8), &ends[8], 10)},
-                                 l1{std::strtol(std::get<1>(num9), &ends[9], 10)};
+                                 l1{std::strtol(std::get<1>(num9), &ends[9], 10)},
+                                 left{std::strtol(std::get<1>(num10), &ends[10], 10)},
+                                 up{std::strtol(std::get<1>(num11), &ends[11], 10)},
+                                 right{std::strtol(std::get<1>(num12), &ends[12], 10)},
+                                 down{std::strtol(std::get<1>(num13), &ends[13], 10)};
                              for (std::size_t ii{}; ii < ends.size(); ++ii) {
                                  if (std::get<1>(params[ii]) == ends[ii]) {
                                      return;
                                  }
                              }
                              auto const old_ctrl_btns{ctrl_btns};
-                             ctrl_btns = {x_btn != 0, circle_btn != 0, square_btn != 0, triangle_btn != 0, r1 != 0, l1 != 0};
+                             ctrl_btns = {x_btn != 0, circle_btn != 0, square_btn != 0, triangle_btn != 0, r1 != 0, l1 != 0, left != 0, up != 0, right != 0, down != 0};
                              if (!old_ctrl_btns[3] && triangle_btn) {
                                  // on/off
                                  active = !active;
@@ -122,13 +134,13 @@ namespace
                              // movement
                              target_pos += move_adrc.m_rotation * math::rotation_matrix2(-math::tau / 4.) *
                                            std::remove_reference_t<decltype(target_pos)>{
-                                               l_js_x / 100. * task_robot_translation_velocity * dt,  // x
-                                               -l_js_y / 100. * task_robot_translation_velocity * dt, // y
+                                               l_js_x / 100. * task_robot_translation_velocity[curr_velocities] * dt,  // x
+                                               -l_js_y / 100. * task_robot_translation_velocity[curr_velocities] * dt, // y
                                            };
                              // rotate anticlockwise
-                             target_rot += l2 / 100. * task_robot_rotation_velocity * dt;
+                             target_rot += l2 / 100. * task_robot_rotation_velocity[curr_velocities] * dt;
                              // rotate clockwise
-                             target_rot -= r2 / 100. * task_robot_rotation_velocity * dt;
+                             target_rot -= r2 / 100. * task_robot_rotation_velocity[curr_velocities] * dt;
                              if (!old_ctrl_btns[0] && x_btn) {
                                  // control the stand of holding grabs
                                  stand.toggle();
@@ -144,6 +156,12 @@ namespace
                                  // grab 2 seedlings
                                  grab2.toggle();
                              }
+
+                             if (!old_ctrl_btns[11] && up)
+                                curr_velocities = std::max(0, curr_velocities-1);
+                            
+                             if (!old_ctrl_btns[13] && down)
+                                curr_velocities = std::min(2, curr_velocities+1);
                          });
 
         Time time{};
