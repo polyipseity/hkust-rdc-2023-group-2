@@ -37,6 +37,7 @@ namespace
 
     constexpr auto const auto_robot_thrower_velocity{math::tau}; // For safety, do not remove.
     constexpr std::array<double, 2> const auto_robot_thrower_offsets{math::tau / 8., math::tau / 4.};
+    constexpr auto const auto_robot_thrower_confirmation_time{1.};
 
     /**
      * @brief Code for auto robot
@@ -235,7 +236,20 @@ namespace
                 output("navigating");
             }
             thrower_rot += *auto_robot_thrower_offset_iter++;
-            while (std::abs(thrower_rot - thrower_adrc.m_position) > auto_robot_rotation_tolerance) {
+            bool thrown{};
+            auto last_match{-auto_robot_thrower_confirmation_time};
+            while (!thrown) {
+                auto const thrown_now{std::abs(thrower_rot - thrower_adrc.m_position) > auto_robot_rotation_tolerance};
+                if (thrown_now) {
+                    if (last_match <= 0.) {
+                        last_match = time.time();
+                    }
+                    if (time.time() - last_match >= auto_robot_thrower_confirmation_time) {
+                        thrown = true;
+                    }
+                } else {
+                    last_match = -auto_robot_thrower_confirmation_time;
+                }
                 input();
                 output("throwing");
             }
