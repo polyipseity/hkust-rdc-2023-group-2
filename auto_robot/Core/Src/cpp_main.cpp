@@ -191,6 +191,20 @@ namespace
             output("waiting");
         }
         long cur_line{4}; // 0, line, 2, line, 4, line, 6, line, 8
+        if (line_sensor_mid.read()) {
+            bool modified{};
+            if (line_sensor_left.read()) {
+                --cur_line;
+                modified = true;
+            }
+            if (line_sensor_right.read()) {
+                ++cur_line;
+                modified = true;
+            }
+            if (!modified) {
+                ++cur_line; // assume left bias
+            }
+        }
         auto detect_line_change{[&, last_change{time.time()}, last_line{line_sensor_mid.read()}, last_confirmed_line{line_sensor_mid.read()}](bool line) mutable {
             if (last_line != line) {
                 last_line   = line;
