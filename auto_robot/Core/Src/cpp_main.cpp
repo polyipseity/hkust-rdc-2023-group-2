@@ -30,13 +30,13 @@ namespace
     constexpr auto const auto_robot_line_tracker_correction_time{.25};
     constexpr auto const auto_robot_line_tracker_delay_time{.1};
 
-    constexpr auto const auto_robot_navigation_initial_translation{.25};
+    constexpr auto const auto_robot_navigation_initial_translation{.3};
     constexpr auto const auto_robot_navigation_angular_velocity{math::tau / 32.};
-    constexpr auto const auto_robot_navigation_approach_translation{.1};
-    constexpr auto const auto_robot_line_sensor_filter_time{.3};
+    constexpr auto const auto_robot_navigation_approach_translation{.15};
+    constexpr auto const auto_robot_line_sensor_filter_time{.1};
 
     constexpr auto const auto_robot_thrower_velocity{math::tau}; // For safety, do not remove.
-    constexpr std::array<double, 2> const auto_robot_thrower_offsets{math::tau / 8., math::tau / 4.};
+    constexpr std::array<double, 2> const auto_robot_thrower_offsets{math::tau / 32. + math::tau / 8., math::tau / 4.};
     constexpr auto const auto_robot_thrower_confirmation_time{1.};
 
     /**
@@ -149,7 +149,7 @@ namespace
         }
 
         // Movement
-        auto track_line{[&, last_line_left{false}, last_line_right{false}, last_change{time.time()}](bool line_left, bool line_right) mutable {
+        auto track_line{[&, last_line_left{line_sensor_left.read()}, last_line_right{line_sensor_right.read()}, last_change{time.time()}](bool line_left, bool line_right) mutable {
             if (last_line_left != line_left) {
                 last_line_left = line_left;
                 last_change    = time.time();
