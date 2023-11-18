@@ -76,8 +76,9 @@ namespace
                              - triangle button: toggle the active status
                              - R1: grab 1
                              - L1: grab 2
-                             - up botton: increase velocities
-                             - down botton: decrease velocities
+                             - up button: decrease velocities
+                             - down button: increase velocities
+
                              message
                              c(num0),(num1),(num2),(num3),(num4),(num5),(num6),(num7),(num8),(num9)\n
                              - length: 1 + (4 + 1) * 2 + (3 + 1) * 2 + (1 + 1) * 10 - 1 + 1
