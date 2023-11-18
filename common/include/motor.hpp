@@ -247,7 +247,7 @@ public:
  * @param gain acceleration per current
  * @return a controller for the motor
  */
-auto new_motor_ADRC_auto [[nodiscard]] (CANMotor const &motor, double convergence = 64., double gain = 227.) noexcept -> control::ADRC2d;
+auto new_motor_ADRC_auto [[nodiscard]] (CANMotor const &motor, double convergence = 32., double gain = 227.) noexcept -> control::ADRC2d;
 
 /**
  * @brief Construct a new controller for motors in the task robot
