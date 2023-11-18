@@ -83,6 +83,7 @@ public class MainActivity extends AppCompatActivity {
             // the UUID and then the handler to update the UI
             ConnectThread connectThread = new ConnectThread(arduinoBTModule, arduinoUUID, handler);
             connectThread.run();
+
             //Check if Socket connected
             if (connectThread.getMmSocket().isConnected()) {
                 Log.d(TAG, "Calling ConnectedThread class");
@@ -158,8 +159,8 @@ public class MainActivity extends AppCompatActivity {
 
                                                         // CHANGE HERE BLUETOOTH NAME
                             //if (deviceName.equals("HC-05 (RDC 2023 Group 2) 3")) {
-                            //if (deviceName.equals("Zhanibek’s MacBook Air")) {
-                            if (deviceName.equals("HC-05 (RDC 2023 Group 2) 3")) {
+                            if (deviceName.equals("Zhanibek’s MacBook Air")) {
+                            //if (deviceName.equals("HC-05 (RDC 2023 Group 2) 3")) {
                                                                 // HERE
                                                         // HERE
                                                         // HERE

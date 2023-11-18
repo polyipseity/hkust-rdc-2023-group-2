@@ -22,6 +22,7 @@ public class ConnectThread extends Thread {
     public ConnectThread(BluetoothDevice device, UUID MY_UUID, Handler handler) {
         // Use a temporary object that is later assigned to mmSocket
         // because mmSocket is final.
+        Log.e(TAG, "breaks here");
         BluetoothSocket tmp = null;
         this.handler=handler;
 

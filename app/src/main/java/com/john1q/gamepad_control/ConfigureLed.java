@@ -11,9 +11,13 @@ import android.view.MotionEvent;
 import android.widget.SeekBar;
 import android.widget.TextView;
 import android.os.Handler;
+import android.util.Log;
 
 //import com.sarmale.arduinobtexampleledcontrol.R;
 import com.john1q.gamepad_control.R;
+
+
+
 
 public class ConfigureLed extends AppCompatActivity {
 
@@ -29,12 +33,23 @@ public class ConfigureLed extends AppCompatActivity {
     int r1Button = 0;
     int l1Button = 0;
 
+    int btn_left, btn_up, btn_right, btn_down = 0;
+
+    final static int UP       = 0;
+    final static int LEFT     = 1;
+    final static int RIGHT    = 2;
+    final static int DOWN     = 3;
+    final static int CENTER   = 4;
+
     int joystick_connected;
+    Dpad dpad = new Dpad();
+
 
     String message = "c" + String.valueOf(stick_x) + "," + String.valueOf(stick_y) + "," + String.valueOf(r2) + "," +
             String.valueOf(l2) + "," +String.valueOf(btna) + "," + String.valueOf(btnb) + "," +
             String.valueOf(btnx) + "," + String.valueOf(btny) + "," + String.valueOf(r1Button) + "," +
-            String.valueOf(l1Button) + "\n";
+            String.valueOf(l1Button) + "," + String.valueOf(btn_left) + "," + String.valueOf(btn_up) + "," +
+            String.valueOf(btn_right) + "," + String.valueOf(btn_down) + "\n";
 
     ConnectedThread connectedThread;
 
@@ -59,12 +74,14 @@ public class ConfigureLed extends AppCompatActivity {
         handler.postDelayed(runnable = new Runnable() {
             public void run() {
                 handler.postDelayed(runnable, delay);
-                // send a text: 'a'
-                connectedThread.write(message + "\r\n");
+                // Update the message
                 message = "c" + String.valueOf(stick_x) + "," + String.valueOf(stick_y) + "," + String.valueOf(r2) + "," +
                         String.valueOf(l2) + "," +String.valueOf(btna) + "," + String.valueOf(btnb) + "," +
                         String.valueOf(btnx) + "," + String.valueOf(btny) + "," + String.valueOf(r1Button) + "," +
-                        String.valueOf(l1Button) + "\n";
+                        String.valueOf(l1Button) + "," + String.valueOf(btn_left) + "," + String.valueOf(btn_up) + "," +
+                        String.valueOf(btn_right) + "," + String.valueOf(btn_down) + "\n";
+                connectedThread.write(message + "\r\n");
+                textView3.setText(message);
 
             }
         }, delay);
@@ -89,6 +106,33 @@ public class ConfigureLed extends AppCompatActivity {
             float r2_val = event.getAxisValue(MotionEvent.AXIS_RTRIGGER);
             float l2_val = event.getAxisValue(MotionEvent.AXIS_LTRIGGER);
 
+
+            float hatX = event.getAxisValue(MotionEvent.AXIS_HAT_X);
+            float hatY = event.getAxisValue(MotionEvent.AXIS_HAT_Y);
+
+            if (hatX == 1) {
+                btn_right = 1;
+                btn_left = 0;
+            } else if (hatX == -1){
+                btn_right = 0;
+                btn_left = 1;
+            } else {
+                btn_right = 0;
+                btn_left = 0;
+            }
+
+            if (hatY == 1) {
+                btn_down = 1;
+                btn_up = 0;
+            } else if (hatY == -1){
+                btn_down = 0;
+                btn_up = 1;
+            } else {
+                btn_up = 0;
+                btn_down = 0;
+            }
+
+
             stick_x = (int) (xValue * 100);
             stick_y = (int) (yValue * 100);
 
@@ -96,15 +140,7 @@ public class ConfigureLed extends AppCompatActivity {
             l2 = (int) (l2_val * 100);
 
             // Use the X and Y values as needed (here, just displaying in TextView)
-            textView2.setText("Joystick X: " + stick_x + "\nJoystick Y: " + stick_y + "\nL2: " + l2 + "\nR2: " + r2);
-
-            message = "c" + String.valueOf(stick_x) + "," + String.valueOf(stick_y) + "," + String.valueOf(r2) + "," +
-                    String.valueOf(l2) + "," +String.valueOf(btna) + "," + String.valueOf(btnb) + "," +
-                    String.valueOf(btnx) + "," + String.valueOf(btny) + "," + String.valueOf(r1Button) + "," +
-                    String.valueOf(l1Button) + "\n";
-
-            textView3.setText(message);
-
+            //textView2.setText("Joystick X: " + stick_x + "\nJoystick Y: " + stick_y + "\nL2: " + l2 + "\nR2: " + r2);
 
 
             return true; // To consume the event
@@ -129,96 +165,66 @@ public class ConfigureLed extends AppCompatActivity {
         return 0;
     }
 
+
     @Override
     public boolean dispatchKeyEvent(KeyEvent event) {
         int keyCode = event.getKeyCode();
+        textView2.setText(String.valueOf(keyCode));
+
 
         if (event.getAction() == KeyEvent.ACTION_DOWN && keyCode == KeyEvent.KEYCODE_BUTTON_R1) {
+            // R1 button pressed
             r1Button = 1;
-
+            return true;
         } else if (event.getAction() == KeyEvent.ACTION_UP && keyCode == KeyEvent.KEYCODE_BUTTON_R1) {
             r1Button = 0;
-
         }
 
-// Similarly for L1 button
-
         if (event.getAction() == KeyEvent.ACTION_DOWN && keyCode == KeyEvent.KEYCODE_BUTTON_L1) {
+            // L1 button pressed
             l1Button = 1;
-
+            return true;
         } else if (event.getAction() == KeyEvent.ACTION_UP && keyCode == KeyEvent.KEYCODE_BUTTON_L1) {
             l1Button = 0;
         }
 
         if (event.getAction() == KeyEvent.ACTION_DOWN && keyCode == KeyEvent.KEYCODE_BUTTON_X) {
-            // Change TextView value when "X" button is pressed
             textView.setText("Button X Pressed!");
             btnx = 1;
-
-            message = "c" + String.valueOf(stick_x) + "," + String.valueOf(stick_y) + "," + String.valueOf(r2) + "," +
-                    String.valueOf(l2) + "," +String.valueOf(btna) + "," + String.valueOf(btnb) + "," +
-                    String.valueOf(btnx) + "," + String.valueOf(btny) + "," + String.valueOf(r1Button) + "," +
-                    String.valueOf(l1Button) + "\n";
-
-            textView3.setText(message);
-            // SHOUD HERE BE THE b \r\n??
             return true; // To consume the event
         } else {
             btnx = 0;
         }
 
         if (event.getAction() == KeyEvent.ACTION_DOWN && keyCode == KeyEvent.KEYCODE_BUTTON_Y) {
-            // Change TextView value when "X" button is pressed
+            // Change TextView value when "Y" button is pressed
             textView.setText("Button Y Pressed!");
             btny = 1;
-
-            message = "c" + String.valueOf(stick_x) + "," + String.valueOf(stick_y) + "," + String.valueOf(r2) + "," +
-                    String.valueOf(l2) + "," +String.valueOf(btna) + "," + String.valueOf(btnb) + "," +
-                    String.valueOf(btnx) + "," + String.valueOf(btny) + "," + String.valueOf(r1Button) + "," +
-                    String.valueOf(l1Button) + "\n";
-
-            textView3.setText(message);
             return true; // To consume the event
+
         } else {
             btny = 0;
         }
 
         if (event.getAction() == KeyEvent.ACTION_DOWN && keyCode == KeyEvent.KEYCODE_BUTTON_B) {
-            // Change TextView value when "X" button is pressed
+            // Change TextView value when "B" button is pressed
             textView.setText("Button B Pressed!");
             btnb = 1;
-
-            message = "c" + String.valueOf(stick_x) + "," + String.valueOf(stick_y) + "," + String.valueOf(r2) + "," +
-                    String.valueOf(l2) + "," +String.valueOf(btna) + "," + String.valueOf(btnb) + "," +
-                    String.valueOf(btnx) + "," + String.valueOf(btny) + "," + String.valueOf(r1Button) + "," +
-                    String.valueOf(l1Button) + "\n";
-
-            textView3.setText(message);
             return true; // To consume the event
+
         } else {
             btnb = 0;
         }
 
         if (event.getAction() == KeyEvent.ACTION_DOWN && keyCode == KeyEvent.KEYCODE_BUTTON_A) {
-            // Change TextView value when "X" button is pressed
+            // Change TextView value when "A" button is pressed
             textView.setText("Button A Pressed!");
             btna = 1;
-
-            message = "c" + String.valueOf(stick_x) + "," + String.valueOf(stick_y) + "," + String.valueOf(r2) + "," +
-                    String.valueOf(l2) + "," +String.valueOf(btna) + "," + String.valueOf(btnb) + "," +
-                    String.valueOf(btnx) + "," + String.valueOf(btny) + "," + String.valueOf(r1Button) + "," +
-                    String.valueOf(l1Button) + "\n";
-
-            textView3.setText(message);
             return true; // To consume the event
         } else {
             btna = 0;
         }
 
-
-
-
-        //connectedThread = MyApplication.getApplication().getCurrentConnectedThread();
 
         return super.dispatchKeyEvent(event);
 
