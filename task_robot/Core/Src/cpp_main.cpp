@@ -65,7 +65,10 @@ namespace
                              - L2: rotate left
                              - R2: rotate right
                              - X button: toggle the active status
-                             - triangle button: toggle auto shortcut mode
+                             - circle button: toggle auto shortcut mode // todo
+                             - triangle button: grab 1 // todo
+                             - square button: grab 2 // todo
+                             - R1 button: stand // todo
 
                              message
                              c(num0),(num1),(num2),(num3),(num4),(num5),(num6),(num7)\n
@@ -76,8 +79,9 @@ namespace
                              - num3: L2, [0, 100]
                              - num4: X button, [0, 1]
                              - num5: circle button, [0, 1]
-                             - num6: square button, [0, 1]
-                             - num7: triangle button, [0, 1]
+                             - num6: triangle button, [0, 1]
+                             - num7: square button, [0, 1]
+                             - num8: R1, [0, 1]
                              */
                              auto &&[num0, num1, num2, num3, num4, num5, num6, num7]{params};
                              std::array<char *, 8> ends{};
