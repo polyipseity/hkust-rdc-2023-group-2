@@ -22,8 +22,8 @@ namespace
     constexpr std::array<double, 3> const task_robot_rotation_velocity{math::tau / 12, math::tau / 4, math::tau / 2.};
     constexpr auto const task_robot_init_velocities{1};
     constexpr auto const task_robot_valve_reversed{false};
-    constexpr auto const task_robot_auto_translation_velocity{0.7};         
-    constexpr auto const task_robot_auto_rotation_velocity{math::tau / 6.}; 
+    constexpr auto const task_robot_auto_translation_velocity{0.7};
+    constexpr auto const task_robot_auto_rotation_velocity{math::tau / 6.};
     constexpr auto const task_robot_auto_tof_ranage{50};
     constexpr auto const task_robot_auto_tof_reading_to_mm{140};
     constexpr auto const task_robot_auto_max_distance_tof2_wall{380};
@@ -78,7 +78,6 @@ namespace
                              - L1: grab 2
                              - up botton: increase velocities
                              - down botton: decrease velocities
-
                              message
                              c(num0),(num1),(num2),(num3),(num4),(num5),(num6),(num7),(num8),(num9)\n
                              - length: 1 + (4 + 1) * 2 + (3 + 1) * 2 + (1 + 1) * 10 - 1 + 1
@@ -156,12 +155,10 @@ namespace
                                  // grab 2 seedlings
                                  grab2.toggle();
                              }
-
                              if (!old_ctrl_btns[11] && up)
-                                curr_velocities = std::max(0, curr_velocities-1);
-                            
+                                 curr_velocities = std::max(0, curr_velocities - 1);
                              if (!old_ctrl_btns[13] && down)
-                                curr_velocities = std::min(2, curr_velocities+1);
+                                 curr_velocities = std::min(2, curr_velocities + 1);
                          });
 
         Time time{};
@@ -196,7 +193,7 @@ namespace
             if (pre_state == 0 && btn.read())
                 pre_state = 1;
             else if (pre_state == 1 && !btn.read()) {
-                pre_state = 0;
+                pre_state      = 0;
                 left_mode_auto = !left_mode_auto;
             }
 
@@ -204,39 +201,39 @@ namespace
                 pre_state_2 = 1;
             else if (pre_state_2 == 1 && !btn2.read()) {
                 pre_state_2 = 0;
-                automode = !automode;
+                automode    = !automode;
             }
 
             if (!active) {
                 target_pos = move_adrc.m_position;
                 target_rot = math::rotation_matrix2_angle(move_adrc.m_rotation);
-            } else if (automode) { // auto shortcut
-                if (left_mode_auto) { // wall on left hand side
+            } else if (automode) {                              // auto shortcut
+                if (left_mode_auto) {                           // wall on left hand side
                     if (!tof2_valid && tof2_distance_mm == 0) { // too close to the wall
-                        target_pos += math::rotation_matrix2(target_rot - math::tau/4.) * std::remove_reference_t<decltype(target_pos)>{0.25*task_robot_auto_translation_velocity * dt, 0.};
+                        target_pos += math::rotation_matrix2(target_rot - math::tau / 4.) * std::remove_reference_t<decltype(target_pos)>{0.25 * task_robot_auto_translation_velocity * dt, 0.};
                     } else if (!tof3_valid && tof3_distance_mm == 0) { // too far away from the wall
-                        target_pos += math::rotation_matrix2(target_rot - math::tau/4.) * std::remove_reference_t<decltype(target_pos)>{-0.25*task_robot_auto_translation_velocity * dt, 0.};
+                        target_pos += math::rotation_matrix2(target_rot - math::tau / 4.) * std::remove_reference_t<decltype(target_pos)>{-0.25 * task_robot_auto_translation_velocity * dt, 0.};
                     } else {
                         if (tof2_distance_mm - tof3_distance_mm > task_robot_auto_tof_ranage) // face to NE
                             target_rot += task_robot_auto_rotation_velocity * dt;
                         else if (tof3_distance_mm - tof2_distance_mm > task_robot_auto_tof_ranage) // face to NW
                             target_rot -= task_robot_auto_rotation_velocity * dt;
                         else {
-                            target_pos += math::rotation_matrix2(target_rot - math::tau/4.) * std::remove_reference_t<decltype(target_pos)>{0., task_robot_auto_translation_velocity * dt};
+                            target_pos += math::rotation_matrix2(target_rot - math::tau / 4.) * std::remove_reference_t<decltype(target_pos)>{0., task_robot_auto_translation_velocity * dt};
                         }
                     }
                 } else {                                        // wall on the right hand side
                     if (!tof2_valid && tof2_distance_mm == 0) { // too close to the wall
-                        target_pos += math::rotation_matrix2(target_rot - math::tau/4.) * std::remove_reference_t<decltype(target_pos)>{-0.25*task_robot_auto_translation_velocity * dt, 0.};
+                        target_pos += math::rotation_matrix2(target_rot - math::tau / 4.) * std::remove_reference_t<decltype(target_pos)>{-0.25 * task_robot_auto_translation_velocity * dt, 0.};
                     } else if (!tof3_valid && tof3_distance_mm == 0) { // too far away from the wall
-                        target_pos += math::rotation_matrix2(target_rot - math::tau/4.) * std::remove_reference_t<decltype(target_pos)>{0.25*task_robot_auto_translation_velocity * dt, 0.};
+                        target_pos += math::rotation_matrix2(target_rot - math::tau / 4.) * std::remove_reference_t<decltype(target_pos)>{0.25 * task_robot_auto_translation_velocity * dt, 0.};
                     } else {
                         if (tof2_distance_mm - tof3_distance_mm > task_robot_auto_tof_ranage) // face to NW
                             target_rot -= task_robot_auto_rotation_velocity * dt;
                         else if (tof3_distance_mm - tof2_distance_mm > task_robot_auto_tof_ranage) // face to NE
                             target_rot += task_robot_auto_rotation_velocity * dt;
                         else
-                            target_pos += math::rotation_matrix2(target_rot - math::tau/4.) * std::remove_reference_t<decltype(target_pos)>{0., task_robot_auto_translation_velocity * dt};
+                            target_pos += math::rotation_matrix2(target_rot - math::tau / 4.) * std::remove_reference_t<decltype(target_pos)>{0., task_robot_auto_translation_velocity * dt};
                     }
                 }
             }
