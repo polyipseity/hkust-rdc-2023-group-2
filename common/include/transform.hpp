@@ -235,7 +235,7 @@ public:
                   double rotation,
                   decltype(m_velocities) velocities,
                   math::Vector<double, 4> gain = {
-                      .15 * math::pi * 22. / 30. / 10.,
+                      .15 * math::pi * 22. / 30. / 10. / 19. * 14.,
                       .15 * math::pi * 22. / 30. / 10. / 19. * 14.,
                       .15 * math::pi * 22. / 30. / 10. / 19. * 14.,
                       .15 * math::pi * 22. / 30. / 10.,
