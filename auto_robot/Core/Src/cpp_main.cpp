@@ -236,20 +236,19 @@ namespace
                 output("navigating");
             }
             thrower_rot += *auto_robot_thrower_offset_iter++;
-            bool thrown{};
             auto last_match{-auto_robot_thrower_confirmation_time};
-            while (!thrown) {
+            while (true) {
+                input();
                 if (std::abs(thrower_rot - thrower_adrc.m_position) <= auto_robot_rotation_tolerance) {
                     if (last_match <= 0.) {
                         last_match = time.time();
                     }
-                    if (time.time() - last_match >= auto_robot_thrower_confirmation_time) {
-                        thrown = true;
+                    if (last_match >= 0. && time.time() - last_match >= auto_robot_thrower_confirmation_time) {
+                        break;
                     }
                 } else {
                     last_match = -auto_robot_thrower_confirmation_time;
                 }
-                input();
                 output("throwing");
             }
             target_pos -= auto_robot_navigation_approach_translation;
