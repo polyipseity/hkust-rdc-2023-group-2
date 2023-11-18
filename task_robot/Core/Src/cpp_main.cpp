@@ -227,10 +227,10 @@ namespace
                 tft_prints(0, 1, "pos_t: %.2f, %.2f", target_pos(0), target_pos(1));
                 tft_prints(0, 2, "rot: %.2f", math::rotation_matrix2_angle(move_adrc.m_rotation));
                 tft_prints(0, 3, "rot_t: %.2f, %c", target_rot, left_mode_auto ? 'C' : 'R');
-                tft_prints(0, 4, "v: %.2f, %.2f", motors[0].get_velocity(), motors[1].get_velocity());
-                tft_prints(0, 5, "   %.2f, %.2f", motors[2].get_velocity(), motors[3].get_velocity());
-                tft_prints(0, 6, "v_t: %.2f, %.2f", v_fl, v_fr);
-                tft_prints(0, 7, "     %.2f, %.2f", v_rl, v_rr);
+                tft_prints(0, 4, "v: %.2f, %.2f", motors[0].get_velocity() / 14., motors[1].get_velocity() / 19.);
+                tft_prints(0, 5, "   %.2f, %.2f", motors[2].get_velocity() / 19., motors[3].get_velocity() / 14.);
+                tft_prints(0, 6, "v_t: %.2f, %.2f", v_fl / 14., v_fr / 19.);
+                tft_prints(0, 7, "     %.2f, %.2f", v_rl / 19., v_rr / 14.);
                 tft_prints(0, 8, "tof: %d, %d, %s", tof2_valid, tof2_distance_mm, (tof2_distance_mm - tof3_distance_mm > task_robot_auto_tof_ranage) ? "f>b" : "f=b");
                 tft_prints(0, 9, "     %d, %d, %s", tof3_valid, tof3_distance_mm, (tof3_distance_mm - tof2_distance_mm > task_robot_auto_tof_ranage) ? "f<b" : "f=b");
             }
