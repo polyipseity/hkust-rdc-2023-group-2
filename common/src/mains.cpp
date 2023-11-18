@@ -280,16 +280,22 @@ namespace test
   {
     CANMotors<1> motors_r{{motor_handle}};
     std::array<control::ADRC2d, 1> motor_adrcs{
-        new_motor_ADRC_auto(motors_r[0], .5, 8.),
+        new_motor_ADRC_auto(motors_r[0], .5, 24.),
     };
-    PositionADRC thrower_adrc{0., motors_r[0].get_velocity(), math::tau * .1 * 8.5 / 30.};
+    PositionADRC thrower_adrc{0., motors_r[0].get_velocity(), math::tau * .1 * 9. / 30.};
 
     Time time{};
-    double thrower_rot{math::tau / 2.};
+    double thrower_rot{math::tau / 8.};
+    auto const initial_time{time.time()};
     while (true)
     {
       auto const dt{time.update()};
       CANMotorsControl<1> motors{motors_r};
+
+      if (time.time() - initial_time >= 6.)
+      {
+        thrower_rot = math::tau / 32. + math::tau / 8. + math::tau / 4.;
+      }
 
       auto const thrower_v{thrower_adrc.update(thrower_rot, motors[0].get_velocity(), dt)};
       update_motor_velocity(motors[0], motor_adrcs[0], std::copysign(std::min(math::tau / thrower_adrc.m_gain, std::abs(thrower_v)), thrower_v), dt);
