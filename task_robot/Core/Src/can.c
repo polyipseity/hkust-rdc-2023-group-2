@@ -297,34 +297,6 @@ void HAL_CAN_RxFifo0MsgPendingCallback(CAN_HandleTypeDef *hcan)
     rm_fb_cmd[base_id].temperature    = fb.temperature;
 }
 
-void HAL_CAN_RxFifo0MsgPendingCallback1()
-{
-    CAN_RxHeaderTypeDef rx_header;
-    uint8_t rx_data[8];
-    HAL_CAN_GetRxMessage(&hcan1, CAN_RX_FIFO0, &rx_header, rx_data);
-    uint8_t base_id = rx_header.StdId - CAN_3508_M1_ID;
-    MotorFeedback fb;
-    __get_motor_fb(&fb, rx_data);
-    rm_fb_cmd[base_id].encoder        = fb.encoder;
-    rm_fb_cmd[base_id].vel_rpm        = fb.vel_rpm;
-    rm_fb_cmd[base_id].actual_current = (float)fb.raw_current * 20.0f / 16384.0f;
-    rm_fb_cmd[base_id].temperature    = fb.temperature;
-}
-
-void HAL_CAN_RxFifo0MsgPendingCallback2()
-{
-    CAN_RxHeaderTypeDef rx_header;
-    uint8_t rx_data[8];
-    HAL_CAN_GetRxMessage(&hcan2, CAN_RX_FIFO0, &rx_header, rx_data);
-    uint8_t base_id = rx_header.StdId - CAN_3508_M1_ID + 8;
-    MotorFeedback fb;
-    __get_motor_fb(&fb, rx_data);
-    rm_fb_cmd[base_id].encoder        = fb.encoder;
-    rm_fb_cmd[base_id].vel_rpm        = fb.vel_rpm;
-    rm_fb_cmd[base_id].actual_current = (float)fb.raw_current * 20.0f / 16384.0f;
-    rm_fb_cmd[base_id].temperature    = fb.temperature;
-}
-
 void can_transmit(CAN_HandleTypeDef *hcan, uint16_t id, int16_t msg1, int16_t msg2, int16_t msg3, int16_t msg4)
 {
     CAN_TxHeaderTypeDef tx_header;
@@ -367,8 +339,8 @@ void can_ctrl_loop()
                  rm_ctrl_cmd[CAN2_MOTOR7]);
 
     /* ======= RX ======= */
-    HAL_CAN_RxFifo0MsgPendingCallback1();
-    HAL_CAN_RxFifo0MsgPendingCallback2();
+    HAL_CAN_RxFifo0MsgPendingCallback(&hcan1);
+    HAL_CAN_RxFifo0MsgPendingCallback(&hcan2);
 }
 
 /* USER FUNCTIONS */
