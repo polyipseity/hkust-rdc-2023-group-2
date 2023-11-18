@@ -24,15 +24,15 @@ namespace
     constexpr auto const auto_robot_rotation_velocity{math::tau / 16.};
     constexpr auto const auto_robot_rotation_tolerance{math::tau / 128.};
 
-    constexpr auto const auto_robot_calibration_initial_translation{.1};
+    constexpr auto const auto_robot_calibration_initial_translation{.2};
     constexpr auto const auto_robot_calibrate_angular_velocity{math::tau / 32.};
-    constexpr auto const auto_robot_line_tracker_correction_time{.25};
+    constexpr auto const auto_robot_line_tracker_correction_time{.1};
     constexpr auto const auto_robot_line_tracker_delay_time{.1};
 
-    constexpr auto const auto_robot_navigation_initial_translation{.15};
-    constexpr auto const auto_robot_navigation_angular_velocity{math::tau / 64.};
-    constexpr auto const auto_robot_navigation_approach_translation{.2};
-    constexpr auto const auto_robot_line_sensor_filter_time{.1};
+    constexpr auto const auto_robot_navigation_initial_translation{.25};
+    constexpr auto const auto_robot_navigation_angular_velocity{math::tau / 32.};
+    constexpr auto const auto_robot_navigation_approach_translation{.1};
+    constexpr auto const auto_robot_line_sensor_filter_time{.3};
 
     constexpr auto const auto_robot_thrower_velocity{math::tau}; // For safety, do not remove.
     constexpr std::array<double, 2> const auto_robot_thrower_offsets{math::tau / 3., math::tau * 5. / 24.};
