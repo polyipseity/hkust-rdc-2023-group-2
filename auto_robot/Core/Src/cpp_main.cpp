@@ -29,6 +29,7 @@ namespace
     constexpr auto const auto_robot_rotation_correction{math::tau / 32.};
     constexpr auto const auto_robot_line_tracker_correction_time{.25};
     constexpr auto const auto_robot_line_tracker_delay_time{.1};
+    constexpr auto const auto_robot_avg_forward_rotation_time{2.};
 
     constexpr auto const auto_robot_navigation_initial_translation{.3};
     constexpr auto const auto_robot_navigation_angular_velocity{math::tau / 32.};
@@ -169,12 +170,15 @@ namespace
             }
             return line_left && line_right;
         }};
+        auto avg_forward_rotation{target_rot};
         while (true) {
             input();
             auto const line_left{line_sensor_left.read()}, line_right{line_sensor_right.read()};
             if (track_line(line_left, line_right)) {
+                target_rot = avg_forward_rotation;
                 break;
             }
+            avg_forward_rotation += (target_rot - avg_forward_rotation) * dt / auto_robot_avg_forward_rotation_time;
             target_pos += auto_robot_translation_velocity * dt;
             output("moving");
         }
