@@ -37,7 +37,7 @@ namespace
     constexpr auto const auto_robot_navigation_rotation_inner_offset{math::tau / 32.};
 
     constexpr auto const auto_robot_thrower_velocity{math::tau}; // For safety, do not remove.
-    constexpr std::array<double, 2> const auto_robot_thrower_offsets{math::tau / 6. - math::tau / 64., math::tau / 2. + math::tau / 64.};
+    constexpr std::array<double, 2> const auto_robot_thrower_offsets{math::tau / 6. - math::tau / 64., math::tau / 2. + math::tau / 32.};
     constexpr auto const auto_robot_thrower_confirmation_time{1.};
 
     /**
