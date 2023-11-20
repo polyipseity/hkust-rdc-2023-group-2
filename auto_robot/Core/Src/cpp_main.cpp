@@ -114,7 +114,8 @@ namespace
                 tft_prints(0, 4, "v: %.2f, %.2f", motors[0].get_velocity(), motors[1].get_velocity());
                 tft_prints(0, 5, "v_t: %.2f, %.2f", v_l, v_r);
                 tft_prints(0, 6, "sensor: %d, %d, %d", line_sensor_left.read(), line_sensor_mid.read(), line_sensor_right.read());
-                tft_prints(0, 7, "%s", state);
+                tft_prints(0, 7, "targets: %d, %d", box_targets ? static_cast<int>((*box_targets)[0]) : -1, box_targets ? static_cast<int>((*box_targets)[1]) : -1);
+                tft_prints(0, 8, "%s", state);
             }
         }};
 
