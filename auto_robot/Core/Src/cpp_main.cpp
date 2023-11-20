@@ -30,14 +30,14 @@ namespace
     constexpr auto const auto_robot_line_tracker_delay_time{.1};
     constexpr auto const auto_robot_avg_forward_rotation_time{4.};
 
-    constexpr auto const auto_robot_navigation_initial_translation{.35};
+    constexpr auto const auto_robot_navigation_initial_translation{.3};
     constexpr auto const auto_robot_navigation_side_translation{.1};
     constexpr auto const auto_robot_navigation_angular_velocity{math::tau / 32.};
     constexpr auto const auto_robot_line_sensor_filter_time{.15};
     constexpr auto const auto_robot_navigation_rotation_inner_offset{math::tau / 32.};
 
     constexpr auto const auto_robot_thrower_velocity{math::tau}; // For safety, do not remove.
-    constexpr std::array<double, 2> const auto_robot_thrower_offsets{math::tau / 6. - math::tau / 64., math::tau / 2. + math::tau / 32.};
+    constexpr std::array<double, 2> const auto_robot_thrower_offsets{math::tau / 6., math::tau / 2. + math::tau / 64.};
     constexpr auto const auto_robot_thrower_confirmation_time{1.};
 
     /**
