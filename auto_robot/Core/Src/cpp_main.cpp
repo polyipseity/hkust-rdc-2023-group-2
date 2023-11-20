@@ -249,8 +249,8 @@ namespace
                 output("navigating");
             }
             auto const inner_direction{target == 1. ? -1. : target == 7 ? 1
-                                                        : target == 3   ? -2. / 3.
-                                                        : target == 5   ? 2. / 3.
+                                                        : target == 3   ? -.5
+                                                        : target == 5   ? .5
                                                                         : 0.};
             target_rot += inner_direction * auto_robot_navigation_rotation_inner_offset;
             while (true) {
