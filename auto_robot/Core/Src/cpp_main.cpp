@@ -121,9 +121,31 @@ namespace
 
         // Testing
         if (button1.read() || button2.read()) {
+            auto auto_robot_thrower_offset_iter{std::cbegin(auto_robot_thrower_offsets)};
             while (true) {
-                input();
-                output("Testing");
+                if (auto_robot_thrower_offset_iter == std::cend(auto_robot_thrower_offsets)) {
+                    while (true) {
+                        input();
+                        output("testing");
+                    }
+                } else {
+                    thrower_rot += *auto_robot_thrower_offset_iter++;
+                }
+                auto last_match{-auto_robot_thrower_confirmation_time};
+                while (true) {
+                    input();
+                    if (std::abs(thrower_rot - thrower_adrc.m_position) <= auto_robot_rotation_tolerance * 2.) {
+                        if (last_match <= 0.) {
+                            last_match = time.time();
+                        }
+                        if (last_match >= 0. && time.time() - last_match >= auto_robot_thrower_confirmation_time) {
+                            break;
+                        }
+                    } else {
+                        last_match = -auto_robot_thrower_confirmation_time;
+                    }
+                    output("throwing");
+                }
             }
         }
 
@@ -252,7 +274,7 @@ namespace
             auto last_match{-auto_robot_thrower_confirmation_time};
             while (true) {
                 input();
-                if (std::abs(thrower_rot - thrower_adrc.m_position) <= auto_robot_rotation_tolerance) {
+                if (std::abs(thrower_rot - thrower_adrc.m_position) <= auto_robot_rotation_tolerance * 2.) {
                     if (last_match <= 0.) {
                         last_match = time.time();
                     }
