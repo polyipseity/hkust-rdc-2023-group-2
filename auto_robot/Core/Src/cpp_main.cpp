@@ -120,7 +120,7 @@ namespace
         }};
 
         // Testing
-        if (button1.read() || button2.read()) {
+        if (button1.read()) {
             auto auto_robot_thrower_offset_iter{std::cbegin(auto_robot_thrower_offsets)};
             while (true) {
                 if (auto_robot_thrower_offset_iter == std::cend(auto_robot_thrower_offsets)) {
@@ -150,20 +150,23 @@ namespace
         }
 
         // Initialization
+        auto const stationary_mode{button2.read()};
         auto const initial_time{time.time()};
         while (time.time() - initial_time <= auto_robot_initial_delay) {
             input();
             output("initializing");
         }
 
-        // Movement
-        target_pos += auto_robot_initial_translation;
-        while (true) {
-            input();
-            if (std::abs(target_pos - move_adrc.m_position) <= auto_robot_translation_tolerance) {
-                break;
+        if (!stationary_mode) {
+            // Movement
+            target_pos += auto_robot_initial_translation;
+            while (true) {
+                input();
+                if (std::abs(target_pos - move_adrc.m_position) <= auto_robot_translation_tolerance) {
+                    break;
+                }
+                output("moving");
             }
-            output("moving");
         }
         auto track_line{[&, last_line_left{line_sensor_left.read()}, last_line_right{line_sensor_right.read()}, last_change{time.time()}](bool line_left, bool line_right) mutable {
             if (last_line_left != line_left) {
@@ -185,28 +188,31 @@ namespace
             }
             return line_left && line_right;
         }};
-        auto avg_forward_rotation{math::rotation_matrix2_angle(move_adrc.m_rotation)};
-        while (true) {
-            input();
-            auto const line_left{line_sensor_left.read()}, line_right{line_sensor_right.read()};
-            if (track_line(line_left, line_right)) {
-                target_rot = avg_forward_rotation;
-                break;
+        if (!stationary_mode) {
+            auto avg_forward_rotation{math::rotation_matrix2_angle(move_adrc.m_rotation)};
+            while (true) {
+                input();
+                auto const line_left{line_sensor_left.read()}, line_right{line_sensor_right.read()};
+                if (track_line(line_left, line_right)) {
+                    target_rot = avg_forward_rotation;
+                    break;
+                }
+                avg_forward_rotation += (math::rotation_matrix2_angle(move_adrc.m_rotation) - avg_forward_rotation) * dt / auto_robot_avg_forward_rotation_time;
+                target_pos += auto_robot_translation_velocity * dt;
+                output("moving");
             }
-            avg_forward_rotation += (math::rotation_matrix2_angle(move_adrc.m_rotation) - avg_forward_rotation) * dt / auto_robot_avg_forward_rotation_time;
-            target_pos += auto_robot_translation_velocity * dt;
-            output("moving");
+
+            // Navigation
+            target_pos += auto_robot_navigation_initial_translation;
+            while (true) {
+                input();
+                if (std::abs(target_pos - move_adrc.m_position) <= auto_robot_translation_tolerance) {
+                    break;
+                }
+                output("navigating");
+            }
         }
 
-        // Navigation
-        target_pos += auto_robot_navigation_initial_translation;
-        while (true) {
-            input();
-            if (std::abs(target_pos - move_adrc.m_position) <= auto_robot_translation_tolerance) {
-                break;
-            }
-            output("navigating");
-        }
         while (!box_targets) {
             input();
             output("waiting");
