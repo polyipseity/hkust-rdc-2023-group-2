@@ -54,7 +54,9 @@ namespace
         };
         AutoRobotADRC move_adrc{0., math::tau / 4., {motors_r[0].get_velocity(), motors_r[1].get_velocity()}};
         PositionADRC thrower_adrc{0., motors_r[2].get_velocity(), math::tau / 31., 2.};
-        GPIO line_sensor_left{CAM_D1_GPIO_Port, CAM_D1_Pin, auto_robot_line_sensor_reversed},
+        GPIO button1{BTN1_GPIO_Port, BTN1_Pin, true},
+            button2{BTN2_GPIO_Port, BTN2_Pin, true},
+            line_sensor_left{CAM_D1_GPIO_Port, CAM_D1_Pin, auto_robot_line_sensor_reversed},
             line_sensor_right{CAM_D3_GPIO_Port, CAM_D3_Pin, auto_robot_line_sensor_reversed},
             line_sensor_mid{CAM_D5_GPIO_Port, CAM_D5_Pin, auto_robot_line_sensor_reversed};
 
@@ -115,6 +117,14 @@ namespace
                 tft_prints(0, 7, "%s", state);
             }
         }};
+
+        // Testing
+        if (button1.read() || button2.read()) {
+            while (true) {
+                input();
+                output("Testing");
+            }
+        }
 
         // Initialization
         auto const initial_time{time.time()};
